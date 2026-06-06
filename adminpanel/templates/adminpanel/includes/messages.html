@@ -1,0 +1,55 @@
+{% if messages %}
+<div id="django-message-container" class="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-md px-4 transition-all duration-500 ease-out">
+    {% for message in messages %}
+        <div class="glass-message flex items-center gap-3 bg-[#f2ca50] text-black px-5 py-3 shadow-[0_4px_30px_rgba(242,202,80,0.2)] border border-[#f2ca50]/50 font-label-caps text-xs font-bold uppercase tracking-widest rounded animate-slide-down">
+            {% if message.tags == 'error' %}
+                <span class="material-symbols-outlined text-sm font-black text-black">error</span>
+            {% else %}
+                <span class="material-symbols-outlined text-sm font-black text-black">check_circle</span>
+            {% endif %}
+            
+            <span class="flex-1">{{ message }}</span>
+            
+            <button onclick="closeMessage(this.parentElement.parentElement)" class="text-black/50 hover:text-black transition-colors flex items-center">
+                <span class="material-symbols-outlined text-base font-bold">close</span>
+            </button>
+        </div>
+    {% endfor %}
+</div>
+
+<style>
+    @keyframes slideDown {
+        0% { transform: translateY(-20px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-down {
+        animation: slideDown 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const messageContainer = document.getElementById("django-message-container");
+        if (messageContainer) {
+            // 3 സെക്കൻഡ് (3000ms) കഴിഞ്ഞ് വാനിഷ് ആകാനുള്ള ലോജിക്
+            setTimeout(function() {
+                // ഫേഡ് ഔട്ട് ആനിമേഷൻ നൽകുന്നു
+                messageContainer.style.opacity = '0';
+                messageContainer.style.transform = 'translate(-50%, -20px)';
+                
+                // ആനിമേഷൻ കഴിഞ്ഞ ശേഷം ഡോമിൽ നിന്ന് പൂർണ്ണമായി നീക്കുന്നു
+                setTimeout(function() {
+                    messageContainer.remove();
+                }, 500); // 500ms transition time
+            }, 3000);
+        }
+    });
+
+    // ക്ലോസ് ബട്ടൺ ക്ലിക്ക് ചെയ്താൽ ഉടൻ മാറാൻ വേണ്ടിയുള്ള ഫങ്ഷൻ
+    function closeMessage(element) {
+        element.style.opacity = '0';
+        element.style.transform = 'translate(-50%, -20px)';
+        setTimeout(() => element.remove(), 500);
+    }
+</script>
+{% endif %}

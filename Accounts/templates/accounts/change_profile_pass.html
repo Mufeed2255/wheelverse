@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Change Profile Password | WheelVerse</title>
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+<style>
+    body {
+        background-color: #0A0A0A;
+        color: #eae1d4;
+        overflow-x: hidden;
+        font-family: Poppins, sans-serif;
+    }
+
+    .glass-panel {
+        background: rgba(17, 14, 7, 0.75);
+        backdrop-filter: blur(22px);
+        border: 1px solid rgba(242, 202, 80, 0.18);
+        clip-path: polygon(0% 3%, 3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%);
+        width: 520px;
+        animation: fadeUp 0.9s ease forwards;
+    }
+
+    .input-glass {
+        background: rgba(26, 26, 26, 0.65);
+        border-bottom: 2px solid rgba(242, 202, 80, 0.25);
+        transition: all 0.3s ease;
+    }
+
+    .input-glass:focus {
+        border-bottom-color: #f2ca50;
+        box-shadow: 0 8px 22px -10px rgba(242, 202, 80, 0.8);
+        outline: none;
+    }
+
+    .gold-gradient-btn {
+        background: linear-gradient(135deg, #f2ca50 0%, #d4af37 50%, #e9c349 100%);
+        box-shadow: 0 0 22px rgba(242, 202, 80, 0.35);
+    }
+
+    .gold-gradient-btn:hover {
+        box-shadow: 0 0 35px rgba(242, 202, 80, 0.65);
+        transform: translateY(-2px);
+    }
+
+    .carbon-texture {
+        background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
+        background-size: 4px 4px;
+    }
+
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(40px) scale(0.96); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>
+</head>
+
+<body class="min-h-screen w-screen relative flex items-center justify-center py-12 px-4">
+
+<div class="fixed inset-0 z-[-1]">
+    <div class="absolute inset-0 bg-black/60 z-10"></div>
+    <img class="w-full h-full object-cover opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZtbZpLeuHYAasuVT-RxCm4hDGy0z3I9qSovkzRYtRdnedU9S-u3v_s8jN6WhSR59Y5YRc2OGsX7brHpqN6mnGF7zxdQKcadI7BBrIVqAv7Ut1IyylGV-NbvCKtRNaKOdPZVax1AsO4fzffuqYBRdGfIUhEG9GqYEDfxzc_ndz5uUcYPUOMpRCOKJIZLdBtzW7tAGWjCg4Tea8Lfs-lLV6FnOmZehxp6Dku5SefB5i0_0dUK-UruW0bLQ4F9XoyAsh-DcF0RwiAQ0" alt="Luxury Garage Background">
+    <div class="absolute inset-0 bg-gradient-to-t from-[#16130b] via-transparent to-transparent opacity-95 z-20"></div>
+</div>
+
+<main class="relative z-20 flex items-center justify-center">
+    <div class="glass-panel p-10 md:p-14 flex flex-col items-center relative overflow-hidden">
+        <div class="absolute inset-0 border border-[#f2ca50]/20 pointer-events-none carbon-texture opacity-20"></div>
+
+        <div class="flex flex-col items-center mb-8 text-center w-full relative z-10">
+            <span class="font-[Orbitron] text-2xl tracking-[0.5em] text-[#e9c349] mb-2 uppercase">WheelVerse</span>
+            <span class="font-[Orbitron] text-[10px] tracking-[0.4em] text-[#f2ca50]/70 mb-6">Internal Profile Vault</span>
+            <h1 class="font-[Orbitron] text-3xl text-[#eae1d4] mb-3">Change Password</h1>
+            <p class="text-[#d0c5af] text-sm max-w-sm leading-relaxed">Update your login security credentials without changing system profiles.</p>
+        </div>
+
+        {% if messages %}
+            <div id="messageBox" class="w-full mb-5 space-y-2">
+                {% for message in messages %}
+                    <div class="w-full px-4 py-3 rounded-lg text-sm text-center border {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border-red-500/30{% else %}bg-green-500/20 text-green-400 border-green-500/30{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'change_profile_pass' %}" onsubmit="return validateProfilePassword()" class="w-full space-y-6">
+            {% csrf_token %}
+            
+            <div class="space-y-2 group relative">
+                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">Current Active Password</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">key</span>
+                    <input id="current_password" name="current_password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
+                    <button type="button" onclick="togglePassword('current_password', 'eyeIcon0')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon0" class="material-symbols-outlined">visibility</span></button>
+                </div>
+                <p id="currentPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+            </div>
+
+            <div class="space-y-2 group relative">
+                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">New System Password</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">lock</span>
+                    <input id="password" name="password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
+                    <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon1" class="material-symbols-outlined">visibility</span></button>
+                </div>
+                <p id="passwordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+            </div>
+
+            <div class="space-y-2 group relative">
+                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">Confirm New Password</label>
+                <div class="relative">
+                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">verified_user</span>
+                    <input id="confirm_password" name="confirm_password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
+                    <button type="button" onclick="togglePassword('confirm_password', 'eyeIcon2')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon2" class="material-symbols-outlined">visibility</span></button>
+                </div>
+                <p id="confirmPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+            </div>
+
+            <button class="w-full gold-gradient-btn py-4 mt-4 rounded-lg flex items-center justify-center group transition-all duration-300 active:scale-95 overflow-hidden relative" type="submit">
+                <span class="font-[Orbitron] text-sm font-bold tracking-[0.2em] text-[#3c2f00] flex items-center gap-3 relative z-10">
+                    UPDATE VAULT PASSWORD
+                    <span class="material-symbols-outlined text-[#3c2f00] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                </span>
+            </button>
+        </form>
+    </div>
+</main>
+
+<script>
+function togglePassword(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (input.type === "password") {
+        input.type = "text";
+        icon.innerText = "visibility_off";
+    } else {
+        input.type = "password";
+        icon.innerText = "visibility";
+    }
+}
+
+function validateProfilePassword() {
+    let currentPassword = document.getElementById("current_password").value;
+    let password = document.getElementById("password").value;
+    let confirmPassword = document.getElementById("confirm_password").value;
+
+    let currentPasswordError = document.getElementById("currentPasswordError");
+    let passwordError = document.getElementById("passwordError");
+    let confirmPasswordError = document.getElementById("confirmPasswordError");
+
+    currentPasswordError.innerText = "";
+    passwordError.innerText = "";
+    confirmPasswordError.innerText = "";
+
+    if (currentPassword === "") {
+        currentPasswordError.innerText = "Current authorization credentials required.";
+        return false;
+    }
+
+    if (password.length < 8) {
+        passwordError.innerText = "Security protocols require at least 8 elements.";
+        return false;
+    }
+
+    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        passwordError.innerText = "Password must include upper, lower, numeric, and special character metrics.";
+        return false;
+    }
+
+    if (currentPassword === password) {
+        passwordError.innerText = "New password must differ from your current configuration key.";
+        return false;
+    }
+
+    if (password !== confirmPassword) {
+        confirmPasswordError.innerText = "Verification parameter mismatch across elements.";
+        return false;
+    }
+
+    return true;
+}
+
+setTimeout(function () {
+    const messageBox = document.getElementById("messageBox");
+    if (messageBox) {
+        messageBox.style.transition = "all 0.5s ease";
+        messageBox.style.opacity = "0";
+        messageBox.style.transform = "translateY(-10px)";
+        setTimeout(function () { messageBox.remove(); }, 500);
+    }
+}, 4000);
+</script>
+</body>
+</html>

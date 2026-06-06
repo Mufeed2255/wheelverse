@@ -1,0 +1,106 @@
+<style>
+.admin-header {
+    background: #111007;
+    border-bottom: 1px solid #342b16;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px 0 280px; /* സൈഡ്ബാറിന് സ്പേസ് വിടാൻ */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.header-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+}
+
+.header-title span {
+    color: #f1c82c;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.feed-status {
+    background: rgba(50, 233, 109, 0.08);
+    border: 1px solid rgba(50, 233, 109, 0.25);
+    color: #32e96d;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 1px;
+}
+
+/* 🟢 പ്രൊഫൈൽ സർക്കിൾ സ്റ്റൈൽ */
+.admin-profile-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #f1c82c;
+    overflow: hidden;
+    background: #211d16;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.admin-profile-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 🟢 ചിത്രം ഇല്ലെങ്കിൽ കാണിക്കേണ്ട ലെറ്റേഴ്സിന്റെ സ്റ്റൈൽ */
+.admin-avatar-initials {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1c82c;
+    background: #211d16;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+@media(max-width: 1050px) {
+    .admin-header {
+        padding: 0 20px;
+    }
+}
+</style>
+
+<header class="admin-header">
+    <div class="header-title">WHEELVERSE <span>ADMIN</span></div>
+    <div class="header-right">
+        <div class="feed-status">
+            <span class="material-symbols-outlined" style="font-size: 14px;">sensors</span> REAL-TIME FEED ACTIVE
+        </div>
+        
+        <div class="admin-profile-circle">
+            {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}">
+            {% elif request.user.profile_pic %}
+                <img src="{{ request.user.profile_pic.url }}" alt="{{ request.user.username }}">
+            {% else %}
+                <div class="admin-avatar-initials">{{ request.user.username|slice:":2"|upper }}</div>
+            {% endif %}
+        </div>
+    </div>
+</header>

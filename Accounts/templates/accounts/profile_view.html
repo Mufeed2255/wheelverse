@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>WheelVerse | Collector Profile</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "inverse-on-surface": "#343027",
+                        "error": "#ffb4ab",
+                        "on-tertiary-container": "#454544",
+                        "inverse-surface": "#eae1d4",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "tertiary-container": "#b4b2b2",
+                        "secondary": "#c9c6c5",
+                        "primary-fixed-dim": "#e9c349",
+                        "outline": "#99907c",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "on-primary-fixed": "#241a00",
+                        "background": "#0c0a06",
+                        "on-secondary": "#313030",
+                        "tertiary": "#d0cdcd",
+                        "error-container": "#93000a",
+                        "surface-container-highest": "#38342b",
+                        "secondary-container": "#4a4949",
+                        "on-surface-variant": "#d0c5af",
+                        "on-background": "#eae1d4",
+                        "outline-variant": "#4d4635",
+                        "on-surface": "#eae1d4",
+                        "primary": "#f2ca50",
+                        "surface": "#16130b",
+                        "on-primary-container": "#554300",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface-dim": "#16130b",
+                        "surface-variant": "#38342b",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-primary": "#3c2f00",
+                        "inverse-primary": "#735c00",
+                        "surface-container-low": "#1f1b13",
+                        "surface-container": "#231f17",
+                        "surface-bright": "#3d392f",
+                        "on-tertiary-fixed-variant": "#474746",
+                        "surface-container-high": "#2d2a21",
+                        "primary-fixed": "#ffe088",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c9c6c5",
+                        "on-primary-fixed-variant": "#574500",
+                        "primary-container": "#d4af37",
+                        "on-error": "#690005",
+                        "surface-container-lowest": "#110e07",
+                        "on-tertiary": "#313030",
+                        "on-secondary-container": "#bab8b7",
+                        "on-secondary-fixed-variant": "#474646",
+                        "surface-tint": "#e9c349"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "spacing": {
+                        "unit": "8px",
+                        "container-max": "1440px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "80px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "display-lg-mobile": ["Orbitron"],
+                        "body-md": ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-lg": ["Poppins"],
+                        "label-caps": ["Orbitron"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0c0a06;
+            color: #eae1d4;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(22, 19, 11, 0.4);
+            border: 1px solid rgba(242, 202, 80, 0.08);
+        }
+        .hud-input-wrap {
+            border: 1px solid rgba(242, 202, 80, 0.15);
+            background: rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body class="font-body-md min-h-screen flex flex-col">
+
+    <!-- Side Navigation Bar -->
+    <aside class="fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col justify-between">
+        <div class="p-6">
+            <div class="flex flex-col items-center text-center mt-4 mb-8">
+                <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.2)] mb-4">
+                    {% if request.user.profile_picture %}
+                        <img alt="Collector Preview" class="w-full h-full object-cover rounded-lg" src="{{ request.user.profile_picture.url }}"/>
+                    {% else %}
+                        <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-2xl rounded-lg">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+                <h2 class="font-display-lg text-lg tracking-wider text-primary">{{ request.user.username|upper|default:"COLLECTOR" }}</h2>
+                <p class="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-xs text-primary">stars</span> LEGENDARY COLLECTOR
+                </p>
+            </div>
+
+            <nav class="space-y-1">
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-primary bg-[#231f14] border-l-2 border-primary" href="#">
+                    <span class="material-symbols-outlined text-lg">account_circle</span> Profile Info
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined text-lg">account_balance_wallet</span> Wallet
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined text-lg">confirmation_number</span> Coupons
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all 
+                        {% if request.resolver_match.url_name == 'address_list' %}
+                            text-primary bg-[#231f14] border-l-2 border-primary
+                        {% else %}
+                            text-on-surface-variant hover:text-primary
+                        {% endif %}" 
+                   href="{% url 'address_list' %}">
+                    <span class="material-symbols-outlined text-lg">location_on</span> 
+                    Saved Addresses
+                </a>
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                    <span class="material-symbols-outlined text-lg">token</span> Garage Showcase
+                </a>
+            </nav>
+        </div>
+
+        <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
+            <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
+            <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
+            <a class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2" href="{% url 'logout' %}">
+                <span class="material-symbols-outlined text-lg">logout</span> Logout
+            </a>
+        </div>
+    </aside>
+
+    <!-- Top Navigation Bar -->
+    <header class="fixed top-0 right-0 left-72 h-20 z-40 bg-[#110f0a] border-b border-white/5 flex items-center justify-between px-12">
+        <div class="flex items-center gap-12">
+            <a href="/" class="font-display-lg text-2xl tracking-wider text-primary">WHEELVERSE</a>
+            <nav class="hidden md:flex items-center gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
+                <a href="#" class="border-b border-primary text-primary pb-1">Home</a>
+                <a href="#" class="hover:text-primary transition-colors">Collections</a>
+                <a href="#" class="hover:text-primary transition-colors">Auctions</a>
+                <a href="#" class="hover:text-primary transition-colors">Garage</a>
+                <a href="#" class="hover:text-primary transition-colors">Marketplace</a>
+            </nav>
+        </div>
+        
+        <div class="flex items-center gap-6">
+            <button class="text-on-surface-variant hover:text-primary transition-colors">
+                <span class="material-symbols-outlined text-xl">search</span>
+            </button>
+            <button class="text-on-surface-variant hover:text-primary transition-colors relative">
+                <span class="material-symbols-outlined text-xl">shopping_cart</span>
+                <span class="absolute -top-2 -right-2 bg-primary text-background text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
+            </button>
+            
+            <div class="flex items-center gap-3 pl-4 border-l border-white/10">
+                <div class="text-right">
+                    <p class="font-label-caps text-[9px] text-primary tracking-widest">ELITE STATUS</p>
+                    <p class="font-label-caps text-xs text-on-surface leading-none mt-1">{{ request.user.username|default:"Collector_01" }}</p>
+                </div>
+                <div class="w-10 h-10 rounded border border-primary/40 overflow-hidden">
+                    {% if request.user.profile_picture %}
+                        <img alt="User" class="w-full h-full object-cover" src="{{ request.user.profile_picture.url }}"/>
+                    {% else %}
+                        <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-sm">
+                            {{ request.user.username|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Section Layout -->
+    <main class="ml-72 pt-20 flex-1 relative z-10 bg-[#0c0a06]">
+        <div class="max-w-[1200px] mx-auto px-12 py-10">
+            
+            <!-- Dashboard Header -->
+            <div class="mb-10">
+                <h2 class="font-display-lg text-3xl tracking-wide text-primary uppercase">COLLECTOR PROFILE</h2>
+                <p class="text-on-surface-variant text-sm mt-1 opacity-70">Your verified identity parameters inside the WheelVerse universe.</p>
+            </div>
+
+            <!-- Core Content Wrapper Form Grid -->
+            <form method="POST" action="{% url 'edit_profile_view' %}" enctype="multipart/form-data" class="grid grid-cols-12 gap-8 items-start">
+                {% csrf_token %}
+
+                <!-- Left Avatar Panel (Spans 4 columns on large displays) -->
+                <div class="col-span-12 lg:col-span-4 space-y-6">
+                    <div class="glass-panel rounded border border-white/5 p-8 flex flex-col items-center justify-center text-center">
+                        <div class="relative w-32 h-32 mb-4">
+                            <div class="w-full h-full rounded border border-primary/40 p-1 bg-background">
+                                {% if request.user.profile_picture %}
+                                    <img alt="Collector Main Profile" class="w-full h-full object-cover rounded" src="{{ request.user.profile_picture.url }}"/>
+                                {% else %}
+                                    <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-3xl rounded">
+                                        {{ request.user.username|slice:":1"|upper }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <h2 class="font-display-lg text-lg tracking-widest text-on-surface mb-4">{{ request.user.username }}</h2>
+                    </div>
+                </div>
+
+                <!-- Right Side Fields Layout (Spans 8 columns on large displays) -->
+                <div class="col-span-12 lg:col-span-8">
+                    <div class="glass-panel rounded border border-white/5 p-8 space-y-6">
+                        
+                        <div class="flex items-center justify-between border-b border-white/5 pb-2">
+                            <h4 class="font-label-caps text-sm tracking-widest text-primary">PROFILE_BIO</h4>
+                            <a href="{% url 'edit_profile_view' %}">
+                                <button type="button" class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-4 py-1 text-[10px] font-label-caps tracking-widest">
+                                    EDIT INFO
+                                </button>
+                            </a>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- User Name -->
+                            <div class="hud-input-wrap p-4 rounded border relative">
+                                <label class="block font-label-caps text-[10px] text-primary tracking-widest mb-1">USER_NAME</label>
+                                <div class="w-full bg-transparent p-0 font-body-md text-sm text-on-surface select-all">{{ request.user.username|default:' '|upper }}</div>
+                            </div>
+
+                            <!-- Email Field -->
+                            <div class="hud-input-wrap p-4 rounded border relative">
+                                <label class="block font-label-caps text-[10px] text-primary tracking-widest mb-1">EMAIL_IDENTIFIER</label>
+                                <div class="w-full bg-transparent p-0 font-body-md text-sm text-on-surface select-all">{{ request.user.email|default:"" }}</div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="hud-input-wrap p-4 rounded border relative">
+                                <label class="block font-label-caps text-[10px] text-primary tracking-widest mb-1">PHONE_NUMBER</label>
+                                <div class="w-full bg-transparent p-0 font-body-md text-sm text-on-surface select-all">{{ request.user.phone|default:"" }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+
+            <!-- CENTERED RE-SIZED SQUARE REFERRAL BOX -->
+            <div class="mt-12 flex justify-center w-full">
+                <div class="w-full max-w-[420px] aspect-square bg-surface-container-highest/30 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center text-center glass-panel shadow-[0_0_30px_rgba(242,202,80,0.05)]">
+                    <div class="mb-6 bg-primary/5 p-4 rounded-full border border-primary/10">
+                        <span class="material-symbols-outlined text-4xl text-primary">diversity_3</span>
+                    </div>
+                    <p class="text-xs text-on-surface-variant font-label-caps tracking-widest opacity-80">YOUR PERSONAL REFERRAL CODE</p>
+                    <p class="text-2xl font-display-lg font-bold text-primary mt-3 tracking-widest border-b border-dashed border-primary/30 pb-2 px-4">
+                        WHEEL-92X-REFR
+                    </p>
+                    <p class="text-[11px] text-on-surface-variant font-body-md mt-4 max-w-[280px] leading-relaxed">
+                        Share this unique tracker with fellow collectors to expand the WheelVerse garage universe.
+                    </p>
+                    <button type="button" class="mt-8 w-full bg-primary/10 text-primary border border-primary/30 py-3 rounded font-label-caps text-xs tracking-widest hover:bg-primary hover:text-background transition-all font-bold">
+                        COPY REFERRAL CODE
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+</body>
+</html>

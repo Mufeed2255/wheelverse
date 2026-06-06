@@ -1,0 +1,430 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>WheelVerse Admin | View User — {{ user_obj.full_name }}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#050505;color:#eee;font-family:Poppins,sans-serif}
+
+.dashboard{
+    min-height:100vh;
+    background:#111007;
+}
+
+.layout {
+    display: flex;
+    width: 100%;
+}
+
+/* 🟢 Top Bar fixed ആയതുകൊണ്ട് content-ന് മുകളിൽ സ്പേസ് നൽകി */
+.content{
+    flex: 1;
+    margin-left: 240px; 
+    margin-top: 70px; 
+    padding: 40px 40px 60px;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+/* Messages */
+.messages{margin-bottom:20px}
+.msg{padding:14px 18px;border-radius:6px;margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:10px;font-family:Poppins,sans-serif;}
+.msg-success{background:rgba(50,233,109,.08);border:1px solid rgba(50,233,109,.25);color:#32e96d}
+.msg-error{background:rgba(255,100,80,.08);border:1px solid rgba(255,100,80,.25);color:#ff9b90}
+
+/* Profile Card Layout */
+.profile-card{
+    border:1px solid #342b16;
+    border-radius:7px;
+    padding:32px;
+    display:grid;
+    grid-template-columns: 190px 1fr 330px;
+    gap:30px;
+    margin-bottom:30px;
+    background:#111007
+}
+
+/* 🟢 ഡാറ്റാബേസിൽ നിന്നുള്ള യൂസർ പ്രൊഫൈൽ ഐക്കൺ സ്റ്റൈൽ */
+.profile-img{
+    width:190px;
+    height:190px;
+    border-radius:12px;
+    border:2px solid #665111;
+    overflow:hidden;
+    position:relative;
+    background:#211d16;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.profile-img img{
+    width:100%;
+    height:100%;
+    object-fit:cover
+}
+.avatar-initials{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:Orbitron,sans-serif;
+    font-size:48px;
+    color:#d3aa1d;
+    background:#211d16
+}
+
+/* Status Badge */
+.status-badge{position:absolute;right:10px;bottom:10px;font-family:Orbitron,sans-serif;font-size:10px;padding:5px 12px;border-radius:20px;z-index:2;box-shadow: 0 4px 10px rgba(0,0,0,0.5);}
+.badge-active{background:#32e96d;color:#071a0d}
+.badge-inactive{background:#555;color:#ccc}
+
+.user-name{font-family:Orbitron,sans-serif;font-size:34px;margin-bottom:5px;color:#fff;}
+.collector-id{font-family:Orbitron,sans-serif;color:#f1c82c;margin-bottom:30px;font-size:14px;}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.label{font-family:Orbitron,sans-serif;font-size:10px;color:#8d8474;text-transform:uppercase;margin-bottom:4px;letter-spacing:1px;}
+.value{font-weight:600;margin-top:5px}
+.status-active{color:#32e96d}
+.status-inactive{color:#aaa}
+
+.info-box{background:#211d16;padding:13px 16px;margin-top:5px;font-size:14px;word-break:break-all;display:flex;align-items:center;gap:8px;border:1px solid #2d2619;border-radius:4px;}
+.info-box .material-symbols-outlined { font-size: 18px; color: #d3aa1d; }
+
+/* Action Buttons */
+.action-area{display:flex;justify-content:flex-end;align-items:start;margin-bottom:20px}
+.status-btn{height:44px;padding:0 28px;background:transparent;border:1px solid #875346;color:#ffb2a5;font-family:Orbitron,sans-serif;cursor:pointer;font-size:13px;border-radius:4px;transition:.3s;display:inline-flex;align-items:center;gap:8px;}
+.status-btn:hover{background:rgba(135,83,70,.15)}
+.activate-btn{border-color:#2e8f52;color:#42ff86}
+.activate-btn:hover{background:rgba(46,143,82,.12)}
+
+/* Address block */
+.address-block{margin-top:8px; background: #16140e; padding: 15px; border-radius: 6px; border: 1px solid #2d2619;}
+.address-line{color:#ddd2c4;font-size:13px;line-height:1.6}
+.address-type-tag{display:inline-block;background:#271f10;border:1px solid #4a3c1d;color:#d3aa1d;font-family:Orbitron,sans-serif;font-size:9px;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+
+/* Section Header */
+.section-title{font-family:Orbitron,sans-serif;color:#f2c82e;font-size:14px;margin:32px 0 16px;letter-spacing:1px;text-transform:uppercase;}
+
+/* Stats grid */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:30px}
+.stat{border:1px solid #4a3c1d;padding:22px;min-height:110px;background:#15130e;border-radius:4px}
+.stat.highlight{border-color:#f1c82c}
+.stat h4{font-family:Orbitron,sans-serif;font-size:10px;color:#8d8474;margin-bottom:13px}
+.stat p{font-weight:700;font-size:15px;word-break:break-all}
+
+/* Referral block */
+.referral-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:30px}
+.ref-box{border:1px solid #342b16;background:#15130e;padding:18px 22px;border-radius:6px}
+.ref-box .label{margin-bottom:8px}
+.ref-code{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:18px;letter-spacing:3px}
+.ref-none{color:#555;font-size:13px;font-style:italic}
+
+/* Table */
+.table-box{border:1px solid #352b16;border-radius:7px;overflow:hidden;margin-bottom:32px}
+table{width:100%;border-collapse:collapse}
+thead{background:#28241b}
+th{font-family:Orbitron,sans-serif;text-align:left;color:#a99f8d;font-size:11px;padding:18px}
+td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
+.order-empty{text-align:center;padding:40px;color:#666;font-size:12px}
+
+/* Navigation Buttons */
+.breadcrumb{font-family:Orbitron,sans-serif;font-size:11px;color:#888;margin-bottom:20px}
+.breadcrumb a{color:#d3aa1d;text-decoration:none}
+.breadcrumb a:hover{color:#f1c82c}
+.back-btn{display:inline-flex;align-items:center;gap:8px;background:#f4cf3e;color:#3a2c00;text-decoration:none;padding:10px 28px;border-radius:9px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s;margin-top:10px;font-weight:600;}
+.back-btn:hover{background:#e8c02e}
+
+/* Confirmation Popup */
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99}
+.popup-box{width:440px;background:#15130e;border:1px solid #f1c82c;padding:36px 30px;text-align:center;box-shadow:0 0 60px rgba(241,200,46,.18);border-radius:6px}
+.popup-box h3{font-family:Orbitron,sans-serif;font-size:18px;margin-bottom:10px}
+.popup-box p{color:#bbb;margin-bottom:28px;font-size:14px;line-height:1.6}
+.popup-user{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:13px;margin-bottom:22px}
+.popup-actions{display:flex;gap:14px;justify-content:center}
+.cancel-btn{background:#27231b;color:#ddd;border:1px solid #555;padding:12px 28px;cursor:pointer;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s}
+.cancel-btn:hover{background:#322c22;color:#fff}
+.confirm-btn{background:#f4cf3e;color:#211700;border:0;padding:12px 28px;cursor:pointer;font-weight:700;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s}
+.confirm-btn:hover{background:#e8c02e}
+.confirm-btn.danger{background:#c0392b;color:#fff}
+.confirm-btn.danger:hover{background:#a93226}
+
+@media(max-width:1050px){
+    .content{margin-left:0; margin-top: 110px; padding:20px}
+    .profile-card{grid-template-columns:1fr}
+    .stats{grid-template-columns:1fr 1fr}
+    .referral-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+
+<body>
+
+{% include 'adminpanel/includes/admin_topbar.html' %}
+
+<div class="layout">
+    
+    {% include 'adminpanel/includes/admin_sidebar.html' %}
+    
+    <main class="content">
+
+        <p class="breadcrumb">
+            <a href="{% url 'admin_dashboard' %}">Dashboard</a> ›
+            <a href="{% url 'admin_users' %}">User Management</a> ›
+            {{ user_obj.full_name }}
+        </p>
+
+        {% include 'adminpanel/includes/messages.html' %}
+            
+
+        <div class="profile-card">
+
+            <div class="profile-img">
+                {% if user_obj.profile_picture %}
+                    <img src="{{ user_obj.profile_picture.url }}" alt="{{ user_obj.full_name }}">
+                {% elif user_obj.profile_pic %}
+                    <img src="{{ user_obj.profile_pic.url }}" alt="{{ user_obj.full_name }}">
+                {% else %}
+                    <div class="avatar-initials">{{ user_obj.username|slice:":2"|upper }}</div>
+                {% endif %}
+                
+                <span class="status-badge {% if user_obj.is_active %}badge-active{% else %}badge-inactive{% endif %}">
+                    {% if user_obj.is_active %}● ACTIVE{% else %}● INACTIVE{% endif %}
+                </span>
+            </div>
+
+            <div>
+                <h2 class="user-name">{{ user_obj.full_name }}</h2>
+                <p class="collector-id">Collector ID: #WV-{{ user_obj.id|stringformat:"04d" }}</p>
+
+                <div class="info-grid">
+                    <div>
+                        <p class="label">Username</p>
+                        <p class="value">@{{ user_obj.username }}</p>
+                    </div>
+                    <div>
+                        <p class="label">Account Status</p>
+                        {% if user_obj.is_active %}
+                            <p class="value status-active">● Active</p>
+                        {% else %}
+                            <p class="value status-inactive">● Blocked</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="label">Email Address</p>
+                        <p class="info-box"><span class="material-symbols-outlined">mail</span> {{ user_obj.email }}</p>
+                    </div>
+                    <div>
+                        <p class="label">Phone Number</p>
+                        <p class="info-box"><span class="material-symbols-outlined">call</span> {{ user_obj.phone|default:"Not Added" }}</p>
+                    </div>
+                    <div>
+                        <p class="label">Joined Date</p>
+                        <p class="value">{{ user_obj.date_joined|date:"M d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="label">Last Login</p>
+                        <p class="value">
+                            {% if user_obj.last_login %}
+                                {{ user_obj.last_login|date:"M d, Y — H:i" }}
+                            {% else %}
+                                Never Logged In
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="action-area">
+                    <button class="status-btn {% if not user_obj.is_active %}activate-btn{% endif %}" onclick="openPopup()">
+                        {% if user_obj.is_active %}
+                            <span class="material-symbols-outlined" style="font-size:18px;">block</span> DEACTIVATE USER
+                        {% else %}
+                            <span class="material-symbols-outlined" style="font-size:18px;">check_circle</span> ACTIVATE USER
+                        {% endif %}
+                    </button>
+                </div>
+
+                <p class="label">Default Address</p>
+                {% if default_address %}
+                    <div class="address-block">
+                        <span class="address-type-tag">{{ default_address.address_type }}</span>
+                        <p class="address-line"><strong>{{ default_address.name }}</strong></p>
+                        <p class="address-line">{{ default_address.address_line_1 }}</p>
+                        {% if default_address.address_line_2 %}
+                            <p class="address-line">{{ default_address.address_line_2 }}</p>
+                        {% endif %}
+                        <p class="address-line">{{ default_address.city }}, {{ default_address.state }} — {{ default_address.pincode }}</p>
+                        <p class="address-line">{{ default_address.country }}</p>
+                        <p class="address-line" style="color:#d3aa1d; margin-top:6px; font-size:12px;">📞 {{ default_address.phone_number }}</p>
+                    </div>
+                {% else %}
+                    <p style="color:#555;font-size:13px;margin-top:8px;font-style:italic">No address added yet.</p>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <h3 class="section-title">Account Statistics</h3>
+        <div class="stats">
+            <div class="stat">
+                <h4>LAST ACCESS</h4>
+                <p>{% if user_obj.last_login %}{{ user_obj.last_login|date:"Y-m-d H:i" }}{% else %}Never{% endif %}</p>
+            </div>
+            <div class="stat">
+                <h4>REGISTRATION IP</h4>
+                <p>{{ user_obj.ip_address|default:"Not Recorded" }}</p>
+            </div>
+            <div class="stat">
+                <h4>TOTAL ORDERS</h4>
+                <p>{{ total_orders|default:"0" }} Orders</p>
+            </div>
+            <div class="stat highlight">
+                <h4>TOTAL SPEND</h4>
+                <p>₹ {{ total_spend|default:"0.00" }}</p>
+            </div>
+        </div>
+
+        <h3 class="section-title">Referral Information</h3>
+        <div class="referral-grid">
+            <div class="ref-box">
+                <p class="label">Referral Code</p>
+                {% if user_obj.referral_code %}
+                    <p class="ref-code">{{ user_obj.referral_code }}</p>
+                {% else %}
+                    <p class="ref-none">Not generated yet</p>
+                {% endif %}
+            </div>
+            <div class="ref-box">
+                <p class="label">Referred By</p>
+                {% if user_obj.referred_by %}
+                    <a href="{% url 'view_user' user_obj.referred_by.id %}" style="color:#f1c82c;text-decoration:none;font-family:Orbitron,sans-serif;font-size:13px">
+                        @{{ user_obj.referred_by.username }} (#WV-{{ user_obj.referred_by.id }})
+                    </a>
+                {% else %}
+                    <p class="ref-none">No referral — direct signup</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <h3 class="section-title">Collector Order History</h3>
+        <div class="table-box">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ORDER ID</th>
+                        <th>DATE</th>
+                        <th>AMOUNT</th>
+                        <th>PAYMENT METHOD</th>
+                        <th>STATUS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if orders %}
+                        {% for order in orders %}
+                        <tr>
+                            <td style="font-family: 'Orbitron', sans-serif; color: #f1c82c;">#{{ order.order_id }}</td>
+                            <td>{{ order.created_at|date:"M d, Y" }}</td>
+                            <td>₹ {{ order.total_amount }}</td>
+                            <td>{{ order.payment_method }}</td>
+                            <td>
+                                <span style="color: {% if order.status == 'Delivered' %}#32e96d{% else %}#f1c82c{% endif %}">
+                                    ● {{ order.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="order-empty">
+                                No orders found for this user.
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <a href="{% url 'admin_users' %}" class="back-btn">← Back to User Management</a>
+
+    </main>
+</div>
+
+<div class="popup" id="confirmPopup">
+<div class="popup-box">
+    <h3>
+        {% if user_obj.is_active %}
+            Deactivate User?
+        {% else %}
+            Activate User?
+        {% endif %}
+    </h3>
+
+    <p class="popup-user">@{{ user_obj.username }} — #WV-{{ user_obj.id|stringformat:"04d" }}</p>
+
+    <p>
+        {% if user_obj.is_active %}
+            This will block the user from logging in and accessing their account. This action is reversible.
+        {% else %}
+            This will restore full access to the user's account. They will be able to log in again immediately.
+        {% endif %}
+    </p>
+
+    <div class="popup-actions">
+        <button class="cancel-btn" onclick="closePopup()">Cancel</button>
+
+        <form method="POST" action="{% url 'toggle_user_status' user_obj.id %}">
+            {% csrf_token %}
+            <button type="submit" class="confirm-btn {% if user_obj.is_active %}danger{% endif %}">
+                {% if user_obj.is_active %}
+                    ⊘ Deactivate
+                {% else %}
+                    ✓ Activate
+                {% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+</div>
+
+<script>
+function openPopup(){
+    document.getElementById("confirmPopup").style.display = "flex";
+    document.body.style.overflow = "hidden";
+}
+
+function closePopup(){
+    document.getElementById("confirmPopup").style.display = "none";
+    document.body.style.overflow = "";
+}
+
+document.getElementById("confirmPopup").addEventListener("click", function(e){
+    if(e.target === this) closePopup();
+});
+
+document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") closePopup();
+});
+
+// Auto fade alert messages
+document.addEventListener("DOMContentLoaded", function(){
+    const msgs = document.querySelectorAll(".msg");
+    msgs.forEach(function(msg, i){
+        setTimeout(function(){
+            msg.style.transition = "opacity 0.5s";
+            msg.style.opacity = "0";
+            setTimeout(function(){ msg.remove(); }, 500);
+        }, 4000);
+    });
+});
+</script>
+
+</body>
+</html>

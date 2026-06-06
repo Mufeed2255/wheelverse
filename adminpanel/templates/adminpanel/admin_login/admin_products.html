@@ -1,0 +1,286 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>WHEELVERSE — PRODUCTS MANAGEMENT</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#f2ca50",
+                        "on-primary": "#3c2f00",
+                        "background": "#16130b",
+                        "surface": "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline": "#99907c"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                },
+            },
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0A0A0A;
+            background-image: radial-gradient(circle at 2px 2px, rgba(242, 202, 80, 0.03) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+        .glass-card {
+            background: rgba(26, 26, 26, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(242, 202, 80, 0.1);
+        }
+        .neon-glow-gold {
+            box-shadow: 0 0 15px rgba(242, 202, 80, 0.2);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f2ca50;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="text-on-surface font-body-md h-screen overflow-hidden flex">
+
+    {% include 'adminpanel/includes/admin_sidebar.html' %}
+
+    <div class="flex-1 pl-[240px] pt-[70px] flex flex-col h-screen overflow-hidden">
+
+        {% include 'adminpanel/includes/admin_topbar.html' %}
+
+        <main class="flex-1 overflow-y-auto custom-scrollbar bg-background p-8">
+            <div class="max-w-[1440px] mx-auto space-y-6">
+                
+                <div class="flex justify-between items-center border-b border-primary/10 pb-4">
+                    <div>
+                        <p class="text-primary font-label-caps text-xs tracking-widest uppercase mb-1">ELITE INVENTORY CONTROL</p>
+                        <h2 class="font-headline-md text-2xl text-on-surface tracking-wide">PRODUCTS MANAGEMENT</h2>
+                        <p class="text-on-surface-variant text-xs mt-0.5">Manage legendary collectibles inside the WheelVerse inventory system.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <a href="{% url 'add_product' %}" class="px-5 py-2.5 bg-primary text-on-primary font-label-caps text-xs font-bold neon-glow-gold hover:bg-primary/90 transition-all flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm font-bold">add</span> ADD PRODUCT
+                        </a>
+
+                    </div>
+                </div>
+
+                <form id="filterForm" method="GET" action="{% url 'admin_products' %}" class="glass-card p-4 rounded space-y-4">
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60 text-sm">rocket_launch</span>
+                        <input type="text" 
+                               id="searchInput"
+                               name="search"
+                               value="{{ current_search }}"
+                               placeholder="SEARCH PRODUCTS..." 
+                               class="w-full bg-background/50 border border-primary/10 pl-11 pr-4 py-2.5 text-xs font-label-caps tracking-wider text-on-surface focus:border-primary focus:ring-0 placeholder:text-on-surface-variant/40"/>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                        <div>
+                            <select name="category" id="categoryFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                                <option value="">All Categories</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}" {% if current_category == category.id|slugify %}selected{% endif %}>{{ category.name|upper }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                       <div>
+                            <select name="sort_by" id="sortFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                                <option value="">Sort By</option>
+                                <option value="a-z" {% if current_sort == "a-z" %}selected{% endif %}>Alphabetical: A - Z</option>
+                                <option value="z-a" {% if current_sort == "z-a" %}selected{% endif %}>Alphabetical: Z - A</option>
+                                <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Date: Newest First</option>
+                                <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Date: Oldest First</option>
+                            </select>
+                        </div>
+                        <div>
+                            <select name="status" id="statusFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                                <option value="">All Status</option>
+                                <option value="in_stock" {% if current_status == "in_stock" %}selected{% endif %}>In Stock</option>
+                                <option value="limited" {% if current_status == "limited" %}selected{% endif %}>Limited Stock</option>
+                                <option value="out_of_stock" {% if current_status == "out_of_stock" %}selected{% endif %}>Out of Stock</option>
+                            </select>
+                        </div>
+                        <a href="{% url 'admin_products' %}" class="w-full py-2 bg-surface-variant/40 border border-primary/10 text-center text-on-surface-variant text-[10px] font-label-caps hover:text-primary tracking-widest uppercase transition-all flex items-center justify-center gap-1">
+                            ✕ Reset Filters
+                        </a>
+                    </div>
+                </form>
+
+                <div class="glass-card rounded overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-surface-variant/20 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                <tr>
+                                    <th class="px-6 py-4 text-center w-24">Product Image</th>
+                                    <th class="px-6 py-4">Product Name</th>
+                                    <th class="px-6 py-4">Category</th>
+                                    <th class="px-6 py-4 w-24">Stock</th>
+                                    <th class="px-6 py-4 w-32">Status</th>
+                                    <th class="px-6 py-4 w-24">Actions</th>
+                                    <th class="px-6 py-4 w-28 text-center">Variant</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body" class="divide-y divide-primary/5 text-xs">
+                                {% for product in products %}
+                                <tr id="product-row-{{ product.id }}" class="hover:bg-primary/[0.02] transition-all">
+                                    <td class="px-6 py-3 text-center">
+                                        <div class="w-16 h-10 border border-primary/10 rounded overflow-hidden bg-surface-container flex items-center justify-center">
+                                            {% if product.images.first %}
+                                                <img class="w-full h-full object-cover" src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
+                                            {% else %}
+                                                <span class="material-symbols-outlined text-primary/20 text-md">image</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        <h4 class="font-medium text-on-surface tracking-wide">{{ product.name }}</h4>
+                                        <p class="text-[9px] font-label-caps text-primary/60 mt-0.5">SKU: {{ product.sku|upper }}</p>
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        <span class="px-2 py-0.5 border border-primary/20 bg-primary/5 font-label-caps text-[9px] text-primary tracking-wider rounded-sm">
+                                            {{ product.category.name|upper }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 font-label-caps text-on-surface-variant">
+                                        {{ product.total_stock|default:"0" }}
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        {% if product.total_stock > 10 %}
+                                            <div class="flex items-center gap-1.5 text-green-400 font-label-caps text-[9px] uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span> In Stock
+                                            </div>
+                                        {% elif product.total_stock <= 10 and product.total_stock > 0 %}
+                                            <div class="flex items-center gap-1.5 text-amber-400 font-label-caps text-[9px] uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span> Limited Stock
+                                            </div>
+                                        {% else %}
+                                            <div class="flex items-center gap-1.5 text-red-400 font-label-caps text-[9px] uppercase tracking-wider">
+                                                <span class="w-1.5 h-1.5 rounded-full bg-red-400"></span> Out Of Stock
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td class="px-6 py-3">
+                                        <div class="flex items-center gap-3 text-on-surface-variant">
+                                            <a href="{% url 'edit_product' product.id %}" class="hover:text-primary transition-colors flex items-center">
+                                                <span class="material-symbols-outlined text-lg">edit_note</span>
+                                            </a>
+                                            <button type="button" onclick="confirmSoftDelete('{{ product.id }}', '{{ product.name }}')" class="hover:text-red-400 transition-colors flex items-center">
+                                                <span class="material-symbols-outlined text-lg">delete</span>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-3 text-center">
+                                        <a href="{% url 'manage_variants' product.id %}" class="text-[10px] font-label-caps text-primary border border-primary/20 px-2 py-1 rounded bg-primary/5 hover:bg-primary hover:text-on-primary transition-all uppercase tracking-wider">
+                                        Manage Variants
+                                    </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-12 text-on-surface-variant/60">
+                                        <span class="material-symbols-outlined text-4xl text-primary/10 block mb-2">inventory_2</span>
+                                        No legendary products added yet. Click "+ ADD PRODUCT" to populate.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="p-4 bg-surface-variant/10 border-t border-primary/10 flex justify-between items-center text-[10px] font-label-caps text-on-surface-variant tracking-wider">
+                        <div>
+                            SHOWING 1-{{ products|length }} OF {{ total_products_count }} ELITE ENTRIES
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+                            <button class="w-6 h-6 border border-primary border-primary bg-primary/10 text-primary flex items-center justify-center rounded-sm">1</button>
+                            <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40">2</button>
+                            <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px] -z-10 pointer-events-none"></div>
+    <div class="fixed bottom-0 left-64 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+
+    <script>
+    function confirmSoftDelete(productId, productName) {
+        if (confirm(`Are you sure you want to soft-delete "${productName}"?`)) {
+            fetch(`/adminpanel/products/delete/${productId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    const row = document.getElementById(`product-row-${productId}`);
+                    if (row) {
+                        row.style.opacity = '0';
+                        setTimeout(() => row.remove(), 300);
+                    }
+                    // ⚠️ ശ്രദ്ധിക്കുക: ഡിലീറ്റ് ചെയ്ത ശേഷം പേജ് റീഫ്രഷ് ചെയ്യുകയാണെങ്കിൽ മെയിൻ പ്രൊഡക്ട് പേജിലേക്ക് വിടുക
+                    // window.location.href = "{% url 'admin_products' %}"; 
+                } else {
+                    alert('Something went wrong. Could not delete product.');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }
+
+
+    function toggleProductStatus(productId) {
+        // ജാവാസ്ക്രിപ്റ്റ് വഴി ഡാറ്റാബേസിലേക്ക് റിക്വസ്റ്റ് അയക്കുന്നു
+        fetch(`/adminpanel/products/${productId}/toggle/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}', // Django CSRF പ്രൊട്ടക്ഷന് ഇത് നിർബന്ധമാണ്
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // പേജ് റീഫ്രഷ് ചെയ്യാതെ ലൈവ് ആയി ബട്ടൺ അപ്ഡേറ്റ് ചെയ്യാൻ പേജ് റീലോഡ് ചെയ്യുന്നു
+                window.location.reload(); 
+            } else {
+                alert("Something went wrong!");
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    document.getElementById('searchInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            document.getElementById('filterForm').submit();
+        }
+    });
+</script>
+</body>
+</html>
