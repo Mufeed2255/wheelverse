@@ -358,15 +358,17 @@ def toggle_variant_status(request, variant_id):
         'is_active': variant.is_active
     })
 
+
+
 # 4. DELETE VARIANT (SOFT DELETE)
 def delete_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     product_id = variant.product.id
     
     if request.method == 'POST':
-        variant.is_deleted = True  # Soft delete
+        variant.is_deleted = True  
         variant.save()
-        update_product_stock(product)
+        update_product_stock(product_id)
         messages.success(request, "Variant telemetry terminated successfully from inventory.")
     return redirect('manage_variants', product_id=product_id)
 
