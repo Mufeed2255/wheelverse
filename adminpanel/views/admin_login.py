@@ -65,7 +65,6 @@ def admin_dashboard(request):
 
 
 def admin_logout_view(request):
-    """Logs out the admin and redirects to login page with confirmation message."""
     logout(request)
     messages.success(request, "You have been successfully logged out of the Control Center.")
     return redirect('admin_login')
