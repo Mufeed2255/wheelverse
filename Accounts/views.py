@@ -14,7 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Min
 from adminpanel.models import Product, Category
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -839,8 +839,12 @@ def user_collections(request):
     status = request.GET.get('status', '')
     sort_by = request.GET.get('sort_by', '')
     
-    price_min = request.GET.get('price_min', 1000)
-    price_max = request.GET.get('price_max', 500000) # മാക്സിമം ലിമിറ്റ്
+    price_min = request.GET.get('price_min', 0)
+    price_max = request.GET.get('price_max', 150000)
+    context = {
+        'price_min': price_min,
+        'price_max': price_max,
+    } 
 
     products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
     
@@ -858,10 +862,15 @@ def user_collections(request):
         variants__price__lte=price_max
     ).distinct()
 
+    products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
     if sort_by == 'a-z':
         products_queryset = products_queryset.order_by('name')
     elif sort_by == 'z-a':
         products_queryset = products_queryset.order_by('-name')
+    elif sort_by == 'price-low': 
+        products_queryset = products_queryset.order_by('min_price')
+    elif sort_by == 'price-high': 
+        products_queryset = products_queryset.order_by('-min_price')
     else:
         products_queryset = products_queryset.order_by('-id')
 

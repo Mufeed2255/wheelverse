@@ -1,28 +1,33 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>WheelVerse | Elite Collector Legends</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght=400;500;600;700;800;900&family=Poppins:wght=300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    
-    <script id="tailwind-config">
+
+    <script>
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
-                        "primary": "#f2ca50",
-                        "background": "#16130b",
-                        "surface": "#16130b",
+                    colors: {
+                        primary: "#f2ca50",
+                        background: "#16130b",
+                        surface: "#16130b",
                         "surface-container": "#231f17",
                         "surface-variant": "#38342b",
                         "on-surface": "#eae1d4",
                         "on-surface-variant": "#d0c5af"
                     },
-                    "fontFamily": {
+                    fontFamily: {
                         "label-caps": ["Orbitron"],
                         "display-lg": ["Orbitron"],
                         "body-md": ["Poppins"]
@@ -31,260 +36,402 @@
             }
         }
     </script>
+
     <style>
         .glass-card {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%);
+            background: linear-gradient(135deg, rgba(26,26,26,.85), rgba(8,8,8,.95));
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(242, 202, 80, 0.1);
+            border: 1px solid rgba(242,202,80,.12);
         }
+
         .product-card-hover:hover {
-            border-color: rgba(242, 202, 80, 0.5);
-            box-shadow: 0 0 30px rgba(242, 202, 80, 0.1);
+            border-color: rgba(242,202,80,.45);
+            box-shadow: 0 0 30px rgba(242,202,80,.12);
         }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        input[type="range"] {
+            accent-color: #f2ca50;
+        }
     </style>
 </head>
 
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
-    <header class="fixed top-0 left-0 w-full z-[100] bg-surface/80 backdrop-blur-xl border-b border-primary/10">
-        <div class="max-w-[1440px] mx-auto px-10 h-20 flex justify-between items-center">
-            <div class="flex items-center gap-2">
-                <div class="font-display-lg text-2xl tracking-[0.2em] text-primary bg-clip-text text-transparent bg-gradient-to-r from-primary to-f2ca50">WHEELVERSE</div>
-            </div>
-            <nav class="hidden xl:flex items-center gap-10">
-                <a class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors" href="#">Home</a>
-                <a class="font-label-caps text-xs text-primary border-b border-primary pb-1" href="{% url 'collections' %}">Collections</a>
-                <a class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors" href="#">Garage</a>
-            </nav>
-            <div class="flex items-center gap-6">
-                <form method="GET" action="" class="relative flex items-center">
-                    <input type="text" name="search" value="{{ current_search }}" placeholder="Search cars..." class="bg-surface-container border border-primary/20 text-on-surface text-xs rounded pl-3 pr-8 py-1.5 focus:ring-1 focus:ring-primary focus:border-primary">
-                    <button type="submit" class="absolute right-2 text-on-surface-variant hover:text-primary">
-                        <span class="material-symbols-outlined text-sm">search</span>
-                    </button>
-                </form>
-                <button class="text-on-surface-variant hover:text-primary transition-colors relative">
-                    <span class="material-symbols-outlined">shopping_cart</span>
-                    <span class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-on-primary text-[10px] rounded-full flex items-center justify-center font-bold">2</span>
+<header class="fixed top-0 left-0 w-full z-[100] bg-surface/90 backdrop-blur-xl border-b border-primary/10">
+    <div class="max-w-[1440px] mx-auto px-10 h-20 flex justify-between items-center">
+
+        <div class="font-display-lg text-3xl tracking-tight">
+            Wheel<span class="text-primary">Verse</span>
+        </div>
+
+        <nav class="hidden xl:flex items-center gap-10">
+            <a href="#" class="font-label-caps text-xs text-primary border-b border-primary pb-1">Home</a>
+            <a href="{% url 'collections' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary">Collections</a>
+            <a href="#" class="font-label-caps text-xs text-on-surface-variant hover:text-primary">Garage</a>
+        </nav>
+
+        <div class="flex items-center gap-6">
+            <form method="GET" class="relative hidden md:flex items-center">
+                <input type="hidden" name="category" value="{{ current_category }}">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                <input type="hidden" name="price_max" value="{{ price_max }}">
+
+                <input type="text" name="search" value="{{ current_search }}" placeholder="Search cars..."
+                       class="bg-transparent border-0 border-b border-primary/20 text-on-surface text-xs pl-2 pr-8 py-2 focus:ring-0 focus:border-primary">
+
+                <button type="submit" class="absolute right-1 text-on-surface-variant hover:text-primary">
+                    <span class="material-symbols-outlined text-xl">search</span>
                 </button>
+            </form>
+
+            <button class="text-on-surface-variant hover:text-primary relative">
+                <span class="material-symbols-outlined">shopping_cart</span>
+                <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">2</span>
+            </button>
+
+            <div class="hidden lg:block border-l border-primary/20 pl-6">
+                <p class="font-label-caps text-[10px] text-primary">ELITE STATUS</p>
+                <p class="font-bold text-xs text-white">Collector_01</p>
             </div>
         </div>
-    </header>
+    </div>
+</header>
 
-    <div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
-        
-        <aside class="w-[320px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar">
-            <form method="GET" action="" id="filterForm" class="space-y-10">
-                <input type="hidden" name="search" value="{{ current_search }}">
-                <input type="hidden" name="sort_by" value="{{ current_sort }}">
+<div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
 
-                <section>
-                    <h3 class="font-label-caps text-xs text-primary mb-6">CATEGORIES</h3>
-                    <div class="space-y-3">
-                        <a href="?category=&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}" 
-                           class="w-full flex items-center justify-between px-3 py-2 rounded-sm text-sm transition-all {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:bg-surface-variant/20{% endif %}">
-                            All Legends <span>({{ total_products_count }})</span>
-                        </a>
-                        {% for cat in categories %}
-                        <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}" 
-                           class="w-full flex items-center justify-between px-3 py-2 rounded-sm text-sm transition-all {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:bg-surface-variant/20{% endif %}">
-                            {{ cat.name }} <span>({{ cat.total_items|default:0 }})</span>
-                        </a>
-                        {% endfor %}
-                    </div>
-                </section>
+    <!-- SIDEBAR -->
+    <aside class="w-[320px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar">
 
-                <section>
-                    <h3 class="font-label-caps text-xs text-primary mb-4">PRICE RANGE</h3>
-                    <div class="space-y-2">
-                        <input type="range" name="price_max" min="1000" max="150000" value="{{ price_max|default:150000 }}" onchange="document.getElementById('filterForm').submit();" class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary">
-                        <div class="flex justify-between font-label-caps text-[10px] text-on-surface-variant">
-                            <span>1K</span>
-                            <span class="text-primary font-bold">Max: ₹{{ price_max|default:"150K" }}</span>
-                            <span>150K+</span>
-                        </div>
-                    </div>
-                </section>
+        <form method="GET" id="filterForm" class="space-y-10">
 
-                <section>
-                    <h3 class="font-label-caps text-xs text-primary mb-6">AVAILABILITY</h3>
-                    <div class="space-y-3">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="status" value="" {% if not current_status %}checked{% endif %} onchange="document.getElementById('filterForm').submit();" class="bg-surface-container border-primary/30 text-primary focus:ring-primary rounded-full">
-                            <span class="text-sm">All Items</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="status" value="in_stock" {% if current_status == 'in_stock' %}checked{% endif %} onchange="document.getElementById('filterForm').submit();" class="bg-surface-container border-primary/30 text-primary focus:ring-primary rounded-full">
-                            <span class="text-sm">In Stock (>10)</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="status" value="limited" {% if current_status == 'limited' %}checked{% endif %} onchange="document.getElementById('filterForm').submit();" class="bg-surface-container border-primary/30 text-primary focus:ring-primary rounded-full">
-                            <span class="text-sm">Limited Stock (1-10)</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="status" value="out_of_stock" {% if current_status == 'out_of_stock' %}checked{% endif %} onchange="document.getElementById('filterForm').submit();" class="bg-surface-container border-primary/30 text-primary focus:ring-primary rounded-full">
-                            <span class="text-sm text-red-400">Out of Stock</span>
-                        </label>
-                    </div>
-                </section>
-            </form>
-        </aside>
+            <input type="hidden" name="search" value="{{ current_search }}">
+            <input type="hidden" name="sort_by" value="{{ current_sort }}">
 
-        <main class="flex-1 min-w-0 flex flex-col justify-between">
-            <div>
-                <section class="relative h-[300px] w-full overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent z-10"></div>
-                    <div class="absolute inset-0 bg-surface-variant/30"></div>
-                    <div class="relative h-full flex flex-col justify-center px-12 z-20">
-                        <div class="flex gap-3 mb-4">
-                            <span class="px-3 py-0.5 bg-primary/10 text-primary border border-primary/30 font-label-caps text-[9px] rounded-sm tracking-widest">ULTRA RARE</span>
-                            <span class="px-3 py-0.5 bg-surface-variant text-on-surface font-label-caps text-[9px] rounded-sm tracking-widest">GARAGE EXCLUSIVE</span>
-                        </div>
-                        <h1 class="font-display-lg text-[40px] text-on-surface leading-none mb-2 tracking-wide">
-                            EXPLORE <br><span class="text-primary">COLLECTOR LEGENDS</span>
-                        </h1>
-                        <p class="text-on-surface-variant text-xs max-w-lg">Curated selection of the world's most sought-after digital automotive masterpieces.</p>
-                    </section>
+            <section>
+                <h3 class="font-label-caps text-xs text-primary mb-6 flex justify-between">
+                    CATEGORIES
+                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                </h3>
 
-                <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-6 border-b border-primary/10 flex items-center justify-between">
-                    <div class="flex items-center gap-2">
-                        <span class="text-primary font-display-lg text-lg">{{ total_products_count }}</span>
-                        <span class="font-label-caps text-on-surface-variant text-[10px]">RESULTS FOUND</span>
-                    </div>
+                <div class="space-y-3">
+                    <a href="?search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}"
+                       class="flex justify-between px-3 py-2 text-sm {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        All Legends <span>({{ total_products_count }})</span>
+                    </a>
 
-                    <form method="GET" action="" id="sortForm" class="flex items-center gap-4">
-                        <input type="hidden" name="search" value="{{ current_search }}">
-                        <input type="hidden" name="category" value="{{ current_category }}">
-                        <input type="hidden" name="status" value="{{ current_status }}">
-                        <input type="hidden" name="price_max" value="{{ price_max }}">
-                        
-                        <div class="relative">
-                            <select name="sort_by" onchange="document.getElementById('sortForm').submit();" class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-2 pl-4 pr-10 rounded focus:ring-1 focus:ring-primary appearance-none cursor-pointer">
-                                <option value="newest" {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>SORT BY: NEWEST ADDITIONS</option>
-                                <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>SORT BY: NAME (A-Z)</option>
-                                <option value="z-a" {% if current_sort == 'z-a' %}selected{% endif %}>SORT BY: NAME (Z-A)</option>
-                            </select>
-                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary text-sm pointer-events-none">expand_more</span>
-                        </div>
-                        
-                        <a href="{% url 'collections' %}" class="p-2 glass-card rounded text-primary flex items-center justify-center hover:bg-primary/10 transition-colors">
-                            <span class="material-symbols-outlined text-sm">refresh</span>
-                        </a>
-                    </form>
-                </section>
-
-                <section class="px-12 py-10">
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                        {% for product in products %}
-                        <div class="glass-card product-card-hover group relative rounded-xl overflow-hidden transition-all duration-500 border border-primary/10 flex flex-col justify-between">
-                            <div class="absolute top-4 left-4 z-10">
-                                <span class="px-3 py-1 bg-blue-600/80 backdrop-blur-md text-white font-label-caps text-[10px] rounded-sm">
-                                    {{ product.rarity|default:"LEGENDARY"|upper }}
-                                </span>
-                            </div>
-
-                            <div class="aspect-[16/10] overflow-hidden bg-black/40 relative">
-                                {% if product.variants.first.image %}
-                                    <img class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" src="{{ product.variants.first.image.url }}" alt="{{ product.name }}">
-                                {% else %}
-                                    <div class="w-full h-full flex items-center justify-center text-primary/40">
-                                        <span class="material-symbols-outlined text-4xl">directions_car</span>
-                                    </div>
-                                {% endif %}
-                            </div>
-
-                            <div class="p-6 flex-1 flex flex-col justify-between">
-                                <div class="mb-4">
-                                    <div class="font-label-caps text-[10px] text-primary mb-1">{{ product.category.name|upper }}</div>
-                                    <h3 class="font-display-lg text-xl text-on-surface leading-tight tracking-tight">{{ product.name }}</h3>
-                                    <p class="text-on-surface-variant text-xs mt-2 line-clamp-2">{{ product.description }}</p>
-                                </div>
-
-                                <div>
-                                    <div class="text-xs font-semibold mb-2 text-primary-container">
-                                        {% if product.total_stock > 0 %}
-                                            Stock Available: {{ product.total_stock }}
-                                        {% else %}
-                                            <span class="text-red-500">Out of Stock</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="flex gap-3">
-                                        <button class="flex-1 py-3 bg-primary text-on-primary font-label-caps text-xs font-bold rounded tracking-widest hover:scale-[1.02] active:scale-95 transition-all">
-                                            ₹{{ product.variants.first.price|default:"N/A" }}
-                                        </button>
-                                        <button class="px-4 py-3 border border-primary/20 text-primary rounded hover:bg-primary/10 transition-all">
-                                            <span class="material-symbols-outlined text-sm">favorite</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% empty %}
-                        <div class="col-span-full py-20 text-center glass-card rounded-xl">
-                            <span class="material-symbols-outlined text-5xl text-primary/40 mb-4">no_sim</span>
-                            <p class="text-on-surface-variant">No vehicles match your dynamic criteria.</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </section>
-
-                {% if products.has_other_pages %}
-                <section class="flex justify-center items-center gap-2 pt-4 pb-12">
-                    {% if products.has_previous %}
-                        <a href="?page={{ products.previous_page_number }}&category={{ current_category }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}" class="w-10 h-10 glass-card rounded flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined text-sm">chevron_left</span>
-                        </a>
-                    {% endif %}
-
-                    {% for num in products.paginator.page_range %}
-                        {% if products.number == num %}
-                            <span class="w-10 h-10 bg-primary text-background font-bold rounded flex items-center justify-center text-sm font-label-caps">{{ num }}</span>
-                        {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                            <a href="?page={{ num }}&category={{ current_category }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}" class="w-10 h-10 glass-card rounded flex items-center justify-center text-sm font-label-caps text-on-surface-variant hover:text-primary transition-colors">{{ num }}</a>
-                        {% endif %}
+                    {% for cat in categories %}
+                    <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}"
+                       class="flex justify-between px-3 py-2 text-sm {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        {{ cat.name }} <span>({{ cat.total_items|default:0 }})</span>
+                    </a>
                     {% endfor %}
+                </div>
+            </section>
 
-                    {% if products.has_next %}
-                        <a href="?page={{ products.next_page_number }}&category={{ current_category }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}" class="w-10 h-10 glass-card rounded flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors">
-                            <span class="material-symbols-outlined text-sm">chevron_right</span>
-                        </a>
-                    {% endif %}
-                </section>
-                {% endif %}
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-5">PRICE RANGE</h3>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">FROM (₹)</label>
+                        <input type="number" name="price_min" min="0" max="150000"
+                            value="{{ price_min|default:0 }}"
+                            placeholder="Min"
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    </div>
+
+                    <div>
+                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">TO (₹)</label>
+                        <input type="number" name="price_max" min="0" max="150000"
+                            value="{{ price_max|default:150000 }}"
+                            placeholder="Max"
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    </div>
+                </div>
+            </section>
+
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-6">AVAILABILITY</h3>
+
+                <div class="space-y-3 text-sm">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="status" value="" {% if not current_status %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        All Items
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="status" value="in_stock" {% if current_status == 'in_stock' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        In Stock
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="status" value="limited" {% if current_status == 'limited' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Limited Stock
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="status" value="out_of_stock" {% if current_status == 'out_of_stock' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Out of Stock
+                    </label>
+                </div>
+            </section>
+        </form>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="flex-1 min-w-0">
+
+        <!-- HERO WITH MAIN PHOTO -->
+        <section class="relative h-[360px] w-full overflow-hidden border-b border-primary/10">
+
+            <!-- CHANGE THIS IMAGE PATH ONLY -->
+            <img src="{% static 'images/collector-hero-car.jpg' %}"
+                 alt="Collector Legends"
+                 class="absolute inset-0 w-full h-full object-cover opacity-70">
+
+            <div class="absolute inset-0 bg-gradient-to-r from-background via-background/60 to-transparent z-10"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
+
+            <div class="relative z-20 h-full flex flex-col justify-center px-12">
+                <div class="flex gap-3 mb-5">
+                    <span class="px-4 py-1 bg-primary text-black font-label-caps text-[10px] rounded-sm tracking-widest shadow-[0_0_20px_rgba(242,202,80,.35)]">
+                        ULTRA RARE
+                    </span>
+
+                    <span class="px-4 py-1 border border-primary/40 text-primary bg-black/30 font-label-caps text-[10px] rounded-sm tracking-widest">
+                        GARAGE EXCLUSIVE
+                    </span>
+                </div>
+
+                <h1 class="font-display-lg text-[52px] leading-none tracking-wide text-white">
+                    EXPLORE <br>
+                    <span class="text-primary">COLLECTOR LEGENDS</span>
+                </h1>
+
+                <p class="mt-5 max-w-xl text-on-surface-variant text-sm">
+                    Curated selection of the world's most sought-after digital automotive masterpieces.
+                </p>
+            </div>
+        </section>
+
+        <!-- TOP BAR -->
+        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-6 border-b border-primary/10 flex items-center justify-between">
+
+            <div class="flex items-center gap-3">
+                <span class="text-primary font-display-lg text-xl">{{ total_products_count }}</span>
+                <span class="font-label-caps text-on-surface-variant text-[10px]">RESULTS FOUND</span>
             </div>
 
-            <footer class="border-t border-primary/10 bg-black/20 mt-auto px-12 py-12">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-8 max-w-[1200px] mx-auto">
-                    <div class="space-y-4 max-w-sm">
-                        <div class="font-display-lg text-lg tracking-[0.2em] text-primary">WHEELVERSE</div>
-                        <p class="text-on-surface-variant text-xs leading-relaxed">The world's premier digital-physical hybrid automotive collector ecosystem.</p>
-                        <div class="flex gap-4 text-on-surface-variant">
-                            <span class="material-symbols-outlined text-sm cursor-pointer hover:text-primary">share</span>
-                            <span class="material-symbols-outlined text-sm cursor-pointer hover:text-primary">help</span>
-                            <span class="material-symbols-outlined text-sm cursor-pointer hover:text-primary">verified_user</span>
-                        </div>
+            <form method="GET" id="sortForm" class="flex items-center gap-4">
+                <input type="hidden" name="search" value="{{ current_search }}">
+                <input type="hidden" name="category" value="{{ current_category }}">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="price_max" value="{{ price_max }}">
+
+                <select name="sort_by"
+                        onchange="document.getElementById('sortForm').submit();"
+                        class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10 rounded-none focus:ring-primary">
+                    <option value="newest" {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>SORT BY: NEWEST ADDITIONS</option>
+                    <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>SORT BY: NAME A-Z</option>
+                    <option value="z-a" {% if current_sort == 'z-a' %}selected{% endif %}>SORT BY: NAME Z-A</option>
+                    <option value="price-low" {% if current_sort == 'price-low' %}selected{% endif %}>SORT BY: PRICE LOW TO HIGH</option>
+                    <option value="price-high" {% if current_sort == 'price-high' %}selected{% endif %}>SORT BY: PRICE HIGH TO LOW</option>
+                </select>
+
+                <a href="{% url 'collections' %}" class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
+                    <span class="material-symbols-outlined text-sm">refresh</span>
+                </a>
+            </form>
+        </section>
+
+        <!-- PRODUCTS -->
+        <section class="px-12 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
+                {% for product in products %}
+                <div class="glass-card product-card-hover group relative rounded-md overflow-hidden transition-all duration-500 flex flex-col">
+
+                    <div class="absolute top-4 left-4 z-10">
+                        <span class="px-3 py-1 bg-primary text-black font-label-caps text-[10px] rounded-sm">
+                            {{ product.rarity|default:"LEGENDARY"|upper }}
+                        </span>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <h4 class="font-label-caps text-[11px] tracking-wider text-primary">COLLECTOR SERVICES</h4>
-                        <div class="flex flex-col gap-2 text-xs text-on-surface-variant">
-                            <a href="#" class="hover:text-primary transition-colors">Privacy Policy</a>
-                            <a href="#" class="hover:text-primary transition-colors">Terms of Service</a>
+
+                    {% if product.total_stock > 0 and product.total_stock <= 3 %}
+                    <div class="absolute top-[170px] right-4 z-10 text-red-500 text-[10px] font-label-caps">
+                        Only {{ product.total_stock }} Left
+                    </div>
+                    {% endif %}
+
+                    <div class="aspect-[16/10] bg-black/50 overflow-hidden">
+                        {% if product.variants.first.image %}
+                            <img src="{{ product.variants.first.image.url }}"
+                                 alt="{{ product.name }}"
+                                 class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-primary/40">
+                                <span class="material-symbols-outlined text-5xl">directions_car</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="p-7 flex-1 flex flex-col justify-between">
+                        <div>
+                            <p class="font-label-caps text-[10px] text-primary mb-2">
+                                {{ product.category.name|upper }}
+                            </p>
+
+                            <h3 class="font-display-lg text-2xl leading-tight text-white">
+                                {{ product.name }}
+                            </h3>
+
+                            <p class="text-on-surface-variant text-xs mt-3 line-clamp-2">
+                                {{ product.description }}
+                            </p>
+                        </div>
+
+                        <div class="mt-7">
+                            {% if product.total_stock > 0 %}
+                                <p class="text-[11px] text-on-surface-variant mb-3">
+                                    Stock Available: {{ product.total_stock }}
+                                </p>
+                            {% else %}
+                                <p class="text-[11px] text-red-500 mb-3">
+                                    Out of Stock
+                                </p>
+                            {% endif %}
+
+                            <div class="flex gap-3">
+                                <button class="flex-1 py-3 bg-primary text-black font-label-caps text-xs font-bold rounded-sm">
+                                    ₹{{ product.variants.first.price|default:"N/A" }}
+                                </button>
+
+                                <button class="w-14 border border-primary/30 text-primary rounded-sm hover:bg-primary hover:text-black transition">
+                                    <span class="material-symbols-outlined text-xl">favorite</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="max-w-[1200px] mx-auto flex flex-col sm:flex-row justify-between items-center border-t border-primary/5 mt-10 pt-6 text-[10px] text-on-surface-variant/50 font-label-caps tracking-widest gap-4">
-                    <p>© 2026 WheelVerse Cinematic Performance. All Rights Reserved.</p>
-                    <div class="flex gap-6">
-                        <span>DESIGNED FOR ENTHUSIASTS</span>
-                        <span>GLOBAL DISTRIBUTION</span>
-                        <span>SECURE TRANSACTION</span>
+
+                {% empty %}
+                <div class="col-span-full py-20 text-center glass-card rounded-xl">
+                    <span class="material-symbols-outlined text-5xl text-primary/40 mb-4">no_sim</span>
+                    <p class="text-on-surface-variant">No vehicles match your filter.</p>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- PAGINATION -->
+            {% if products.has_other_pages %}
+            <div class="flex justify-center items-center gap-3 mt-16">
+
+                {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </a>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                    <span class="w-10 h-10 bg-primary text-black font-bold flex items-center justify-center">
+                        {{ num }}
+                    </span>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                       class="w-10 h-10 border border-primary/20 flex items-center justify-center text-on-surface-variant hover:text-primary">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
+                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </a>
+                {% endif %}
+
+            </div>
+            {% endif %}
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-primary/10 bg-black/25 mt-10">
+            <div class="px-12 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+
+                <div>
+                    <h2 class="font-display-lg text-2xl mb-6">
+                        Wheel<span class="text-primary">Verse</span>
+                    </h2>
+
+                    <p class="text-on-surface-variant text-sm max-w-xs">
+                        The world's premier digital-physical hybrid automotive collector ecosystem.
+                    </p>
+
+                    <div class="flex gap-4 mt-6 text-primary">
+                        <span class="material-symbols-outlined text-lg">share</span>
+                        <span class="material-symbols-outlined text-lg">public</span>
+                        <span class="material-symbols-outlined text-lg">alternate_email</span>
                     </div>
                 </div>
-            </footer>
-        </main>
-    </div>
+
+                <div>
+                    <h3 class="font-label-caps text-sm tracking-widest mb-6">
+                        COLLECTOR SERVICES
+                    </h3>
+
+                    <div class="space-y-4 text-on-surface-variant text-sm">
+                        <a href="#" class="block hover:text-primary">Privacy Policy</a>
+                        <a href="#" class="block hover:text-primary">Terms of Service</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-label-caps text-sm tracking-widest mb-6">
+                        ELITE STATUS
+                    </h3>
+
+                    <p class="text-on-surface-variant text-sm max-w-xs">
+                        Designed for premium collectors, racing enthusiasts, and limited edition hunters.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-primary/10 px-12 py-6 flex flex-col lg:flex-row justify-between gap-4 text-[10px] text-on-surface-variant font-label-caps">
+                <p>© 2026 WheelVerse Cinematic Performance. All Rights Reserved.</p>
+
+                <div class="flex gap-8">
+                    <span>DESIGNED FOR ENTHUSIASTS</span>
+                    <span>GLOBAL DISTRIBUTION</span>
+                    <span>SECURE TRANSACTION</span>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+</div>
+
 </body>
 </html>
