@@ -121,7 +121,6 @@ class Address(models.Model):
     
     # --- 2. PRODUCT MODEL ---
 class Product(models.Model):
-    # 🆕 Rarity ലെവലുകൾക്ക് വേണ്ടിയുള്ള ചോയ്സുകൾ
     RARITY_CHOICES = [
         ('COMMON', 'Common'),
         ('RARE', 'Rare'),
@@ -133,8 +132,6 @@ class Product(models.Model):
     category = models.ForeignKey('Category', on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=50, unique=True, help_text="Unique Stock Keeping Unit")
-    
-    # 🆕 ഈ ഫീൽഡ് ഇവിടെയാണ് ചേർക്കേണ്ടത് (ഇമേജിൽ കാണിച്ച എറർ മാറാൻ)
     rarity = models.CharField(max_length=50, choices=RARITY_CHOICES, default='LEGENDARY')
     
     description = models.TextField(blank=True, null=True)

@@ -873,12 +873,18 @@ def user_collections(request):
     
 
 #sorting logic
-    products_queryset = products_queryset.filter(
-        variants__price__gte=price_min,
-        variants__price__lte=price_max
-    ).distinct()
-    
+    # ... മുകളിലുള്ള സർച്ച്, കാറ്റഗറി, റാരിറ്റി ഫിൽട്ടറുകൾക്ക് ശേഷം ...
+
+    # 1. ആദ്യം തന്നെ ഓരോ പ്രൊഡക്റ്റിന്റെയും ഏറ്റവും കുറഞ്ഞ വേരിയന്റ് പ്രൈസ് കണ്ടുപിടിക്കുക
     products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
+
+    # 2. ⚠️ ഇപ്പോഴത്തെ കറക്റ്റ് വിലയായ 'min_price' വെച്ച് മാത്രം ഫിൽട്ടർ ചെയ്യുക (ഇതാണ് ശരിക്കുള്ള ലോജിക്)
+    if price_min:
+        products_queryset = products_queryset.filter(min_price__gte=price_min)
+    if price_max:
+        products_queryset = products_queryset.filter(min_price__lte=price_max)
+
+    # 3. സോർട്ടിംഗ് ലോജിക്
     if sort_by == 'a-z':
         products_queryset = products_queryset.order_by('name')
     elif sort_by == 'z-a':
@@ -887,11 +893,15 @@ def user_collections(request):
         products_queryset = products_queryset.order_by('min_price')
     elif sort_by == 'price-high': 
         products_queryset = products_queryset.order_by('-min_price')
+    elif sort_by == 'oldest': 
+        products_queryset = products_queryset.order_by('id')
     else:
         products_queryset = products_queryset.order_by('-id')
 
+    # 4. ക്വറിസെറ്റ് ലിസ്റ്റ് ആക്കി മാറ്റുന്നു
     products_list = list(products_queryset)
 
+    # 5. സ്റ്റോക്ക് സ്റ്റാറ്റസ് ഫിൽട്ടർ (ലിസ്റ്റ് കോംപ്രിഹെൻഷൻ)
     if status == 'in_stock':
         products_list = [p for p in products_list if p.total_stock > 10]
     elif status == 'limited':
@@ -899,7 +909,7 @@ def user_collections(request):
     elif status == 'out_of_stock':
         products_list = [p for p in products_list if p.total_stock == 0]
 
-    # 8. PAGINATOR ലോജിക്
+    # 6. PAGINATOR ലോജിക്
     paginator = Paginator(products_list, 6) 
     page = request.GET.get('page', 1)
     

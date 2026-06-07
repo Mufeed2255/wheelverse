@@ -320,10 +320,10 @@
 
                     
                     {% if product.total_stock > 0 and product.total_stock <= 3 %}
-                    <div class="absolute top-[170px] right-4 z-10 text-red-500 text-[10px] font-label-caps">
-                        Only {{ product.total_stock }} Left
-                    </div>
-                    {% endif %}
+                        <div class="absolute top-[170px] right-4 z-10 bg-red-800 text-white text-[10px] font-bold font-label-caps px-2 py-0.5 rounded-sm uppercase tracking-wider shadow-sm">
+                            Only {{ product.total_stock }} Left
+                        </div>
+                        {% endif %}
 
                     <div class="aspect-[16/10] bg-black/50 overflow-hidden">
                         {% if product.variants.first.image %}
