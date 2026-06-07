@@ -84,7 +84,9 @@
                 <input type="hidden" name="category" value="{{ current_category }}">
                 <input type="hidden" name="status" value="{{ current_status }}">
                 <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                <input type="hidden" name="price_min" value="{{ price_min }}">
                 <input type="hidden" name="price_max" value="{{ price_max }}">
+                <input type="hidden" name="rarity" value="{{ current_rarity }}">
 
                 <input type="text" name="search" value="{{ current_search }}" placeholder="Search cars..."
                        class="bg-transparent border-0 border-b border-primary/20 text-on-surface text-xs pl-2 pr-8 py-2 focus:ring-0 focus:border-primary">
@@ -109,13 +111,13 @@
 
 <div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
 
-    <!-- SIDEBAR -->
     <aside class="w-[320px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar">
 
         <form method="GET" id="filterForm" class="space-y-10">
 
             <input type="hidden" name="search" value="{{ current_search }}">
             <input type="hidden" name="sort_by" value="{{ current_sort }}">
+            <input type="hidden" name="status" value="{{ current_status }}">
 
             <section>
                 <h3 class="font-label-caps text-xs text-primary mb-6 flex justify-between">
@@ -124,13 +126,13 @@
                 </h3>
 
                 <div class="space-y-3">
-                    <a href="?search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}"
+                    <a href="?search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
                        class="flex justify-between px-3 py-2 text-sm {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
                         All Legends <span>({{ total_products_count }})</span>
                     </a>
 
                     {% for cat in categories %}
-                    <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_max={{ price_max }}"
+                    <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
                        class="flex justify-between px-3 py-2 text-sm {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
                         {{ cat.name }} <span>({{ cat.total_items|default:0 }})</span>
                     </a>
@@ -141,8 +143,7 @@
             <section class="border-t border-primary/10 pt-6">
                 <h3 class="font-label-caps text-xs text-primary mb-5">PRICE RANGE</h3>
 
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
+                <div class="grid grid-cols-2 gap-3"> <div>
                         <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">FROM (₹)</label>
                         <input type="number" name="price_min" min="0" max="150000"
                             value="{{ price_min|default:0 }}"
@@ -159,9 +160,49 @@
                             onchange="document.getElementById('filterForm').submit();"
                             class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                     </div>
+
                 </div>
             </section>
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-6">RARITY LEVEL</h3>
 
+                <div class="space-y-3 text-sm">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="rarity" value="" {% if not current_rarity %}checked{% endif %}
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        All Rarities
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'COMMON' %}text-primary font-bold{% endif %}">
+                        <input type="radio" name="rarity" value="COMMON" {% if current_rarity|upper == 'COMMON' %}checked{% endif %}
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Common
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'RARE' %}text-primary font-bold{% endif %}">
+                        <input type="radio" name="rarity" value="RARE" {% if current_rarity|upper == 'RARE' %}checked{% endif %}
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Rare
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'EPIC' %}text-primary font-bold{% endif %}">
+                        <input type="radio" name="rarity" value="EPIC" {% if current_rarity|upper == 'EPIC' %}checked{% endif %}
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Epic
+                    </label>
+
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'LEGENDARY' %}text-primary font-bold{% endif %}">
+                        <input type="radio" name="rarity" value="LEGENDARY" {% if current_rarity|upper == 'LEGENDARY' %}checked{% endif %}
+                            onchange="document.getElementById('filterForm').submit();"
+                            class="bg-surface-container border-primary/30 text-primary focus:ring-primary">
+                        Legendary
+                    </label>
+                </div>
+            </section>
             <section class="border-t border-primary/10 pt-6">
                 <h3 class="font-label-caps text-xs text-primary mb-6">AVAILABILITY</h3>
 
@@ -198,13 +239,9 @@
         </form>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <main class="flex-1 min-w-0">
 
-        <!-- HERO WITH MAIN PHOTO -->
         <section class="relative h-[360px] w-full overflow-hidden border-b border-primary/10">
-
-            <!-- CHANGE THIS IMAGE PATH ONLY -->
             <img src="{% static 'images/collector-hero-car.jpg' %}"
                  alt="Collector Legends"
                  class="absolute inset-0 w-full h-full object-cover opacity-70">
@@ -214,12 +251,8 @@
 
             <div class="relative z-20 h-full flex flex-col justify-center px-12">
                 <div class="flex gap-3 mb-5">
-                    <span class="px-4 py-1 bg-primary text-black font-label-caps text-[10px] rounded-sm tracking-widest shadow-[0_0_20px_rgba(242,202,80,.35)]">
-                        ULTRA RARE
-                    </span>
-
                     <span class="px-4 py-1 border border-primary/40 text-primary bg-black/30 font-label-caps text-[10px] rounded-sm tracking-widest">
-                        GARAGE EXCLUSIVE
+                        Collections
                     </span>
                 </div>
 
@@ -234,9 +267,7 @@
             </div>
         </section>
 
-        <!-- TOP BAR -->
         <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-6 border-b border-primary/10 flex items-center justify-between">
-
             <div class="flex items-center gap-3">
                 <span class="text-primary font-display-lg text-xl">{{ total_products_count }}</span>
                 <span class="font-label-caps text-on-surface-variant text-[10px]">RESULTS FOUND</span>
@@ -246,16 +277,20 @@
                 <input type="hidden" name="search" value="{{ current_search }}">
                 <input type="hidden" name="category" value="{{ current_category }}">
                 <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="price_min" value="{{ price_min }}">
                 <input type="hidden" name="price_max" value="{{ price_max }}">
+                <input type="hidden" name="rarity" value="{{ current_rarity }}">
 
                 <select name="sort_by"
                         onchange="document.getElementById('sortForm').submit();"
                         class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10 rounded-none focus:ring-primary">
-                    <option value="newest" {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>SORT BY: NEWEST ADDITIONS</option>
+                    <option value="newest" {% if current_sort == 'newest' or not current_sort %}selected{% endif %}>SORT BY: NEWEST FIRST</option>
+                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>SORT BY: OLDEST FIRST</option>
                     <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>SORT BY: NAME A-Z</option>
                     <option value="z-a" {% if current_sort == 'z-a' %}selected{% endif %}>SORT BY: NAME Z-A</option>
                     <option value="price-low" {% if current_sort == 'price-low' %}selected{% endif %}>SORT BY: PRICE LOW TO HIGH</option>
                     <option value="price-high" {% if current_sort == 'price-high' %}selected{% endif %}>SORT BY: PRICE HIGH TO LOW</option>
+                    
                 </select>
 
                 <a href="{% url 'collections' %}" class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
@@ -264,7 +299,6 @@
             </form>
         </section>
 
-        <!-- PRODUCTS -->
         <section class="px-12 py-10">
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
@@ -272,11 +306,19 @@
                 <div class="glass-card product-card-hover group relative rounded-md overflow-hidden transition-all duration-500 flex flex-col">
 
                     <div class="absolute top-4 left-4 z-10">
-                        <span class="px-3 py-1 bg-primary text-black font-label-caps text-[10px] rounded-sm">
-                            {{ product.rarity|default:"LEGENDARY"|upper }}
+                        <span class="px-3 py-1 font-label-caps text-[10px] rounded-sm font-bold uppercase
+                            {% if product.rarity|lower == 'common' %} bg-neutral-500 text-white
+                            {% elif product.rarity|lower == 'rare' %} bg-blue-500 text-white
+                            {% elif product.rarity|lower == 'epic' %} bg-purple-500 text-white
+                            {% elif product.rarity|lower == 'legendary' %} bg-amber-500 text-black
+                            {% elif product.rarity|lower == 'ultra rare' %} bg-red-600 text-white
+                            {% else %} bg-gray-500 text-white
+                            {% endif %}">
+                            {{ product.rarity }}
                         </span>
                     </div>
 
+                    
                     {% if product.total_stock > 0 and product.total_stock <= 3 %}
                     <div class="absolute top-[170px] right-4 z-10 text-red-500 text-[10px] font-label-caps">
                         Only {{ product.total_stock }} Left
@@ -342,12 +384,11 @@
                 {% endfor %}
             </div>
 
-            <!-- PAGINATION -->
             {% if products.has_other_pages %}
             <div class="flex justify-center items-center gap-3 mt-16">
 
                 {% if products.has_previous %}
-                <a href="?page={{ products.previous_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                <a href="?page={{ products.previous_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
                    class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
                     <span class="material-symbols-outlined text-sm">chevron_left</span>
                 </a>
@@ -359,7 +400,7 @@
                         {{ num }}
                     </span>
                     {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?page={{ num }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                    <a href="?page={{ num }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
                        class="w-10 h-10 border border-primary/20 flex items-center justify-center text-on-surface-variant hover:text-primary">
                         {{ num }}
                     </a>
@@ -367,7 +408,7 @@
                 {% endfor %}
 
                 {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_max={{ price_max }}"
+                <a href="?page={{ products.next_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
                    class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black">
                     <span class="material-symbols-outlined text-sm">chevron_right</span>
                 </a>
@@ -375,10 +416,7 @@
 
             </div>
             {% endif %}
-        </section>
-
-        <!-- FOOTER -->
-        <footer class="border-t border-primary/10 bg-black/25 mt-10">
+        </section> <footer class="border-t border-primary/10 bg-black/25 mt-10">
             <div class="px-12 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
 
                 <div>

@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 import uuid
+from django.db.models import Min 
 
 def update_product_stock(product):
     from django.db.models import Sum
@@ -14,9 +15,7 @@ def update_product_stock(product):
     product.total_stock = total
     product.save(update_fields=['total_stock'])
 
-# 1. CATEGORY LIST VIEW
 def category_list(request):
-    # ഓരോ കാറ്റഗറിയിലുമുള്ള പ്രൊഡക്റ്റുകളുടെ എണ്ണം (Count) കൂടി ഒരുമിച്ച് എടുക്കുന്നു
     categories = Category.objects.filter(is_active=True).annotate(total_items=Count('products'))
     
     # Quick Sector Insights കണക്കുകൾ
@@ -33,25 +32,19 @@ def category_list(request):
 
 def add_category(request):
     if request.method == 'POST':
-        # ഇൻപുട്ട് ഫീൽഡിൽ നിന്നുള്ള ഡാറ്റ എടുക്കുന്നു (.strip() അനാവശ്യ സ്പേസുകൾ ഒഴിവാക്കും)
         name = request.POST.get('category_name', '').strip()
         description = request.POST.get('description', '')
         
         if name:
-            # 1. ഈ പേരിൽ ഇതിനകം ഒരു കാറ്റഗറി ഡാറ്റാബേസിൽ ഉണ്ടോ എന്ന് പരിശോധിക്കുന്നു (Case-insensitive check)
             if Category.objects.filter(name__iexact=name).exists():
-                # ഒരേ പേര് ഉണ്ടെങ്കിൽ അഡ്മിന് എറർ മെസ്സേജ് കാണിക്കുന്നു
                 messages.error(request, f'"{name}" is already existing. Please choose a different name.')
                 
-                # നിലവിൽ ടൈപ്പ് ചെയ്ത ഡിസ്ക്രിപ്ഷൻ നഷ്ടപ്പെടാതെ തിരികെ ഫോമിലേക്ക് തന്നെ വിടുന്നു
                 return render(request, 'adminpanel/admin_login/add_category.html', {
                     'description': description,
                 })
             
-            # 2. ഡ്യൂപ്ലിക്കേറ്റ് ഇല്ലെങ്കിൽ പുതിയ കാറ്റഗറി ഡാറ്റാബേസിൽ സേവ് ചെയ്യുന്നു
             Category.objects.create(name=name, description=description)
             
-            # സേവ് ചെയ്തതിന് ശേഷം ലിസ്റ്റ് പേജിലേക്ക് റീഡയറക്ട് ചെയ്യുന്നു
             return redirect('admin_category')
             
     return render(request, 'adminpanel/admin_login/add_category.html')
@@ -71,115 +64,48 @@ def edit_category(request, category_id):
 # 4. DELETE CATEGORY VIEW (Soft Delete/Hard Delete)
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    # ഡാറ്റാബേസിൽ നിന്ന് പൂർണ്ണമായി ഒഴിവാക്കാൻ category.delete() ഉപയോഗിക്കാം. 
-    # ഇവിടെ നമ്മൾ സുരക്ഷിതത്വത്തിനായി Soft Delete (is_active=False) ചെയ്യുന്നു.
     category.is_active = False
     category.save()
     return redirect('admin_category')
-
-
-
-# def product_management(request):
-#     search_query = request.GET.get('search', '').strip()
-#     category_id = request.GET.get('category', '')
-#     status = request.GET.get('status', '')
-#     sort_by = request.GET.get('sort_by', '') 
-    
-#    # product_management വ്യൂവിന്റെ തുടക്കം ഇങ്ങനെ മാറ്റുക:
-#     products = Product.objects.filter(is_deleted=False).order_by('-id')
-#     categories = Category.objects.filter(is_active=True)
-    
-#     # സെർച്ച് ലോജിക്
-#     if search_query:
-#         products = products.filter(name__icontains=search_query)
-        
-#     # കാറ്റഗറി ഫിൽട്ടർ
-#     if category_id:
-#         products = products.filter(category_id=category_id)
-        
-#     # സ്റ്റാറ്റസ് ഫിൽട്ടർ 
-#     if status == 'in_stock':
-#         products = products.filter(total_stock__gt=10)
-#     elif status == 'limited':
-#         products = products.filter(total_stock__lte=10, total_stock__gt=0)
-#     elif status == 'out_of_stock':
-#         products = products.filter(total_stock=0)
-        
-#     # సోర్టింగ్ ലോജിക്
-#     if sort_by == 'a-z':
-#         products = products.order_by('name')          
-#     elif sort_by == 'z-a':
-#         products = products.order_by('-name')         
-#     elif sort_by == 'newest':
-#         products = products.order_by('-id')          
-#     else:
-#         products = products.order_by('-id')  # ബൈ ഡീഫോൾട്ട് പുതിയ പ്രൊഡക്റ്റുകൾ മുകളിൽ കാണിക്കും
-
-#     context = {
-#         'products': products,
-#         'categories': categories,
-#         'total_products_count': products.count(),
-#         'current_search': search_query,
-#         'current_category': category_id,
-#         'current_status': status,
-#         'current_sort': sort_by,                                     
-#     }
-#     return render(request, 'adminpanel/admin_login/admin_products.html', context)
-
-
-# def delete_product(request, product_id):
-#     if request.method == 'POST':
-#         product = get_object_or_404(Product, id=product_id)
-#         product.is_deleted = True  # Soft Delete
-#         product.save()
-#         return HttpResponse(status=200)
-#     return HttpResponse(status=400)
-
-
-
-# @require_POST
-# def toggle_product_status(request, product_id):
-#     product = get_object_or_404(Product, id=product_id)
-    
-#     product.is_active = not product.is_active
-#     product.save()
-    
-#     return JsonResponse({
-#         'status': 'success',
-#         'is_active': product.is_active
-#     })
 
 
 def product_management(request):
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     status = request.GET.get('status', '')
+    rarity_filter = request.GET.get('rarity', '') 
     sort_by = request.GET.get('sort_by', '') 
     
-    # 1. ഡിലീറ്റ് ചെയ്യാത്ത പ്രൊഡക്റ്റുകൾ മാത്രം ആദ്യം എടുക്കുന്നു
     products_queryset = Product.objects.filter(is_deleted=False)
     categories = Category.objects.filter(is_active=True)
     
-    # 2. സെർച്ച് ലോജിക്
+    products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
+    
     if search_query:
         products_queryset = products_queryset.filter(name__icontains=search_query)
         
-    # 3. കാറ്റഗറി ഫിൽട്ടർ
     if category_id:
         products_queryset = products_queryset.filter(category_id=category_id)
         
-    # 4. സോർട്ടിങ് ലോജിക് (ക്വറി സെറ്റിൽ തന്നെ ആദ്യം സോർട്ട് ചെയ്യുന്നു)
-    if sort_by == 'a-z':
+    if rarity_filter:
+        products_queryset = products_queryset.filter(rarity__iexact=rarity_filter)
+    
+    if sort_by == 'Oldest':
+        products_queryset = products_queryset.order_by('id')
+    elif sort_by == 'a-z':
         products_queryset = products_queryset.order_by('name')          
     elif sort_by == 'z-a':
         products_queryset = products_queryset.order_by('-name')          
+    elif sort_by == 'price-low':
+        products_queryset = products_queryset.order_by('min_price')
+    elif sort_by == 'price-high': 
+        products_queryset = products_queryset.order_by('-min_price')
+        
     else:
         products_queryset = products_queryset.order_by('-id')  # Default Newest
 
-    # ⚠️ മാറ്റം ഇവിടെയാണ്: ക്വറിയെ ലിസ്റ്റ് ആക്കുന്നു, കാരണം total_stock ഒരു പ്രോപ്പർട്ടിയാണ്!
     products_list = list(products_queryset)
         
-    # 5. സ്റ്റാറ്റസ് ഫിൽട്ടർ (ലിസ്റ്റിൽ പൈത്തൺ വഴി ഫിൽട്ടർ ചെയ്യുന്നു)
     if status == 'in_stock':
         products_list = [p for p in products_list if p.total_stock > 10]
     elif status == 'limited':
@@ -190,16 +116,16 @@ def product_management(request):
     context = {
         'products': products_list,
         'categories': categories,
-        'total_products_count': len(products_list), # Query count-ന് പകരം ലിസ്റ്റ് നീളം എടുക്കുന്നു
+        'total_products_count': len(products_list), 
         'current_search': search_query,
         'current_category': category_id,
         'current_status': status,
+        'current_rarity': rarity_filter, 
         'current_sort': sort_by,                                     
     }
     return render(request, 'adminpanel/admin_login/admin_products.html', context)
 
 
-# Soft Delete ഫങ്ഷൻ അതുപോലെ നിലനിർത്താം (Perfect ആണ്)
 def delete_product(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
@@ -209,7 +135,6 @@ def delete_product(request, product_id):
     return HttpResponse(status=400)
 
 
-# Toggle Status ഫങ്ഷൻ അതുപോലെ നിലനിർത്താം (Perfect ആണ്)
 @require_POST
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -221,14 +146,12 @@ def toggle_product_status(request, product_id):
         'is_active': product.is_active
     })
 
-
 def add_product(request):
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
         description = request.POST.get('description', '')
         category_id = request.POST.get('category')
-        rarity = request.POST.get('rarity', 'legendary')
-        
+        rarity = request.POST.get('rarity', 'LEGENDARY').upper()
         is_visible_raw = request.POST.get('is_visible')
         is_visible = is_visible_raw in ['true', 'on']
 
@@ -245,24 +168,22 @@ def add_product(request):
                 name=name,
                 description=description,
                 sku=f"WV-{uuid.uuid4().hex[:8].upper()}",
+                rarity=rarity, 
                 is_active=is_visible  
             )
             messages.success(request, f"Product '{name}' added successfully!")
             return redirect('admin_products')
             
         except Exception as e:
-            # 🆕 ഇവിടെ എറർ വന്നാൽ ആ പേജ് തന്നെ വീണ്ടും റിട്ടേൺ ചെയ്യണം!
             messages.error(request, f"Error creating product: {str(e)}")
             categories = Category.objects.filter(is_active=True)
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
-    # GET റിക്വസ്റ്റ് ആണെങ്കിൽ ആക്ടീവ് ആയ കാറ്റഗറികൾ ഫോമിലേക്ക് പാസ്സ് ചെയ്യുന്നു
     categories = Category.objects.filter(is_active=True)
     return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
 
 def edit_product(request, product_id):
-    # അപ്ഡേറ്റ് ചെയ്യേണ്ട പ്രൊഡക്റ്റ് ഒബ്ജക്റ്റ് ഡാറ്റാബേസിൽ നിന്ന് എടുക്കുന്നു
     product = get_object_or_404(Product, id=product_id)
     
     if request.method == 'POST':
@@ -272,22 +193,16 @@ def edit_product(request, product_id):
         rarity = request.POST.get('rarity', 'legendary')
         is_visible = request.POST.get('is_visible') == 'true'
 
-        # കാറ്റഗറി ഒബ്ജക്റ്റ് എടുക്കുന്നു
         category = get_object_or_404(Category, id=category_id)
         
-        # നിലവിലുള്ള പ്രൊഡക്റ്റിന്റെ വാല്യൂസ് അപ്ഡേറ്റ് ചെയ്യുന്നു
         product.name = name
         product.description = description
         product.category = category
         product.rarity = rarity
-        product.is_active = is_visible  # നിങ്ങളുടെ മോഡലിലെ ഫീൽഡ് നെയിം അനുസരിച്ച് മാറ്റുക
-        # മാറ്റങ്ങൾ ഡാറ്റാബേസിൽ സേവ് ചെയ്യുന്നു
+        product.is_active = is_visible  
         product.save()
-
-        # അപ്ഡേറ്റിന് ശേഷം പ്രൊഡക്റ്റ് ലിസ്റ്റ് പേജിലേക്ക് റീഡയറക്ട് ചെയ്യുന്നു
         return redirect('admin_products')
 
-    # GET റിക്വസ്റ്റ് ആണെങ്കിൽ കറന്റ് പ്രൊഡക്റ്റ് ഡാറ്റയും കാറ്റഗറികളും ടെംപ്ലേറ്റിലേക്ക് പാസ്സ് ചെയ്യുന്നു
     categories = Category.objects.filter(is_active=True)
     context = {
         'product': product,
@@ -298,10 +213,7 @@ def edit_product(request, product_id):
 
 
 def manage_variants(request, product_id):
-    # യുആർഎല്ലിൽ നിന്ന് വരുന്ന product_id വെച്ച് പ്രൊഡക്റ്റ് എടുക്കുന്നു
     product = get_object_or_404(Product, id=product_id)
-    
-    # ആ പ്രൊഡക്റ്റിന്റെ വേരിയന്റുകൾ മാത്രം എടുക്കുന്നു
     variants = product.variants.filter(is_deleted=False)
     
     return render(request, 'adminpanel/admin_login/manage_variants.html', {
@@ -370,14 +282,10 @@ def edit_variant(request, variant_id):
 
 @require_POST
 def toggle_variant_status(request, variant_id):
-    # വേരിയന്റ് ഉണ്ടോ എന്ന് നോക്കുന്നു, ഇല്ലെങ്കിൽ 404 എറർ അടിക്കും
-    variant = get_object_or_404(ProductVariant, id=variant_id)
-    
-    # നിലവിലുള്ള സ്റ്റാറ്റസ് തിരിച്ചിടുന്നു (True ആണെങ്കിൽ False, False ആണെങ്കിൽ True)
+    variant = get_object_or_404(ProductVariant, id=variant_id)    
     variant.is_active = not variant.is_active
     variant.save()
     
-    # വിജയകരമായി മാറി എന്ന് ഫ്രണ്ട്-എൻഡിനെ അറിയിക്കാൻ JSON റിട്ടേൺ ചെയ്യുന്നു
     return JsonResponse({
         'status': 'success',
         'is_active': variant.is_active

@@ -831,37 +831,53 @@ def set_default_address(request, id):
         messages.success(request, "Primary address changed successfully.")
     return redirect("address_list")
 
-
-
 def user_collections(request):
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     status = request.GET.get('status', '')
     sort_by = request.GET.get('sort_by', '')
+    rarity = request.GET.get('rarity', '').strip()
     
-    price_min = request.GET.get('price_min', 0)
-    price_max = request.GET.get('price_max', 150000)
-    context = {
-        'price_min': price_min,
-        'price_max': price_max,
-    } 
+
+    try:
+        price_min = int(request.GET.get('price_min', 0))
+    except (ValueError, TypeError):
+        price_min = 0
+
+    try:
+        price_max = int(request.GET.get('price_max', 150000))
+    except (ValueError, TypeError):
+        price_max = 150000
+
 
     products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
     
+
     categories = Category.objects.filter(is_active=True).annotate(
         total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))
     )
 
+
     if search_query:
         products_queryset = products_queryset.filter(name__icontains=search_query)
+        
+
     if category_id:
         products_queryset = products_queryset.filter(category_id=category_id)
 
+
+    if rarity:
+        products_queryset = products_queryset.filter(rarity__iexact=rarity)
+
+
+    
+
+#sorting logic
     products_queryset = products_queryset.filter(
         variants__price__gte=price_min,
         variants__price__lte=price_max
     ).distinct()
-
+    
     products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
     if sort_by == 'a-z':
         products_queryset = products_queryset.order_by('name')
@@ -883,7 +899,8 @@ def user_collections(request):
     elif status == 'out_of_stock':
         products_list = [p for p in products_list if p.total_stock == 0]
 
-    paginator = Paginator(products_list, 6)
+    # 8. PAGINATOR ലോജിക്
+    paginator = Paginator(products_list, 6) 
     page = request.GET.get('page', 1)
     
     try:
@@ -894,13 +911,14 @@ def user_collections(request):
         paginated_products = paginator.page(paginator.num_pages)
 
     context = {
-        'products': paginated_products,  # പേജിനേഷൻ ഡാറ്റ
+        'products': paginated_products,  
         'categories': categories,
         'total_products_count': len(products_list),
         'current_search': search_query,
         'current_category': category_id,
         'current_status': status,
         'current_sort': sort_by,
+        'current_rarity': rarity,  
         'price_min': price_min,
         'price_max': price_max,
     }

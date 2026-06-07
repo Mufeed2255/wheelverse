@@ -100,3 +100,54 @@ class Address(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.address_type} ({self.city})"
+    
+    
+    class Category(models.Model):
+        name = models.CharField(max_length=255)
+        slug = models.SlugField(unique=True, blank=True)
+        description = models.TextField(blank=True, null=True)
+        is_active = models.BooleanField(default=True)
+        created_at = models.DateTimeField(auto_now_add=True)
+        updated_at = models.DateTimeField(auto_now=True)
+
+        class Meta:
+            verbose_name = "Category"
+            verbose_name_plural = "Categories"
+            ordering = ['name']
+
+        def __str__(self):
+            return self.name
+    
+    
+    # --- 2. PRODUCT MODEL ---
+class Product(models.Model):
+    # 🆕 Rarity ലെവലുകൾക്ക് വേണ്ടിയുള്ള ചോയ്സുകൾ
+    RARITY_CHOICES = [
+        ('COMMON', 'Common'),
+        ('RARE', 'Rare'),
+        ('ULTRA RARE', 'Ultra Rare'),
+        ('LEGENDARY', 'Legendary'),
+    ]
+
+
+    category = models.ForeignKey('Category', on_delete=models.CASCADE, related_name='products')
+    name = models.CharField(max_length=255)
+    sku = models.CharField(max_length=50, unique=True, help_text="Unique Stock Keeping Unit")
+    
+    # 🆕 ഈ ഫീൽഡ് ഇവിടെയാണ് ചേർക്കേണ്ടത് (ഇമേജിൽ കാണിച്ച എറർ മാറാൻ)
+    rarity = models.CharField(max_length=50, choices=RARITY_CHOICES, default='LEGENDARY')
+    
+    description = models.TextField(blank=True, null=True)
+    price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
+    total_stock = models.IntegerField(default=0)
+    
+    is_active = models.BooleanField(default=True) 
+    is_deleted = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-id']
+
+    def __str__(self):
+        return self.name
