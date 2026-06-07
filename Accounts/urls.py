@@ -28,4 +28,6 @@ urlpatterns = [
     path("addresses/<int:id>/edit/", views.edit_address, name="edit_address" ),
     path("addresses/<int:id>/delete/", views.delete_address, name="delete_address"),    
     path("addresses/<int:id>/set-default/", views.set_default_address, name="set_default_address"),
+    
+    path('collections/', views.user_collections, name='collections'),
 ]

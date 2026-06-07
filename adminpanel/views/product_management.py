@@ -77,26 +77,27 @@ def delete_category(request, category_id):
     category.save()
     return redirect('admin_category')
 
+
+
 # def product_management(request):
 #     search_query = request.GET.get('search', '').strip()
 #     category_id = request.GET.get('category', '')
 #     status = request.GET.get('status', '')
 #     sort_by = request.GET.get('sort_by', '') 
     
-#     # 1. അടിസ്ഥാനപരമായി ആക്ടീവ് ആയ എല്ലാ പ്രൊഡക്റ്റുകളും എടുക്കുന്നു
-#     products = Product.objects.filter(is_active=True)
+#    # product_management വ്യൂവിന്റെ തുടക്കം ഇങ്ങനെ മാറ്റുക:
+#     products = Product.objects.filter(is_deleted=False).order_by('-id')
 #     categories = Category.objects.filter(is_active=True)
     
 #     # സെർച്ച് ലോജിക്
 #     if search_query:
-#         # നിങ്ങളുടെ മോഡലിൽ sku ഫീൽഡ് ഉണ്ടെന്ന് ഉറപ്പാക്കുക, ഇല്ലെങ്കിൽ sku ഫിൽട്ടർ ഒഴിവാക്കാം
 #         products = products.filter(name__icontains=search_query)
         
 #     # കാറ്റഗറി ഫിൽട്ടർ
 #     if category_id:
 #         products = products.filter(category_id=category_id)
         
-#     # സ്റ്റാറ്റസ് ഫിൽട്ടർ (ഹസ്പിറ്റാലിറ്റി ഉറപ്പാക്കുന്നു, ഒരു ഫിൽട്ടറും സെലക്ട് ചെയ്തിട്ടില്ലെങ്കിൽ എല്ലാം കാണിക്കും)
+#     # സ്റ്റാറ്റസ് ഫിൽട്ടർ 
 #     if status == 'in_stock':
 #         products = products.filter(total_stock__gt=10)
 #     elif status == 'limited':
@@ -104,15 +105,15 @@ def delete_category(request, category_id):
 #     elif status == 'out_of_stock':
 #         products = products.filter(total_stock=0)
         
-#     # FIX: സോർട്ടിങ് ലോജിക് കൃത്യമാക്കുന്നു
+#     # సోర్టింగ్ ലോജിക്
 #     if sort_by == 'a-z':
 #         products = products.order_by('name')          
 #     elif sort_by == 'z-a':
 #         products = products.order_by('-name')         
 #     elif sort_by == 'newest':
-#         products = products.order_by('-id')  # ഒരൊറ്റ ഓർഡർ മാത്രം നിലനിർത്തുക (പുതിയത് ആദ്യം)          
+#         products = products.order_by('-id')          
 #     else:
-#         products = products.order_by('-id')  # ബൈ ഡീഫോൾട്ട് ആയി പുതിയ പ്രൊഡക്റ്റുകൾ മുകളിൽ കാണിക്കും
+#         products = products.order_by('-id')  # ബൈ ഡീഫോൾട്ട് പുതിയ പ്രൊഡക്റ്റുകൾ മുകളിൽ കാണിക്കും
 
 #     context = {
 #         'products': products,
@@ -126,46 +127,70 @@ def delete_category(request, category_id):
 #     return render(request, 'adminpanel/admin_login/admin_products.html', context)
 
 
+# def delete_product(request, product_id):
+#     if request.method == 'POST':
+#         product = get_object_or_404(Product, id=product_id)
+#         product.is_deleted = True  # Soft Delete
+#         product.save()
+#         return HttpResponse(status=200)
+#     return HttpResponse(status=400)
+
+
+
+# @require_POST
+# def toggle_product_status(request, product_id):
+#     product = get_object_or_404(Product, id=product_id)
+    
+#     product.is_active = not product.is_active
+#     product.save()
+    
+#     return JsonResponse({
+#         'status': 'success',
+#         'is_active': product.is_active
+#     })
+
+
 def product_management(request):
     search_query = request.GET.get('search', '').strip()
     category_id = request.GET.get('category', '')
     status = request.GET.get('status', '')
     sort_by = request.GET.get('sort_by', '') 
     
-   # product_management വ്യൂവിന്റെ തുടക്കം ഇങ്ങനെ മാറ്റുക:
-    products = Product.objects.filter(is_deleted=False).order_by('-id')
+    # 1. ഡിലീറ്റ് ചെയ്യാത്ത പ്രൊഡക്റ്റുകൾ മാത്രം ആദ്യം എടുക്കുന്നു
+    products_queryset = Product.objects.filter(is_deleted=False)
     categories = Category.objects.filter(is_active=True)
     
-    # സെർച്ച് ലോജിക്
+    # 2. സെർച്ച് ലോജിക്
     if search_query:
-        products = products.filter(name__icontains=search_query)
+        products_queryset = products_queryset.filter(name__icontains=search_query)
         
-    # കാറ്റഗറി ഫിൽട്ടർ
+    # 3. കാറ്റഗറി ഫിൽട്ടർ
     if category_id:
-        products = products.filter(category_id=category_id)
+        products_queryset = products_queryset.filter(category_id=category_id)
         
-    # സ്റ്റാറ്റസ് ഫിൽട്ടർ 
-    if status == 'in_stock':
-        products = products.filter(total_stock__gt=10)
-    elif status == 'limited':
-        products = products.filter(total_stock__lte=10, total_stock__gt=0)
-    elif status == 'out_of_stock':
-        products = products.filter(total_stock=0)
-        
-    # సోర్టింగ్ ലോജിക്
+    # 4. സോർട്ടിങ് ലോജിക് (ക്വറി സെറ്റിൽ തന്നെ ആദ്യം സോർട്ട് ചെയ്യുന്നു)
     if sort_by == 'a-z':
-        products = products.order_by('name')          
+        products_queryset = products_queryset.order_by('name')          
     elif sort_by == 'z-a':
-        products = products.order_by('-name')         
-    elif sort_by == 'newest':
-        products = products.order_by('-id')          
+        products_queryset = products_queryset.order_by('-name')          
     else:
-        products = products.order_by('-id')  # ബൈ ഡീഫോൾട്ട് പുതിയ പ്രൊഡക്റ്റുകൾ മുകളിൽ കാണിക്കും
+        products_queryset = products_queryset.order_by('-id')  # Default Newest
+
+    # ⚠️ മാറ്റം ഇവിടെയാണ്: ക്വറിയെ ലിസ്റ്റ് ആക്കുന്നു, കാരണം total_stock ഒരു പ്രോപ്പർട്ടിയാണ്!
+    products_list = list(products_queryset)
+        
+    # 5. സ്റ്റാറ്റസ് ഫിൽട്ടർ (ലിസ്റ്റിൽ പൈത്തൺ വഴി ഫിൽട്ടർ ചെയ്യുന്നു)
+    if status == 'in_stock':
+        products_list = [p for p in products_list if p.total_stock > 10]
+    elif status == 'limited':
+        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
+    elif status == 'out_of_stock':
+        products_list = [p for p in products_list if p.total_stock == 0]
 
     context = {
-        'products': products,
+        'products': products_list,
         'categories': categories,
-        'total_products_count': products.count(),
+        'total_products_count': len(products_list), # Query count-ന് പകരം ലിസ്റ്റ് നീളം എടുക്കുന്നു
         'current_search': search_query,
         'current_category': category_id,
         'current_status': status,
@@ -174,20 +199,20 @@ def product_management(request):
     return render(request, 'adminpanel/admin_login/admin_products.html', context)
 
 
+# Soft Delete ഫങ്ഷൻ അതുപോലെ നിലനിർത്താം (Perfect ആണ്)
 def delete_product(request, product_id):
     if request.method == 'POST':
         product = get_object_or_404(Product, id=product_id)
-        product.is_deleted = True  # Soft Delete
+        product.is_deleted = True  
         product.save()
         return HttpResponse(status=200)
     return HttpResponse(status=400)
 
 
-
+# Toggle Status ഫങ്ഷൻ അതുപോലെ നിലനിർത്താം (Perfect ആണ്)
 @require_POST
 def toggle_product_status(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    
     product.is_active = not product.is_active
     product.save()
     

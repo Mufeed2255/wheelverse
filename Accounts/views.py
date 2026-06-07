@@ -13,6 +13,12 @@ User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Count, Q
+from adminpanel.models import Product, Category
+from django.shortcuts import render
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+
 
 #GATEWAYS & PROFILE VIEWS 
 
@@ -824,3 +830,69 @@ def set_default_address(request, id):
         address.save()
         messages.success(request, "Primary address changed successfully.")
     return redirect("address_list")
+
+
+
+def user_collections(request):
+    search_query = request.GET.get('search', '').strip()
+    category_id = request.GET.get('category', '')
+    status = request.GET.get('status', '')
+    sort_by = request.GET.get('sort_by', '')
+    
+    price_min = request.GET.get('price_min', 1000)
+    price_max = request.GET.get('price_max', 500000) # മാക്സിമം ലിമിറ്റ്
+
+    products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
+    
+    categories = Category.objects.filter(is_active=True).annotate(
+        total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))
+    )
+
+    if search_query:
+        products_queryset = products_queryset.filter(name__icontains=search_query)
+    if category_id:
+        products_queryset = products_queryset.filter(category_id=category_id)
+
+    products_queryset = products_queryset.filter(
+        variants__price__gte=price_min,
+        variants__price__lte=price_max
+    ).distinct()
+
+    if sort_by == 'a-z':
+        products_queryset = products_queryset.order_by('name')
+    elif sort_by == 'z-a':
+        products_queryset = products_queryset.order_by('-name')
+    else:
+        products_queryset = products_queryset.order_by('-id')
+
+    products_list = list(products_queryset)
+
+    if status == 'in_stock':
+        products_list = [p for p in products_list if p.total_stock > 10]
+    elif status == 'limited':
+        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
+    elif status == 'out_of_stock':
+        products_list = [p for p in products_list if p.total_stock == 0]
+
+    paginator = Paginator(products_list, 6)
+    page = request.GET.get('page', 1)
+    
+    try:
+        paginated_products = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_products = paginator.page(1)
+    except EmptyPage:
+        paginated_products = paginator.page(paginator.num_pages)
+
+    context = {
+        'products': paginated_products,  # പേജിനേഷൻ ഡാറ്റ
+        'categories': categories,
+        'total_products_count': len(products_list),
+        'current_search': search_query,
+        'current_category': category_id,
+        'current_status': status,
+        'current_sort': sort_by,
+        'price_min': price_min,
+        'price_max': price_max,
+    }
+    return render(request, 'products/collections.html', context)
