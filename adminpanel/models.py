@@ -1,7 +1,6 @@
 from django.db import models
 from django.conf import settings
 
-# --- 1. CATEGORY MODEL ---
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
@@ -15,7 +14,6 @@ class Category(models.Model):
         return self.name
 
 
-# --- 2. PRODUCT MODEL ---
 class Product(models.Model):
     RARITY_CHOICES = [
         ('COMMON', 'Common'),
@@ -55,7 +53,6 @@ class ProductImage(models.Model):
         return f"Image for {self.product.name}"
 
 
-# --- 4. PRODUCT VARIANT MODEL (FIXED TYPO & RELATION) ---
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     size = models.CharField(max_length=100, help_text="e.g., 20-inch, 21-inch")
@@ -71,7 +68,6 @@ class ProductVariant(models.Model):
         return f"{self.product.name} - {self.size} ({self.color})"
 
 
-# --- 5. ADMIN ACTIVITY LOG MODEL ---
 class AdminActivityLog(models.Model):
     ACTION_CHOICES = [
         ('ACTIVATE_USER', 'Activated User'),

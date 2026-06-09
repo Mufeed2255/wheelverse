@@ -18,7 +18,6 @@ def update_product_stock(product):
 def category_list(request):
     categories = Category.objects.filter(is_active=True).annotate(total_items=Count('products'))
     
-    # Quick Sector Insights കണക്കുകൾ
     total_assets = Product.objects.filter(category__is_active=True).count()
     active_categories_count = categories.count()
 
@@ -61,7 +60,6 @@ def edit_category(request, category_id):
         
     return render(request, 'adminpanel/admin_login/edit_category.html', {'category': category})
 
-# 4. DELETE CATEGORY VIEW (Soft Delete/Hard Delete)
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
     category.is_active = False
