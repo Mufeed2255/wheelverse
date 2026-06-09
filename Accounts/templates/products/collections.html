@@ -77,6 +77,7 @@
             <a href="{% url 'landing_page' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Home</a>
             <a href="{% url 'collections' %}" class="font-label-caps text-xs text-primary border-b border-primary pb-1">Collections</a>
             <a href="{% url 'cart' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Cart</a>
+            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Wishlist</a>
         </nav>
 
         <div class="flex items-center gap-6">
@@ -103,6 +104,7 @@
                 <span class="material-symbols-outlined">
                     shopping_cart
                 </span>
+            
 
                 {% if cart_count %}
                 <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">
@@ -479,25 +481,48 @@
                                 </p>
                             {% endif %}
 
+                            
                             <!-- Price + wishlist -->
+                            {% with first_variant=product.variants.first %}
                             <div class="flex gap-3">
-                                <a href="{% url 'product_detail' product.id %}"
-                                   class="flex-1 py-3 text-center font-label-caps text-xs font-bold transition-colors
-                                   {% if product.total_stock == 0 %}bg-surface-variant text-on-surface-variant cursor-not-allowed
-                                   {% else %}bg-primary text-black hover:bg-primary/90{% endif %}">
-                                    {% if product.variants.first.price %}
-                                        ₹{{ product.variants.first.price }}
+
+                                <a href="{% url 'product_detail' product_id=product.id %}"
+                                class="flex-1 py-3 text-center font-label-caps text-xs font-bold transition-colors
+                                {% if product.total_stock == 0 %}
+                                        bg-surface-variant text-on-surface-variant cursor-not-allowed
+                                {% else %}
+                                        bg-primary text-black hover:bg-primary/90
+                                {% endif %}">
+
+                                    {% if first_variant and first_variant.price %}
+                                        ₹{{ first_variant.price }}
                                     {% else %}
                                         VIEW DETAILS
                                     {% endif %}
                                 </a>
-                            
 
-                                <button class="w-12 border border-primary/30 text-primary hover:bg-primary hover:text-black transition-colors flex items-center justify-center"
-                                        title="Add to Wishlist">
+                                {% if first_variant %}
+                                <form method="POST" action="{% url 'add_to_wishlist' %}">
+                                    {% csrf_token %}
+
+                                    <input type="hidden" name="variant_id" value="{{ first_variant.id }}">
+
+                                    <button type="submit"
+                                            class="w-12 h-full border border-primary/30 text-primary hover:bg-primary hover:text-black transition-colors flex items-center justify-center"
+                                            title="Add to Wishlist">
+                                        <span class="material-symbols-outlined text-xl">favorite</span>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button disabled
+                                        class="w-12 border border-primary/20 text-on-surface-variant cursor-not-allowed flex items-center justify-center"
+                                        title="No Variant Available">
                                     <span class="material-symbols-outlined text-xl">favorite</span>
                                 </button>
+                                {% endif %}
+
                             </div>
+                            {% endwith %}
                         </div>
                     </div>
                 </div>

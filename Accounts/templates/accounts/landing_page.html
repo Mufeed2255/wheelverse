@@ -374,13 +374,20 @@ tailwind.config = {
     </div>
     
     
-    <div class="flex items-center gap-5">
-      <div class="hidden md:flex items-center bg-surface-container-high/60 px-4 py-2 rounded-full border border-outline-variant/20 focus-within:border-primary/40 transition-all">
-        <span class="material-symbols-outlined text-on-surface-variant mr-2" style="font-size:16px">search</span>
-        <input class="bg-transparent border-none focus:ring-0 text-sm text-on-surface placeholder:text-on-surface-variant/40 w-36 font-poppins" placeholder="Search..." type="text"/>
-      </div>
+
       
-      <button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">shopping_cart</button>
+      <a href="{% url 'cart' %}"
+        class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5 relative">
+          
+          shopping_cart
+
+          {% if cart_count %}
+          <span class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold not-italic">
+              {{ cart_count }}
+          </span>
+          {% endif %}
+
+      </a>
 
     {% if user.is_authenticated %}
         <div class="flex items-center gap-2 group">

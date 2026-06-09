@@ -99,7 +99,9 @@
         <nav class="hidden lg:flex items-center gap-10">
             <a href="{% url 'landing_page' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Home</a>
             <a href="{% url 'collections' %}" class="orbitron text-xs text-[#f2ca50] border-b border-[#f2ca50] pb-1">Collections</a>
-            <a href="#" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Cart</a>
+            <a href="{%url 'cart' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Cart</a>
+            <a href="{%url 'wishlist' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Whishlist</a>
+            
         </nav>
 
         <div class="flex items-center gap-5">
@@ -308,12 +310,21 @@
         {% endif %}
     </form>
 
-    <button id="wishlistBtn"
-            type="button"
-            class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2">
-        <span class="material-symbols-outlined">favorite_border</span>
-        ADD TO WISHLIST
-    </button>
+    <form method="POST" action="{% url 'add_to_wishlist' %}">
+        {% csrf_token %}
+
+        <input type="hidden"
+              name="variant_id"
+              id="wishlistVariantId"
+              value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
+
+        <button id="wishlistBtn"
+                type="submit"
+                class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2 w-full">
+            <span class="material-symbols-outlined">favorite_border</span>
+            ADD TO WISHLIST
+        </button>
+    </form>
 
     <a href="#reviews"
        id="reviewBtn"
@@ -413,6 +424,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedSize = document.getElementById("selectedSize");
 
     const selectedVariantId = document.getElementById("selectedVariantId");
+    const wishlistVariantId = document.getElementById("wishlistVariantId");
     const cartQuantity = document.getElementById("cartQuantity");
 
     const qtyInput = document.getElementById("qty");
@@ -432,6 +444,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (selectedVariantId) {
             selectedVariantId.value = variantId;
         }
+        if (wishlistVariantId) {
+            wishlistVariantId.value = variantId;
+        }
+        
 
         if (displayPrice) {
             displayPrice.textContent = "₹" + price;
@@ -572,6 +588,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     : "favorite_border";
             }
         });
+    }
+    const wishlistVariantId = document.getElementById("wishlistVariantId");
+
+    if (wishlistVariantId) {
+        wishlistVariantId.value = variantId;
     }
 
 });

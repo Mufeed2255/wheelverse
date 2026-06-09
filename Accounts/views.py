@@ -15,10 +15,11 @@ from .models import Address
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count, Q, Min, Sum
 from adminpanel.models import Product, Category, ProductVariant
-from .models import Cart
+from .models import Cart, Wishlist
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
+from adminpanel.models import ProductVariant
 
 #GATEWAYS & PROFILE VIEWS 
 
@@ -926,32 +927,6 @@ def user_collections(request):
 }
     return render(request, 'products/collections.html', context)
 
-
-def product_detail(request, product_id):
-    product = get_object_or_404(
-        Product.objects.filter(is_deleted=False, is_active=True).annotate(
-            variant_stock=Sum("variants__stock"),
-            min_variant_price=Min("variants__price")
-        ),
-        id=product_id
-    )
-
-    variants = product.variants.all()
-    first_variant = variants.first()
-
-    stock_count = product.variant_stock or 0
-
-    return render(request, "products/product_detail.html", {
-        "product": product,
-        "variants": variants,
-        "first_variant": first_variant,
-        "stock_count": stock_count,
-    })
-    
-    
-
-
-
 @login_required
 def product_detail(request, product_id):
     product = get_object_or_404(
@@ -964,15 +939,17 @@ def product_detail(request, product_id):
 
     variants = product.variants.all()
     first_variant = variants.first()
+
     cart_count = Cart.objects.filter(user=request.user).count()
+    wishlist_count = Wishlist.objects.filter(user=request.user).count()
 
     return render(request, "products/product_detail.html", {
         "product": product,
         "variants": variants,
         "first_variant": first_variant,
         "cart_count": cart_count,
+        "wishlist_count": wishlist_count,
     })
-
 
 @login_required
 def add_to_cart(request):
@@ -1063,4 +1040,81 @@ def remove_cart_item(request, item_id):
     cart_item.delete()
 
     messages.success(request, "Product removed from cart.")
+    return redirect("cart")
+
+
+
+
+@login_required
+def wishlist_view(request):
+    wishlist_items = Wishlist.objects.filter(user=request.user).select_related(
+        "variant",
+        "variant__product",
+        "variant__product__category"
+    ).order_by("-created_at")
+
+    wishlist_value = sum(item.variant.price for item in wishlist_items)
+    available_stock = sum(item.variant.stock for item in wishlist_items)
+
+    cart_count = Cart.objects.filter(user=request.user).count()
+    wishlist_count = wishlist_items.count()
+
+    return render(request, "products/wishlist.html", {
+        "wishlist_items": wishlist_items,
+        "wishlist_value": wishlist_value,
+        "available_stock": available_stock,
+        "cart_count": cart_count,
+        "wishlist_count": wishlist_count,
+    })
+
+
+@login_required
+def add_to_wishlist(request):
+    if request.method == "POST":
+        variant_id = request.POST.get("variant_id")
+
+        if not variant_id:
+            messages.error(request, "Variant not selected.")
+            return redirect("collections")
+
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+
+        if Wishlist.objects.filter(user=request.user, variant=variant).exists():
+            messages.error(request, "This product is already in your wishlist.")
+            return redirect("product_detail", product_id=variant.product.id)
+
+        Wishlist.objects.create(user=request.user, variant=variant)
+
+        messages.success(request, "Product added to wishlist.")
+        return redirect("wishlist")
+
+    return redirect("collections")
+
+
+@login_required
+def remove_wishlist(request, item_id):
+    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
+    item.delete()
+    messages.success(request, "Product removed from wishlist.")
+    return redirect("wishlist")
+
+
+@login_required
+def move_wishlist_to_cart(request, item_id):
+    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
+    variant = item.variant
+
+    if variant.stock <= 0:
+        messages.error(request, "Stock unavailable.")
+        return redirect("wishlist")
+
+    if Cart.objects.filter(user=request.user, variant=variant).exists():
+        item.delete()
+        messages.error(request, "This product is already in your cart. Removed from wishlist.")
+        return redirect("wishlist")
+
+    Cart.objects.create(user=request.user, variant=variant, quantity=1)
+    item.delete()
+
+    messages.success(request, "Product moved to cart.")
     return redirect("cart")
