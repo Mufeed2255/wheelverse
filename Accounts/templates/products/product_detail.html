@@ -99,12 +99,16 @@
         <nav class="hidden lg:flex items-center gap-10">
             <a href="{% url 'landing_page' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Home</a>
             <a href="{% url 'collections' %}" class="orbitron text-xs text-[#f2ca50] border-b border-[#f2ca50] pb-1">Collections</a>
-            <a href="#" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Garage</a>
+            <a href="#" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Cart</a>
         </nav>
 
         <div class="flex items-center gap-5">
             <span class="material-symbols-outlined text-[#d0c5af] cursor-pointer hover:text-[#f2ca50]">search</span>
-            <span class="material-symbols-outlined text-[#d0c5af] cursor-pointer hover:text-[#f2ca50]">shopping_cart</span>
+            <a href="{% url 'cart' %}" class="text-[#d0c5af] cursor-pointer hover:text-[#f2ca50] transition-colors">
+              <span class="material-symbols-outlined">
+                  shopping_cart
+              </span>
+          </a>
 
             <div class="hidden lg:block border-l border-[#f2ca50]/20 pl-6">
                 <p class="orbitron text-[10px] gold">ELITE STATUS</p>
@@ -190,14 +194,14 @@
               <div class="flex flex-wrap gap-3">
                   {% for variant in variants %}
                       <button type="button"
-                              class="color-btn w-12 h-12 rounded-full border-2 border-[#f2ca50]/20 hover:border-[#f2ca50] transition {% if forloop.first %}active border-[#f2ca50]{% endif %}"
-                              title="{{ variant.color }}"
+                              class="color-btn px-4 py-2 rounded-md border border-[#f2ca50]/20 text-sm hover:border-[#f2ca50] transition"
+                              data-variant-id="{{ variant.id }}"
                               data-price="{{ variant.price }}"
                               data-stock="{{ variant.stock }}"
                               data-color="{{ variant.color }}"
                               data-size="{{ variant.size }}"
-                              data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}"
-                              style="background-color: {{ variant.color|lower }};">
+                              data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
+                          {{ variant.color }}
                       </button>
                   {% endfor %}
               </div>
@@ -227,12 +231,13 @@
                 <div class="grid grid-cols-2 gap-3">
                     {% for variant in variants %}
                     <button type="button"
-                            class="variant-btn {% if forloop.first %}active{% endif %} border border-[#f2ca50]/20 text-left p-3 rounded-sm hover:border-[#f2ca50] transition"
-                            data-price="{{ variant.price }}"
-                            data-stock="{{ variant.stock }}"
-                            data-color="{{ variant.color }}"
-                            data-size="{{ variant.size }}"
-                            data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
+                        class="variant-btn {% if forloop.first %}active{% endif %} border border-[#f2ca50]/20 text-left p-3 rounded-sm hover:border-[#f2ca50] transition"
+                        data-variant-id="{{ variant.id }}"
+                        data-price="{{ variant.price }}"
+                        data-stock="{{ variant.stock }}"
+                        data-color="{{ variant.color }}"
+                        data-size="{{ variant.size }}"
+                        data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
 
                         <p class="orbitron text-[10px] text-[#f2ca50]">
                             {{ variant.color }}
@@ -272,27 +277,51 @@
                     <button id="plusQty" type="button" class="w-10 h-10 text-[#f2ca50] text-xl">+</button>
                 </div>
             </div>
-
             <div class="flex flex-col gap-3">
-                {% if first_variant and first_variant.stock > 0 %}
-                    <button id="addToCartBtn" class="btn-gold py-4 rounded-sm text-sm">
-                        ADD TO GARAGE
-                    </button>
-                {% else %}
-                    <button id="addToCartBtn" disabled class="py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed">
-                        OUT OF STOCK
-                    </button>
-                {% endif %}
 
-                <button id="wishlistBtn" type="button" class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2">
-                    <span class="material-symbols-outlined">favorite_border</span>
-                    ADD TO WISHLIST
-                </button>
+    <form method="POST" action="{% url 'add_to_cart' %}">
+        {% csrf_token %}
 
-                <a href="#reviews" id="reviewBtn" class="btn-outline py-4 rounded-sm text-sm text-center no-underline">
-                    SEE REVIEWS
-                </a>
-            </div>
+        <input type="hidden"
+               name="variant_id"
+               id="selectedVariantId"
+               value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
+
+        <input type="hidden"
+               name="quantity"
+               id="cartQuantity"
+               value="1">
+
+        {% if first_variant and first_variant.stock > 0 %}
+            <button id="addToCartBtn"
+                    type="submit"
+                    class="btn-gold py-4 rounded-sm text-sm w-full">
+                ADD TO CART
+            </button>
+        {% else %}
+            <button id="addToCartBtn"
+                    type="button"
+                    disabled
+                    class="py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full">
+                OUT OF STOCK
+            </button>
+        {% endif %}
+    </form>
+
+    <button id="wishlistBtn"
+            type="button"
+            class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined">favorite_border</span>
+        ADD TO WISHLIST
+    </button>
+
+    <a href="#reviews"
+       id="reviewBtn"
+       class="btn-outline py-4 rounded-sm text-sm text-center no-underline">
+        SEE REVIEWS
+    </a>
+
+</div>
 
         </aside>
     </section>
@@ -375,9 +404,79 @@ document.addEventListener("DOMContentLoaded", function () {
     const mainImage = document.getElementById("mainImage");
     const thumbnails = document.querySelectorAll(".thumbnail-image");
 
+    const variantButtons = document.querySelectorAll(".variant-btn");
+    const colorButtons = document.querySelectorAll(".color-btn");
+
+    const displayPrice = document.getElementById("displayPrice");
+    const displayStock = document.getElementById("displayStock");
+    const selectedColor = document.getElementById("selectedColor");
+    const selectedSize = document.getElementById("selectedSize");
+
+    const selectedVariantId = document.getElementById("selectedVariantId");
+    const cartQuantity = document.getElementById("cartQuantity");
+
+    const qtyInput = document.getElementById("qty");
+    const plusBtn = document.getElementById("plusQty");
+    const minusBtn = document.getElementById("minusQty");
+
+    const addToCartBtn = document.getElementById("addToCartBtn");
+
+    function updateSelectedVariant(button) {
+        const variantId = button.dataset.variantId;
+        const price = button.dataset.price;
+        const stock = parseInt(button.dataset.stock || 0);
+        const color = button.dataset.color;
+        const size = button.dataset.size;
+        const image = button.dataset.image;
+
+        if (selectedVariantId) {
+            selectedVariantId.value = variantId;
+        }
+
+        if (displayPrice) {
+            displayPrice.textContent = "₹" + price;
+        }
+
+        if (selectedColor) {
+            selectedColor.textContent = color || "N/A";
+        }
+
+        if (selectedSize) {
+            selectedSize.textContent = size || "N/A";
+        }
+
+        if (displayStock) {
+            if (stock > 0) {
+                displayStock.textContent = stock + " UNITS AVAILABLE";
+                displayStock.classList.remove("text-red-400");
+                displayStock.classList.add("text-green-400");
+            } else {
+                displayStock.textContent = "OUT OF STOCK";
+                displayStock.classList.remove("text-green-400");
+                displayStock.classList.add("text-red-400");
+            }
+        }
+
+        if (addToCartBtn) {
+            if (stock > 0) {
+                addToCartBtn.disabled = false;
+                addToCartBtn.textContent = "ADD TO CART";
+                addToCartBtn.className = "btn-gold py-4 rounded-sm text-sm w-full";
+            } else {
+                addToCartBtn.disabled = true;
+                addToCartBtn.textContent = "OUT OF STOCK";
+                addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full";
+            }
+        }
+
+        if (image && mainImage) {
+            mainImage.src = image;
+        }
+    }
+
     thumbnails.forEach(img => {
         img.addEventListener("click", function () {
-            const imageUrl = this.getAttribute("data-image");
+            const imageUrl = this.dataset.image;
 
             if (mainImage && imageUrl) {
                 mainImage.src = imageUrl;
@@ -388,65 +487,59 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    const variantButtons = document.querySelectorAll(".variant-btn");
-    const displayPrice = document.getElementById("displayPrice");
-    const displayStock = document.getElementById("displayStock");
-    const selectedColor = document.getElementById("selectedColor");
-    const selectedSize = document.getElementById("selectedSize");
-    const addToCartBtn = document.getElementById("addToCartBtn");
-
     variantButtons.forEach(button => {
         button.addEventListener("click", function () {
-            const price = this.dataset.price;
-            const stock = parseInt(this.dataset.stock || 0);
-            const color = this.dataset.color;
-            const size = this.dataset.size;
-            const image = this.dataset.image;
-
-            if (displayPrice) {
-                displayPrice.textContent = "₹" + price;
-            }
-
-            if (selectedColor) {
-                selectedColor.textContent = color || "N/A";
-            }
-
-            if (selectedSize) {
-                selectedSize.textContent = size || "N/A";
-            }
-
-            if (displayStock) {
-                if (stock > 0) {
-                    displayStock.textContent = stock + " UNITS AVAILABLE";
-                    displayStock.classList.remove("text-red-400");
-                    displayStock.classList.add("text-green-400");
-                } else {
-                    displayStock.textContent = "OUT OF STOCK";
-                    displayStock.classList.remove("text-green-400");
-                    displayStock.classList.add("text-red-400");
-                }
-            }
-
-            if (addToCartBtn) {
-                if (stock > 0) {
-                    addToCartBtn.disabled = false;
-                    addToCartBtn.textContent = "ADD TO GARAGE";
-                    addToCartBtn.className = "btn-gold py-4 rounded-sm text-sm";
-                } else {
-                    addToCartBtn.disabled = true;
-                    addToCartBtn.textContent = "OUT OF STOCK";
-                    addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed";
-                }
-            }
-
-            if (image && mainImage) {
-                mainImage.src = image;
-            }
+            updateSelectedVariant(this);
 
             variantButtons.forEach(btn => btn.classList.remove("active"));
             this.classList.add("active");
         });
     });
+
+    colorButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            updateSelectedVariant(this);
+
+            colorButtons.forEach(btn => btn.classList.remove("active", "border-[#f2ca50]"));
+            this.classList.add("active", "border-[#f2ca50]");
+        });
+    });
+
+    if (plusBtn && qtyInput) {
+        plusBtn.addEventListener("click", function () {
+            qtyInput.value = parseInt(qtyInput.value || 1) + 1;
+
+            if (cartQuantity) {
+                cartQuantity.value = qtyInput.value;
+            }
+        });
+    }
+
+    if (minusBtn && qtyInput) {
+        minusBtn.addEventListener("click", function () {
+            let value = parseInt(qtyInput.value || 1);
+
+            if (value > 1) {
+                qtyInput.value = value - 1;
+            }
+
+            if (cartQuantity) {
+                cartQuantity.value = qtyInput.value;
+            }
+        });
+    }
+
+    if (qtyInput) {
+        qtyInput.addEventListener("input", function () {
+            if (parseInt(qtyInput.value || 1) < 1) {
+                qtyInput.value = 1;
+            }
+
+            if (cartQuantity) {
+                cartQuantity.value = qtyInput.value;
+            }
+        });
+    }
 
     const reviewBtn = document.getElementById("reviewBtn");
 
@@ -477,75 +570,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 icon.textContent = icon.textContent.trim() === "favorite_border"
                     ? "favorite"
                     : "favorite_border";
-            }
-        });
-    }
-
-    const qtyInput = document.getElementById("qty");
-    const plusBtn = document.getElementById("plusQty");
-    const minusBtn = document.getElementById("minusQty");
-
-    if (plusBtn && qtyInput) {
-        plusBtn.addEventListener("click", function () {
-            qtyInput.value = parseInt(qtyInput.value || 1) + 1;
-        });
-    }
-
-    if (minusBtn && qtyInput) {
-        minusBtn.addEventListener("click", function () {
-            let value = parseInt(qtyInput.value || 1);
-
-            if (value > 1) {
-                qtyInput.value = value - 1;
-            }
-        });
-    }
-
-    if (addToCartBtn) {
-        addToCartBtn.addEventListener("click", function () {
-            if (this.disabled) return;
-
-            const originalText = this.innerHTML;
-
-            this.disabled = true;
-            this.innerHTML = "ADDING...";
-
-            setTimeout(() => {
-                this.innerHTML = "ADDED ✓";
-
-                setTimeout(() => {
-                    this.innerHTML = originalText;
-                    this.disabled = false;
-                }, 1200);
-
-            }, 700);
-        });
-    }
-
-    const imageModal = document.getElementById("imageModal");
-    const modalImage = document.getElementById("modalImage");
-    const closeModal = document.getElementById("closeModal");
-
-    if (mainImage && imageModal && modalImage) {
-        mainImage.addEventListener("click", function () {
-            modalImage.src = this.src;
-            imageModal.classList.remove("hidden");
-            document.body.style.overflow = "hidden";
-        });
-    }
-
-    if (closeModal) {
-        closeModal.addEventListener("click", function () {
-            imageModal.classList.add("hidden");
-            document.body.style.overflow = "auto";
-        });
-    }
-
-    if (imageModal) {
-        imageModal.addEventListener("click", function (e) {
-            if (e.target === imageModal) {
-                imageModal.classList.add("hidden");
-                document.body.style.overflow = "auto";
             }
         });
     }

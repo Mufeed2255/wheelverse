@@ -76,7 +76,7 @@
         <nav class="hidden xl:flex items-center gap-10">
             <a href="{% url 'landing_page' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Home</a>
             <a href="{% url 'collections' %}" class="font-label-caps text-xs text-primary border-b border-primary pb-1">Collections</a>
-            <a href="#" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Garage</a>
+            <a href="{% url 'cart' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Cart</a>
         </nav>
 
         <div class="flex items-center gap-6">
@@ -98,10 +98,19 @@
                 </button>
             </form>
 
-            <button class="text-on-surface-variant hover:text-primary relative transition-colors">
-                <span class="material-symbols-outlined">shopping_cart</span>
-                <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">2</span>
-            </button>
+            <a href="{% url 'cart' %}" class="text-on-surface-variant hover:text-primary relative transition-colors">
+
+                <span class="material-symbols-outlined">
+                    shopping_cart
+                </span>
+
+                {% if cart_count %}
+                <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">
+                    {{ cart_count }}
+                </span>
+                {% endif %}
+
+            </a>
 
             <div class="hidden lg:block border-l border-primary/20 pl-6">
                 <p class="font-label-caps text-[10px] text-primary">ELITE STATUS</p>

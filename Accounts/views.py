@@ -14,10 +14,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count, Q, Min, Sum
-from adminpanel.models import Product, Category
+from adminpanel.models import Product, Category, ProductVariant
+from .models import Cart
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-
+from decimal import Decimal
 
 #GATEWAYS & PROFILE VIEWS 
 
@@ -946,3 +947,120 @@ def product_detail(request, product_id):
         "first_variant": first_variant,
         "stock_count": stock_count,
     })
+    
+    
+
+
+
+@login_required
+def product_detail(request, product_id):
+    product = get_object_or_404(
+        Product.objects.filter(is_deleted=False, is_active=True).annotate(
+            variant_stock=Sum("variants__stock"),
+            min_variant_price=Min("variants__price")
+        ),
+        id=product_id
+    )
+
+    variants = product.variants.all()
+    first_variant = variants.first()
+    cart_count = Cart.objects.filter(user=request.user).count()
+
+    return render(request, "products/product_detail.html", {
+        "product": product,
+        "variants": variants,
+        "first_variant": first_variant,
+        "cart_count": cart_count,
+    })
+
+
+@login_required
+def add_to_cart(request):
+    if request.method == "POST":
+        variant_id = request.POST.get("variant_id")
+        quantity = int(request.POST.get("quantity", 1))
+
+        variant = get_object_or_404(ProductVariant, id=variant_id)
+        product = variant.product
+
+        if quantity > variant.stock:
+            messages.error(request, "Stock unavailable.")
+            return redirect("product_detail", product_id=product.id)
+
+        if Cart.objects.filter(user=request.user, variant=variant).exists():
+            messages.error(request, "This product is already added to cart.")
+            return redirect("product_detail", product_id=product.id)
+
+        Cart.objects.create(
+            user=request.user,
+            variant=variant,
+            quantity=quantity
+        )
+
+        messages.success(request, "Product added to cart successfully.")
+        return redirect("cart")
+
+    return redirect("collections")
+
+
+@login_required
+def cart_view(request):
+    cart_items = Cart.objects.filter(user=request.user).select_related(
+        "variant",
+        "variant__product",
+        "variant__product__category"
+    )
+
+    subtotal = sum(item.subtotal() for item in cart_items)
+    discount = Decimal("0.00")
+    shipping = Decimal("0.00")
+
+    if subtotal > 0:
+        shipping = Decimal("80.00")
+
+    grand_total = subtotal - discount + shipping
+    cart_count = cart_items.count()
+
+    return render(request, "products/cart.html", {
+        "cart_items": cart_items,
+        "subtotal": subtotal,
+        "discount": discount,
+        "shipping": shipping,
+        "grand_total": grand_total,
+        "cart_count": cart_count,
+    })
+
+
+@login_required
+def increase_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+
+    if cart_item.quantity >= cart_item.variant.stock:
+        messages.error(request, "Stock unavailable.")
+    else:
+        cart_item.quantity += 1
+        cart_item.save()
+        messages.success(request, "Cart updated successfully.")
+
+    return redirect("cart")
+
+
+@login_required
+def decrease_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+
+    if cart_item.quantity > 1:
+        cart_item.quantity -= 1
+        cart_item.save()
+        messages.success(request, "Cart updated successfully.")
+
+    return redirect("cart")
+
+
+@login_required
+def remove_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+    cart_item.delete()
+
+    messages.success(request, "Product removed from cart.")
+    return redirect("cart")

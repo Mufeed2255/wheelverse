@@ -4,6 +4,7 @@ import uuid
 import random
 import string
 from django.conf import settings
+from adminpanel.models import ProductVariant
 
 class CustomUser(AbstractUser):
     user_name = models.CharField(max_length=150, blank=True, null=True)
@@ -148,3 +149,22 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+    
+    
+
+
+class Cart(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    variant = models.ForeignKey(ProductVariant, on_delete=models.CASCADE)
+    quantity = models.PositiveIntegerField(default=1)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "variant")
+
+    def subtotal(self):
+        return self.variant.price * self.quantity
+
+    def __str__(self):
+        return f"{self.user} - {self.variant}"
