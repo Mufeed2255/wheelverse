@@ -5,11 +5,11 @@ from django.conf import settings
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)  # Soft Delete ആവശ്യത്തിനായി
+    is_active = models.BooleanField(default=True) 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-id']  # പുതിയ കാറ്റഗറി ആദ്യം വരാൻ
+        ordering = ['-id']  
 
     def __str__(self):
         return self.name
@@ -17,7 +17,6 @@ class Category(models.Model):
 
 # --- 2. PRODUCT MODEL ---
 class Product(models.Model):
-    # 🆕 Rarity ലെവലുകൾക്ക് വേണ്ടിയുള്ള ചോയ്സുകൾ (ഇത് ഇവിടെ ചേർക്കുക)
     RARITY_CHOICES = [
         ('COMMON', 'Common'),
         ('RARE', 'Rare'),
@@ -29,7 +28,6 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=50, unique=True, help_text="Unique Stock Keeping Unit")
     
-    # 🆕 ഡാറ്റാബേസിൽ ഈ കോളം വരാൻ ഈ വരി നിർബന്ധമാണ്
     rarity = models.CharField(max_length=50, choices=RARITY_CHOICES, default='LEGENDARY')
     
     description = models.TextField(blank=True, null=True)
@@ -63,10 +61,9 @@ class ProductVariant(models.Model):
     size = models.CharField(max_length=100, help_text="e.g., 20-inch, 21-inch")
     color = models.CharField(max_length=100, help_text="e.g., Rosso Corsa Red, Matte Black")
     
-    # FIXED: decimal_digits എന്നത് മാറ്റി കൃത്യമായ django കീവേഡ് ആയ decimal_places ഉപയോഗിച്ചു.
     price = models.DecimalField(max_digits=12, decimal_places=2) 
     stock = models.IntegerField(default=1)
-    is_deleted = models.BooleanField(default=False)  # Soft Delete ഫീൽഡ്
+    is_deleted = models.BooleanField(default=False)  
     image = models.ImageField(upload_to='variants/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 

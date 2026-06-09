@@ -30,4 +30,6 @@ urlpatterns = [
     path("addresses/<int:id>/set-default/", views.set_default_address, name="set_default_address"),
     
     path('collections/', views.user_collections, name='collections'),
+    path('product/<int:product_id>/', views.product_detail, name='product_detail'),
+
 ]

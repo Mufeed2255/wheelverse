@@ -1,4 +1,3 @@
-
 import re
 from datetime import datetime
 from django.conf import settings
@@ -14,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Count, Q, Min
+from django.db.models import Count, Q, Min, Sum
 from adminpanel.models import Product, Category
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -872,19 +871,13 @@ def user_collections(request):
 
     
 
-#sorting logic
-    # ... മുകളിലുള്ള സർച്ച്, കാറ്റഗറി, റാരിറ്റി ഫിൽട്ടറുകൾക്ക് ശേഷം ...
-
-    # 1. ആദ്യം തന്നെ ഓരോ പ്രൊഡക്റ്റിന്റെയും ഏറ്റവും കുറഞ്ഞ വേരിയന്റ് പ്രൈസ് കണ്ടുപിടിക്കുക
     products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
 
-    # 2. ⚠️ ഇപ്പോഴത്തെ കറക്റ്റ് വിലയായ 'min_price' വെച്ച് മാത്രം ഫിൽട്ടർ ചെയ്യുക (ഇതാണ് ശരിക്കുള്ള ലോജിക്)
     if price_min:
         products_queryset = products_queryset.filter(min_price__gte=price_min)
     if price_max:
         products_queryset = products_queryset.filter(min_price__lte=price_max)
 
-    # 3. സോർട്ടിംഗ് ലോജിക്
     if sort_by == 'a-z':
         products_queryset = products_queryset.order_by('name')
     elif sort_by == 'z-a':
@@ -898,10 +891,8 @@ def user_collections(request):
     else:
         products_queryset = products_queryset.order_by('-id')
 
-    # 4. ക്വറിസെറ്റ് ലിസ്റ്റ് ആക്കി മാറ്റുന്നു
     products_list = list(products_queryset)
 
-    # 5. സ്റ്റോക്ക് സ്റ്റാറ്റസ് ഫിൽട്ടർ (ലിസ്റ്റ് കോംപ്രിഹെൻഷൻ)
     if status == 'in_stock':
         products_list = [p for p in products_list if p.total_stock > 10]
     elif status == 'limited':
@@ -909,7 +900,6 @@ def user_collections(request):
     elif status == 'out_of_stock':
         products_list = [p for p in products_list if p.total_stock == 0]
 
-    # 6. PAGINATOR ലോജിക്
     paginator = Paginator(products_list, 6) 
     page = request.GET.get('page', 1)
     
@@ -931,5 +921,28 @@ def user_collections(request):
         'current_rarity': rarity,  
         'price_min': price_min,
         'price_max': price_max,
-    }
+        'rarity_choices': [('', 'All Rarities')] + Product.RARITY_CHOICES,
+}
     return render(request, 'products/collections.html', context)
+
+
+def product_detail(request, product_id):
+    product = get_object_or_404(
+        Product.objects.filter(is_deleted=False, is_active=True).annotate(
+            variant_stock=Sum("variants__stock"),
+            min_variant_price=Min("variants__price")
+        ),
+        id=product_id
+    )
+
+    variants = product.variants.all()
+    first_variant = variants.first()
+
+    stock_count = product.variant_stock or 0
+
+    return render(request, "products/product_detail.html", {
+        "product": product,
+        "variants": variants,
+        "first_variant": first_variant,
+        "stock_count": stock_count,
+    })

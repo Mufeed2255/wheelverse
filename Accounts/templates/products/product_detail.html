@@ -1,0 +1,557 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ product.name }} | WheelVerse</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            background: #0e0c07;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass {
+            background: linear-gradient(135deg, rgba(22,19,11,.88), rgba(8,8,8,.95));
+            border: 1px solid rgba(242,202,80,.14);
+            backdrop-filter: blur(18px);
+        }
+
+        .gold {
+            color: #f2ca50;
+        }
+
+        .btn-gold {
+            background: #f2ca50;
+            color: #120f08;
+            font-family: Orbitron, sans-serif;
+            font-weight: 700;
+            letter-spacing: .08em;
+            transition: .25s;
+        }
+
+        .btn-gold:hover {
+            filter: brightness(1.08);
+            transform: translateY(-1px);
+        }
+
+        .btn-gold:disabled {
+            background: #38342b;
+            color: #d0c5af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-outline {
+            border: 1px solid rgba(242,202,80,.35);
+            color: #f2ca50;
+            font-family: Orbitron, sans-serif;
+            letter-spacing: .08em;
+            transition: .25s;
+        }
+
+        .btn-outline:hover {
+            background: rgba(242,202,80,.1);
+        }
+
+        .thumbnail-image {
+            border: 2px solid rgba(242,202,80,.12);
+            cursor: pointer;
+            opacity: .65;
+            transition: .25s;
+        }
+
+        .thumbnail-image:hover,
+        .thumbnail-image.active {
+            border-color: #f2ca50;
+            opacity: 1;
+        }
+
+        .variant-btn.active {
+            border-color: #f2ca50;
+            background: rgba(242,202,80,.1);
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="fixed top-0 left-0 w-full z-50 bg-[#0e0c07]/90 backdrop-blur-xl border-b border-[#f2ca50]/10">
+    <div class="max-w-[1440px] mx-auto h-20 px-10 flex items-center justify-between">
+
+        <a href="{% url 'landing_page' %}" class="orbitron text-3xl font-bold text-white no-underline">
+            Wheel<span class="gold">Verse</span>
+        </a>
+
+        <nav class="hidden lg:flex items-center gap-10">
+            <a href="{% url 'landing_page' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Home</a>
+            <a href="{% url 'collections' %}" class="orbitron text-xs text-[#f2ca50] border-b border-[#f2ca50] pb-1">Collections</a>
+            <a href="#" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Garage</a>
+        </nav>
+
+        <div class="flex items-center gap-5">
+            <span class="material-symbols-outlined text-[#d0c5af] cursor-pointer hover:text-[#f2ca50]">search</span>
+            <span class="material-symbols-outlined text-[#d0c5af] cursor-pointer hover:text-[#f2ca50]">shopping_cart</span>
+
+            <div class="hidden lg:block border-l border-[#f2ca50]/20 pl-6">
+                <p class="orbitron text-[10px] gold">ELITE STATUS</p>
+                <p class="font-bold text-xs text-white">Collector_01</p>
+            </div>
+        </div>
+
+    </div>
+</header>
+
+<main class="max-w-[1440px] mx-auto px-10 pt-28 pb-20">
+
+    <div class="flex items-center gap-2 mb-8 text-xs orbitron">
+        <a href="{% url 'landing_page' %}" class="text-[#d0c5af] no-underline">Home</a>
+        <span class="material-symbols-outlined text-sm text-[#4d4635]">chevron_right</span>
+        <a href="{% url 'collections' %}" class="text-[#d0c5af] no-underline">Collections</a>
+        <span class="material-symbols-outlined text-sm text-[#4d4635]">chevron_right</span>
+        <span class="gold">{{ product.name }}</span>
+    </div>
+
+    <section class="grid grid-cols-1 lg:grid-cols-[1fr_430px] gap-8 items-start">
+
+        <div>
+            <div class="glass rounded-xl min-h-[520px] flex items-center justify-center p-10 overflow-hidden">
+                {% if first_variant and first_variant.image %}
+                    <img id="mainImage"
+                         src="{{ first_variant.image.url }}"
+                         alt="{{ product.name }}"
+                         class="w-full max-h-[470px] object-contain cursor-zoom-in transition duration-700 hover:scale-105">
+                {% else %}
+                    <div class="text-center text-[#f2ca50]/50">
+                        <span class="material-symbols-outlined text-8xl">directions_car</span>
+                        <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="grid grid-cols-5 gap-4 mt-5">
+                {% for variant in variants %}
+                    {% if variant.image %}
+                        <img src="{{ variant.image.url }}"
+                             data-image="{{ variant.image.url }}"
+                             class="thumbnail-image {% if forloop.first %}active{% endif %} h-24 w-full object-cover rounded-lg">
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <aside class="glass rounded-xl p-8 sticky top-28">
+
+            <div class="flex justify-between items-start mb-4">
+                <p class="orbitron text-[10px] tracking-widest gold">
+                    {{ product.category.name|upper }}
+                </p>
+
+                <span class="orbitron text-[9px] px-3 py-1 border border-[#f2ca50]/30 gold">
+                    {{ product.rarity|default:"LEGENDARY"|upper }}
+                </span>
+            </div>
+
+            <h1 class="orbitron text-3xl font-bold leading-tight mb-5">
+                {{ product.name }}
+            </h1>
+
+            <div class="grid grid-cols-2 gap-4 border-y border-[#f2ca50]/10 py-5 mb-6">
+                <div>
+                    <p class="orbitron text-[8px] text-[#d0c5af] mb-1">SELECTED COLOR</p>
+                    <p id="selectedColor" class="orbitron text-xs gold">
+                        {% if first_variant %}{{ first_variant.color }}{% else %}N/A{% endif %}
+                    </p>
+                </div>
+
+                <div>
+                    <p class="orbitron text-[8px] text-[#d0c5af] mb-1">SELECTED SIZE</p>
+                    <p id="selectedSize" class="orbitron text-xs gold">
+                        {% if first_variant %}{{ first_variant.size }}{% else %}N/A{% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="mb-6">
+              <p class="orbitron text-[10px] text-[#d0c5af] mb-3">SELECT COLOR</p>
+
+              <div class="flex flex-wrap gap-3">
+                  {% for variant in variants %}
+                      <button type="button"
+                              class="color-btn w-12 h-12 rounded-full border-2 border-[#f2ca50]/20 hover:border-[#f2ca50] transition {% if forloop.first %}active border-[#f2ca50]{% endif %}"
+                              title="{{ variant.color }}"
+                              data-price="{{ variant.price }}"
+                              data-stock="{{ variant.stock }}"
+                              data-color="{{ variant.color }}"
+                              data-size="{{ variant.size }}"
+                              data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}"
+                              style="background-color: {{ variant.color|lower }};">
+                      </button>
+                  {% endfor %}
+              </div>
+
+            <div class="mb-6">
+                <p id="displayPrice" class="orbitron text-4xl font-bold">
+                    ₹{% if first_variant %}{{ first_variant.price }}{% else %}N/A{% endif %}
+                </p>
+
+                <p id="displayStock"
+                   class="{% if first_variant and first_variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %} text-xs mt-2 orbitron">
+                    {% if first_variant and first_variant.stock > 0 %}
+                        {{ first_variant.stock }} UNITS AVAILABLE
+                    {% else %}
+                        OUT OF STOCK
+                    {% endif %}
+                </p>
+            </div>
+
+            <p class="text-[#d0c5af] text-sm leading-relaxed mb-7">
+                {{ product.description }}
+            </p>
+
+            <div class="mb-6">
+                <p class="orbitron text-[10px] text-[#d0c5af] mb-3">SELECT VARIANT</p>
+
+                <div class="grid grid-cols-2 gap-3">
+                    {% for variant in variants %}
+                    <button type="button"
+                            class="variant-btn {% if forloop.first %}active{% endif %} border border-[#f2ca50]/20 text-left p-3 rounded-sm hover:border-[#f2ca50] transition"
+                            data-price="{{ variant.price }}"
+                            data-stock="{{ variant.stock }}"
+                            data-color="{{ variant.color }}"
+                            data-size="{{ variant.size }}"
+                            data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
+
+                        <p class="orbitron text-[10px] text-[#f2ca50]">
+                            {{ variant.color }}
+                        </p>
+
+                        <p class="text-xs text-[#d0c5af] mt-1">
+                            Size: {{ variant.size }}
+                        </p>
+
+                        <p class="orbitron text-xs text-white mt-2">
+                            ₹{{ variant.price }}
+                        </p>
+
+                        {% if variant.stock > 0 %}
+                            <p class="text-green-400 text-[10px] mt-2 orbitron">
+                                Stock: {{ variant.stock }}
+                            </p>
+                        {% else %}
+                            <p class="text-red-400 text-[10px] mt-2 orbitron">
+                                Out of Stock
+                            </p>
+                        {% endif %}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <p class="orbitron text-[10px] text-[#d0c5af] mb-3">QUANTITY</p>
+
+                <div class="flex items-center border border-[#f2ca50]/20 w-36">
+                    <button id="minusQty" type="button" class="w-10 h-10 text-[#f2ca50] text-xl">-</button>
+
+                    <input id="qty" type="number" value="1" min="1"
+                           class="w-14 h-10 text-center bg-transparent border-0 text-white focus:ring-0">
+
+                    <button id="plusQty" type="button" class="w-10 h-10 text-[#f2ca50] text-xl">+</button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                {% if first_variant and first_variant.stock > 0 %}
+                    <button id="addToCartBtn" class="btn-gold py-4 rounded-sm text-sm">
+                        ADD TO GARAGE
+                    </button>
+                {% else %}
+                    <button id="addToCartBtn" disabled class="py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed">
+                        OUT OF STOCK
+                    </button>
+                {% endif %}
+
+                <button id="wishlistBtn" type="button" class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2">
+                    <span class="material-symbols-outlined">favorite_border</span>
+                    ADD TO WISHLIST
+                </button>
+
+                <a href="#reviews" id="reviewBtn" class="btn-outline py-4 rounded-sm text-sm text-center no-underline">
+                    SEE REVIEWS
+                </a>
+            </div>
+
+        </aside>
+    </section>
+
+    <section id="reviews" class="mt-20">
+        <div class="flex items-center justify-between mb-8">
+            <h2 class="orbitron text-3xl font-bold border-l-4 border-[#f2ca50] pl-5">
+                COLLECTOR REVIEWS
+            </h2>
+
+            <span class="orbitron text-xs gold">STATIC REVIEWS</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+            <div class="glass rounded-xl p-6">
+                <div class="flex gap-1 gold mb-4">
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                </div>
+
+                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
+                    Amazing collector piece. The finishing, shine, and packaging feel premium.
+                </p>
+
+                <p class="orbitron text-xs gold">@DRIVE_COLLECTOR</p>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <div class="flex gap-1 gold mb-4">
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                </div>
+
+                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
+                    Best model in my garage. The product looks exactly like a luxury showcase item.
+                </p>
+
+                <p class="orbitron text-xs gold">@HYPERCAR_DEVOTEE</p>
+            </div>
+
+            <div class="glass rounded-xl p-6">
+                <div class="flex gap-1 gold mb-4">
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star</span>
+                    <span class="material-symbols-outlined">star_half</span>
+                </div>
+
+                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
+                    Delivery was safe and the product quality is very good for collectors.
+                </p>
+
+                <p class="orbitron text-xs gold">@WHEEL_FANATIC</p>
+            </div>
+
+        </div>
+    </section>
+
+</main>
+
+<div id="imageModal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center">
+    <button id="closeModal" class="absolute top-6 right-8 text-white text-5xl hover:text-[#f2ca50]">
+        ×
+    </button>
+
+    <img id="modalImage" class="max-w-[90%] max-h-[90%] object-contain">
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const mainImage = document.getElementById("mainImage");
+    const thumbnails = document.querySelectorAll(".thumbnail-image");
+
+    thumbnails.forEach(img => {
+        img.addEventListener("click", function () {
+            const imageUrl = this.getAttribute("data-image");
+
+            if (mainImage && imageUrl) {
+                mainImage.src = imageUrl;
+            }
+
+            thumbnails.forEach(item => item.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+
+    const variantButtons = document.querySelectorAll(".variant-btn");
+    const displayPrice = document.getElementById("displayPrice");
+    const displayStock = document.getElementById("displayStock");
+    const selectedColor = document.getElementById("selectedColor");
+    const selectedSize = document.getElementById("selectedSize");
+    const addToCartBtn = document.getElementById("addToCartBtn");
+
+    variantButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            const price = this.dataset.price;
+            const stock = parseInt(this.dataset.stock || 0);
+            const color = this.dataset.color;
+            const size = this.dataset.size;
+            const image = this.dataset.image;
+
+            if (displayPrice) {
+                displayPrice.textContent = "₹" + price;
+            }
+
+            if (selectedColor) {
+                selectedColor.textContent = color || "N/A";
+            }
+
+            if (selectedSize) {
+                selectedSize.textContent = size || "N/A";
+            }
+
+            if (displayStock) {
+                if (stock > 0) {
+                    displayStock.textContent = stock + " UNITS AVAILABLE";
+                    displayStock.classList.remove("text-red-400");
+                    displayStock.classList.add("text-green-400");
+                } else {
+                    displayStock.textContent = "OUT OF STOCK";
+                    displayStock.classList.remove("text-green-400");
+                    displayStock.classList.add("text-red-400");
+                }
+            }
+
+            if (addToCartBtn) {
+                if (stock > 0) {
+                    addToCartBtn.disabled = false;
+                    addToCartBtn.textContent = "ADD TO GARAGE";
+                    addToCartBtn.className = "btn-gold py-4 rounded-sm text-sm";
+                } else {
+                    addToCartBtn.disabled = true;
+                    addToCartBtn.textContent = "OUT OF STOCK";
+                    addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed";
+                }
+            }
+
+            if (image && mainImage) {
+                mainImage.src = image;
+            }
+
+            variantButtons.forEach(btn => btn.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+
+    const reviewBtn = document.getElementById("reviewBtn");
+
+    if (reviewBtn) {
+        reviewBtn.addEventListener("click", function (e) {
+            e.preventDefault();
+
+            const reviewsSection = document.getElementById("reviews");
+
+            if (reviewsSection) {
+                reviewsSection.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start"
+                });
+            }
+        });
+    }
+
+    const wishlistBtn = document.getElementById("wishlistBtn");
+
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener("click", function () {
+            this.classList.toggle("text-red-500");
+
+            const icon = this.querySelector("span");
+
+            if (icon) {
+                icon.textContent = icon.textContent.trim() === "favorite_border"
+                    ? "favorite"
+                    : "favorite_border";
+            }
+        });
+    }
+
+    const qtyInput = document.getElementById("qty");
+    const plusBtn = document.getElementById("plusQty");
+    const minusBtn = document.getElementById("minusQty");
+
+    if (plusBtn && qtyInput) {
+        plusBtn.addEventListener("click", function () {
+            qtyInput.value = parseInt(qtyInput.value || 1) + 1;
+        });
+    }
+
+    if (minusBtn && qtyInput) {
+        minusBtn.addEventListener("click", function () {
+            let value = parseInt(qtyInput.value || 1);
+
+            if (value > 1) {
+                qtyInput.value = value - 1;
+            }
+        });
+    }
+
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener("click", function () {
+            if (this.disabled) return;
+
+            const originalText = this.innerHTML;
+
+            this.disabled = true;
+            this.innerHTML = "ADDING...";
+
+            setTimeout(() => {
+                this.innerHTML = "ADDED ✓";
+
+                setTimeout(() => {
+                    this.innerHTML = originalText;
+                    this.disabled = false;
+                }, 1200);
+
+            }, 700);
+        });
+    }
+
+    const imageModal = document.getElementById("imageModal");
+    const modalImage = document.getElementById("modalImage");
+    const closeModal = document.getElementById("closeModal");
+
+    if (mainImage && imageModal && modalImage) {
+        mainImage.addEventListener("click", function () {
+            modalImage.src = this.src;
+            imageModal.classList.remove("hidden");
+            document.body.style.overflow = "hidden";
+        });
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener("click", function () {
+            imageModal.classList.add("hidden");
+            document.body.style.overflow = "auto";
+        });
+    }
+
+    if (imageModal) {
+        imageModal.addEventListener("click", function (e) {
+            if (e.target === imageModal) {
+                imageModal.classList.add("hidden");
+                document.body.style.overflow = "auto";
+            }
+        });
+    }
+
+});
+</script>
+
+</body>
+</html>
