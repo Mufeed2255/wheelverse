@@ -134,7 +134,6 @@ def toggle_user_status(request, user_id):
         action=action_type,
         description=action_desc,
         target_user=user_obj,
-        ip_address=get_client_ip(request),
     )
 
     if user_obj.is_active:
