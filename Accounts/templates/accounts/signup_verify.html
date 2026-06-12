@@ -245,7 +245,7 @@
                 id="otpTimer"
                 class="text-error font-bold tracking-widest neon-blue-glow"
             >
-                01:00
+                05:00
             </span>
 
         </div>
@@ -312,7 +312,7 @@ function validateOtpForm() {
     return true;
 }
 
-    let timeLeft = 60; // 60 സെക്കൻഡ് ടൈമർ
+    let timeLeft = 300; 
     const resendBtn = document.getElementById("resendBtn");
 
     const timer = setInterval(() => {
@@ -320,7 +320,6 @@ function validateOtpForm() {
             clearInterval(timer);
             resendBtn.innerText = "Resend Verification Code";
             
-            // ബട്ടൺ എനേബിൾ ചെയ്യാനും ക്ലിക്ക് ചെയ്യാനും ഉള്ള മാറ്റങ്ങൾ
             resendBtn.classList.remove("pointer-events-none", "opacity-50", "cursor-not-allowed");
             resendBtn.classList.add("cursor-pointer", "hover:underline");
         } else {

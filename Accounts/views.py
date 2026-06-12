@@ -21,7 +21,7 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
 from adminpanel.models import ProductVariant
 
-#GATEWAYS & PROFILE VIEWS 
+
 
 def landing_page(request):
     return render(request, 'accounts/landing_page.html')
@@ -100,7 +100,6 @@ def signup_view(request):
             messages.error(request, "Passwords do not match.")
             return render(request, 'accounts/signup.html')
 
-        # OTP GENERATION & SESSION STORAGE
         otp = str(random.randint(100000, 999999))
 
         request.session['signup_data'] = {
@@ -109,7 +108,7 @@ def signup_view(request):
             'phone': phone,
             'password': password,
             'otp': otp,
-            'issued_at': time.time()  # ⏳ ടൈം ഔട്ട് നോക്കാൻ സമയം ഇവിടെ സേവ് ചെയ്യുന്നു
+            'issued_at': time.time() 
         }
 
         try:
@@ -148,7 +147,7 @@ def signup_verify_view(request):
             return redirect('signup')
 
         issued_at = session_data.get('issued_at', 0)
-        if time.time() - issued_at > 60:
+        if time.time() - issued_at > 300:
             
             session_data['otp'] = None 
             request.session.modified = True
@@ -187,7 +186,6 @@ def signup_verify_view(request):
 
 def resend_signup_otp_view(request):
     import time
-    # സെഷനിൽ നിന്ന് പഴയ ഡാറ്റ എടുക്കുന്നു
     signup_data = request.session.get('signup_data')
     
     if not signup_data:
@@ -195,16 +193,13 @@ def resend_signup_otp_view(request):
         return redirect('signup')
         
     try:
-        # പുതിയ OTP ജനറേറ്റ് ചെയ്യുന്നു
         new_otp = str(random.randint(100000, 999999))
         
-        # സെഷനിലെ OTP യും സമയവും അപ്ഡേറ്റ് ചെയ്യുന്നു
         signup_data['otp'] = new_otp
         signup_data['issued_at'] = time.time()
         request.session['signup_data'] = signup_data
         request.session.modified = True 
         
-        # പുതിയ OTP ഇമെയിലിലേക്ക് അയക്കുന്നു
         subject = "New OTP — WheelVerse Signup Verification"
         message = f"Your new WheelVerse signup OTP is: {new_otp}"
         
@@ -409,32 +404,25 @@ def reset_password_view(request):
 
 @login_required
 def change_email_view(request):
-    """
-    STEP 1: User enters new email address.
-    Validates the new email, sends OTP to CURRENT email, then redirects to OTP verification page.
-    """
+    
     import time
     current_user = request.user
 
     if request.method == 'POST':
         new_email = request.POST.get('new_email', '').strip().lower()
 
-        # Validation: must not be empty
         if not new_email:
             messages.error(request, "Please enter a valid email address.")
             return render(request, 'accounts/change_email.html')
 
-        # Validation: must differ from current email
         if new_email == current_user.email.lower():
             messages.error(request, "This is already your current registered email.")
             return render(request, 'accounts/change_email.html')
 
-        # Validation: new email must not already be registered
         if User.objects.filter(email__iexact=new_email).exists():
             messages.error(request, "This email is already registered.")
             return render(request, 'accounts/change_email.html')
 
-        # Generate OTP and store in session
         otp_code = f"{random.randint(100000, 999999)}"
         issued_at = time.time()  # Unix timestamp
 
