@@ -122,6 +122,16 @@
 </header>
 
 <main class="max-w-[1440px] mx-auto px-10 pt-28 pb-20">
+    {% if messages %}
+        <div class="mb-8 space-y-3">
+            {% for message in messages %}
+            <div class="glass-panel px-5 py-4 text-sm orbitron
+                {% if message.tags == 'error' %}text-red-300 border-red-400/30{% else %}text-[#f2ca50]{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
     <div class="flex items-center gap-2 mb-8 text-xs orbitron">
         <a href="{% url 'landing_page' %}" class="text-[#d0c5af] no-underline">Home</a>
@@ -193,21 +203,20 @@
             <div class="mb-6">
               <p class="orbitron text-[10px] text-[#d0c5af] mb-3">SELECT COLOR</p>
 
-              <div class="flex flex-wrap gap-3">
-                  {% for variant in variants %}
-                      <button type="button"
-                              class="color-btn px-4 py-2 rounded-md border border-[#f2ca50]/20 text-sm hover:border-[#f2ca50] transition"
-                              data-variant-id="{{ variant.id }}"
-                              data-price="{{ variant.price }}"
-                              data-stock="{{ variant.stock }}"
-                              data-color="{{ variant.color }}"
-                              data-size="{{ variant.size }}"
-                              data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
-                          {{ variant.color }}
-                      </button>
-                  {% endfor %}
-              </div>
-
+                <div class="flex flex-wrap gap-3">
+                    {% for variant in variants %}
+                        <button type="button"
+                                class="color-btn px-4 py-2 rounded-md border border-[#f2ca50]/20 text-sm hover:border-[#f2ca50] transition"
+                                data-variant-id="{{ variant.id }}"
+                                data-price="{{ variant.price }}"
+                                data-stock="{{ variant.stock }}"
+                                data-color="{{ variant.color }}"
+                                data-size="{{ variant.size }}"
+                                data-image="{% if variant.images.first %}{{ variant.images.first.image.url }}{% endif %}">
+                            {{ variant.color }}
+                        </button>
+                    {% endfor %}
+                </div>
             <div class="mb-6">
                 <p id="displayPrice" class="orbitron text-4xl font-bold">
                     ₹{% if first_variant %}{{ first_variant.price }}{% else %}N/A{% endif %}
@@ -413,7 +422,6 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     const mainImage = document.getElementById("mainImage");
-    const thumbnails = document.querySelectorAll(".thumbnail-image");
 
     const variantButtons = document.querySelectorAll(".variant-btn");
     const colorButtons = document.querySelectorAll(".color-btn");
@@ -433,6 +441,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const addToCartBtn = document.getElementById("addToCartBtn");
 
+    let currentStock = {% if first_variant %}{{ first_variant.stock }}{% else %}0{% endif %};
+
+    function syncQuantity(value) {
+        let qty = parseInt(value || 1);
+
+        if (qty < 1) {
+            qty = 1;
+        }
+
+        if (currentStock > 0 && qty > currentStock) {
+            qty = currentStock;
+            alert("Stock unavailable.");
+        }
+
+        if (currentStock <= 0) {
+            qty = 1;
+        }
+
+        if (qtyInput) {
+            qtyInput.value = qty;
+            qtyInput.setAttribute("max", currentStock);
+        }
+
+        if (cartQuantity) {
+            cartQuantity.value = qty;
+        }
+    }
+
     function updateSelectedVariant(button) {
         const variantId = button.dataset.variantId;
         const price = button.dataset.price;
@@ -441,13 +477,15 @@ document.addEventListener("DOMContentLoaded", function () {
         const size = button.dataset.size;
         const image = button.dataset.image;
 
+        currentStock = stock;
+
         if (selectedVariantId) {
             selectedVariantId.value = variantId;
         }
+
         if (wishlistVariantId) {
             wishlistVariantId.value = variantId;
         }
-        
 
         if (displayPrice) {
             displayPrice.textContent = "₹" + price;
@@ -473,6 +511,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
+        if (mainImage && image) {
+            mainImage.src = image;
+        }
+
+        syncQuantity(1);
+
         if (addToCartBtn) {
             if (stock > 0) {
                 addToCartBtn.disabled = false;
@@ -484,24 +528,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full";
             }
         }
-
-        if (image && mainImage) {
-            mainImage.src = image;
-        }
     }
-
-    thumbnails.forEach(img => {
-        img.addEventListener("click", function () {
-            const imageUrl = this.dataset.image;
-
-            if (mainImage && imageUrl) {
-                mainImage.src = imageUrl;
-            }
-
-            thumbnails.forEach(item => item.classList.remove("active"));
-            this.classList.add("active");
-        });
-    });
 
     variantButtons.forEach(button => {
         button.addEventListener("click", function () {
@@ -523,37 +550,35 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (plusBtn && qtyInput) {
         plusBtn.addEventListener("click", function () {
-            qtyInput.value = parseInt(qtyInput.value || 1) + 1;
+            let qty = parseInt(qtyInput.value || 1);
 
-            if (cartQuantity) {
-                cartQuantity.value = qtyInput.value;
+            if (qty >= currentStock) {
+                alert("Stock unavailable.");
+                syncQuantity(currentStock);
+                return;
             }
+
+            syncQuantity(qty + 1);
         });
     }
 
     if (minusBtn && qtyInput) {
         minusBtn.addEventListener("click", function () {
-            let value = parseInt(qtyInput.value || 1);
+            let qty = parseInt(qtyInput.value || 1);
 
-            if (value > 1) {
-                qtyInput.value = value - 1;
-            }
-
-            if (cartQuantity) {
-                cartQuantity.value = qtyInput.value;
+            if (qty > 1) {
+                syncQuantity(qty - 1);
+            } else {
+                syncQuantity(1);
             }
         });
     }
 
     if (qtyInput) {
-        qtyInput.addEventListener("input", function () {
-            if (parseInt(qtyInput.value || 1) < 1) {
-                qtyInput.value = 1;
-            }
+        qtyInput.setAttribute("max", currentStock);
 
-            if (cartQuantity) {
-                cartQuantity.value = qtyInput.value;
-            }
+        qtyInput.addEventListener("input", function () {
+            syncQuantity(this.value);
         });
     }
 
@@ -572,27 +597,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             }
         });
-    }
-
-    const wishlistBtn = document.getElementById("wishlistBtn");
-
-    if (wishlistBtn) {
-        wishlistBtn.addEventListener("click", function () {
-            this.classList.toggle("text-red-500");
-
-            const icon = this.querySelector("span");
-
-            if (icon) {
-                icon.textContent = icon.textContent.trim() === "favorite_border"
-                    ? "favorite"
-                    : "favorite_border";
-            }
-        });
-    }
-    const wishlistVariantId = document.getElementById("wishlistVariantId");
-
-    if (wishlistVariantId) {
-        wishlistVariantId.value = variantId;
     }
 
 });

@@ -22,7 +22,6 @@ from decimal import Decimal
 from adminpanel.models import ProductVariant
 
 
-
 def landing_page(request):
     return render(request, 'accounts/landing_page.html')
 
@@ -40,8 +39,7 @@ def signup_view(request):
         confirm_password = request.POST.get('confirm_password', '')
 
       
-      # USERNAME VALIDATIONS
-
+        ''' username validation'''
         if not username:
             messages.error(request, "Username cannot be empty.")
             return render(request, 'accounts/signup.html')
@@ -59,8 +57,7 @@ def signup_view(request):
             return render(request, 'accounts/signup.html')
 
 
-        # EMAIL VALIDATIONS
-
+        ''' user emil validation'''
         if not email:
             messages.error(request, "Email cannot be empty.")
             return render(request, 'accounts/signup.html')
@@ -74,8 +71,7 @@ def signup_view(request):
             messages.error(request, "Email already exists.")
             return render(request, 'accounts/signup.html')
 
-        # PASSWORD COMPLEXITY VALIDATIONS
-
+        ''' usr passwrd validation'''
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters.")
             return render(request, 'accounts/signup.html')
@@ -147,7 +143,7 @@ def signup_verify_view(request):
             return redirect('signup')
 
         issued_at = session_data.get('issued_at', 0)
-        if time.time() - issued_at > 300:
+        if time.time() - issued_at > 60:
             
             session_data['otp'] = None 
             request.session.modified = True
@@ -220,7 +216,6 @@ def resend_signup_otp_view(request):
         return redirect('signup_verify')
 
 
-# AUTH SESSION CONTROL 
 
 def login_view(request):
     
@@ -231,8 +226,6 @@ def login_view(request):
         email_or_username = request.POST.get('email', '').strip()
         password = request.POST.get('password', '').strip()
 
-
-     # SIMPLE IF-CONDITION VALIDATIONS
         
         if not email_or_username:
             messages.error(request, "Please enter your email or username.")
@@ -404,7 +397,10 @@ def reset_password_view(request):
 
 @login_required
 def change_email_view(request):
-    
+    """
+    User enter new email address.
+    Validates the new email, sends otp to current email, then redirects to otp verification page.
+    """
     import time
     current_user = request.user
 
@@ -440,7 +436,6 @@ def change_email_view(request):
         )
 
         try:
-            # OTP is always sent to the CURRENT (old) email for security
             send_mail(
                 subject,
                 body,
@@ -455,14 +450,12 @@ def change_email_view(request):
             return redirect('change_email_otp')
 
         except Exception as e:
-            # Clean up session on mail failure
             request.session.pop('pending_new_email', None)
             request.session.pop('email_change_otp', None)
             request.session.pop('email_otp_issued_at', None)
             messages.error(request, "Failed to send verification email. Please try again.")
             return render(request, 'accounts/change_email.html')
 
-    # GET request — show the Enter New Email form
     return render(request, 'accounts/change_email.html')
 
 
@@ -642,7 +635,7 @@ def validate_address_data(request, data):
     phone_number = data.get("phone_number", "").strip()
     pincode = data.get("pincode", "").strip()
 
-    # 1. Name Validation (Cannot be empty or just numbers/symbols)
+    '''naame Validation (Cannot be empty or just numbers/symbols)'''
     if not name or len(name) < 2 or len(name) > 20:
         messages.error(request, "Please enter a valid name (2 to 20 characters).")
         return False
@@ -679,12 +672,11 @@ def add_address(request):
         form_data = {"name": name, "phone_number": phone_number, "pincode": pincode}
 
         if not validate_address_data(request, form_data):
-            # Render the form back with entered details so user doesn't lose data
             return render(
                 request,
                 "address/address_form.html",
                 {
-                    "posted_data": request.POST,  # Pass back the input data to show in inputs
+                    "posted_data": request.POST, 
                 },
             )
 
@@ -747,7 +739,7 @@ def edit_address(request, id):
                 "pincode": pincode,
                 "country": country,
                 "address_type": address_type,
-                "is_default": address.is_default,  # keep database state original status display
+                "is_default": address.is_default,  
             }
             return render(
                 request,

@@ -302,4 +302,3 @@ def delete_variant(request, variant_id):
         update_product_stock(product_id)
         messages.success(request, "Variant telemetry terminated successfully from inventory.")
     return redirect('manage_variants', product_id=product_id)
-
