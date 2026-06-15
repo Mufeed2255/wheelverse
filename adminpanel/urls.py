@@ -16,7 +16,7 @@ urlpatterns = [
     path('products/delete/<int:product_id>/', product_management.delete_product, name='delete_product'),    
     path('products/add/', product_management.add_product, name='add_product'),
     path('products/edit/<int:product_id>/', product_management.edit_product, name='edit_product'),
-    
+    path('products/<int:product_id>/toggle/', product_management.toggle_product_status, name='toggle_product_status'),
     
     
     path('categories/', product_management.category_list, name='admin_category'),
@@ -31,5 +31,6 @@ urlpatterns = [
     path('variant/<int:variant_id>/toggle/', product_management.toggle_variant_status, name='toggle_variant_status'),
     path('variants/<int:variant_id>/delete/', product_management.delete_variant, name='delete_variant'),
     
-    path('products/<int:product_id>/toggle/', product_management.toggle_product_status, name='toggle_product_status'),
+    
+    
 ]

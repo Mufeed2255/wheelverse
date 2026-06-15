@@ -1,29 +1,34 @@
 from django.db import models
 from django.conf import settings
 
-# --- 1. CATEGORY MODEL ---
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     description = models.TextField(blank=True, null=True)
-    is_active = models.BooleanField(default=True)  # Soft Delete ആവശ്യത്തിനായി
+    is_active = models.BooleanField(default=True) 
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-id']  # പുതിയ കാറ്റഗറി ആദ്യം വരാൻ
+        ordering = ['-id']  
 
     def __str__(self):
         return self.name
 
 
-# --- 2. PRODUCT MODEL ---
 class Product(models.Model):
+    RARITY_CHOICES = [
+        ('COMMON', 'Common'),
+        ('RARE', 'Rare'),
+        ('EPIC', 'Epic'),
+        ('LEGENDARY', 'Legendary'),
+    ]
+
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
     name = models.CharField(max_length=255)
     sku = models.CharField(max_length=50, unique=True, help_text="Unique Stock Keeping Unit")
-    description = models.TextField(blank=True, null=True)
     
-    # വ്യൂവിൽ ക്രാഷ് വരാതിരിക്കാൻ ബേസ് പ്രൈസും ബേസ് സ്റ്റോക്കും നിലനിർത്തുന്നു.
-    # വേരിയന്റുകൾ ഇല്ലെങ്കിൽ ഇത് ഉപയോഗിക്കാം, വേരിയന്റ് ഉണ്ടെങ്കിൽ ഇവ ഓട്ടോമാറ്റിക് അപ്ഡേറ്റ് ചെയ്യപ്പെടും.
+    rarity = models.CharField(max_length=50, choices=RARITY_CHOICES, default='LEGENDARY')
+    
+    description = models.TextField(blank=True, null=True)
     price = models.DecimalField(max_digits=12, decimal_places=2, default=0.00) 
     total_stock = models.IntegerField(default=0)
     
@@ -38,7 +43,6 @@ class Product(models.Model):
     def __str__(self):
         return self.name
 
-
 # --- 3. PRODUCT IMAGE MODEL (FOR MULTIPLE IMAGES) ---
 class ProductImage(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
@@ -49,16 +53,14 @@ class ProductImage(models.Model):
         return f"Image for {self.product.name}"
 
 
-# --- 4. PRODUCT VARIANT MODEL (FIXED TYPO & RELATION) ---
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='variants')
     size = models.CharField(max_length=100, help_text="e.g., 20-inch, 21-inch")
     color = models.CharField(max_length=100, help_text="e.g., Rosso Corsa Red, Matte Black")
     
-    # FIXED: decimal_digits എന്നത് മാറ്റി കൃത്യമായ django കീവേഡ് ആയ decimal_places ഉപയോഗിച്ചു.
     price = models.DecimalField(max_digits=12, decimal_places=2) 
     stock = models.IntegerField(default=1)
-    is_deleted = models.BooleanField(default=False)  # Soft Delete ഫീൽഡ്
+    is_deleted = models.BooleanField(default=False)  
     image = models.ImageField(upload_to='variants/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
 
@@ -66,7 +68,6 @@ class ProductVariant(models.Model):
         return f"{self.product.name} - {self.size} ({self.color})"
 
 
-# --- 5. ADMIN ACTIVITY LOG MODEL ---
 class AdminActivityLog(models.Model):
     ACTION_CHOICES = [
         ('ACTIVATE_USER', 'Activated User'),

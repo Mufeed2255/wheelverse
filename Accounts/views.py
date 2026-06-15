@@ -1,4 +1,3 @@
-
 import re
 from datetime import datetime
 from django.conf import settings
@@ -13,8 +12,15 @@ User = get_user_model()
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Count, Q, Min, Sum
+from adminpanel.models import Product, Category, ProductVariant
+from .models import Cart, Wishlist
+from django.shortcuts import render
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from decimal import Decimal
+from adminpanel.models import ProductVariant
 
-#GATEWAYS & PROFILE VIEWS 
 
 def landing_page(request):
     return render(request, 'accounts/landing_page.html')
@@ -33,8 +39,7 @@ def signup_view(request):
         confirm_password = request.POST.get('confirm_password', '')
 
       
-      # USERNAME VALIDATIONS
-
+        ''' username validation'''
         if not username:
             messages.error(request, "Username cannot be empty.")
             return render(request, 'accounts/signup.html')
@@ -52,8 +57,7 @@ def signup_view(request):
             return render(request, 'accounts/signup.html')
 
 
-        # EMAIL VALIDATIONS
-
+        ''' user emil validation'''
         if not email:
             messages.error(request, "Email cannot be empty.")
             return render(request, 'accounts/signup.html')
@@ -67,8 +71,7 @@ def signup_view(request):
             messages.error(request, "Email already exists.")
             return render(request, 'accounts/signup.html')
 
-        # PASSWORD COMPLEXITY VALIDATIONS
-
+        ''' usr passwrd validation'''
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters.")
             return render(request, 'accounts/signup.html')
@@ -93,7 +96,6 @@ def signup_view(request):
             messages.error(request, "Passwords do not match.")
             return render(request, 'accounts/signup.html')
 
-        # OTP GENERATION & SESSION STORAGE
         otp = str(random.randint(100000, 999999))
 
         request.session['signup_data'] = {
@@ -102,7 +104,7 @@ def signup_view(request):
             'phone': phone,
             'password': password,
             'otp': otp,
-            'issued_at': time.time()  # ⏳ ടൈം ഔട്ട് നോക്കാൻ സമയം ഇവിടെ സേവ് ചെയ്യുന്നു
+            'issued_at': time.time() 
         }
 
         try:
@@ -180,7 +182,6 @@ def signup_verify_view(request):
 
 def resend_signup_otp_view(request):
     import time
-    # സെഷനിൽ നിന്ന് പഴയ ഡാറ്റ എടുക്കുന്നു
     signup_data = request.session.get('signup_data')
     
     if not signup_data:
@@ -188,16 +189,13 @@ def resend_signup_otp_view(request):
         return redirect('signup')
         
     try:
-        # പുതിയ OTP ജനറേറ്റ് ചെയ്യുന്നു
         new_otp = str(random.randint(100000, 999999))
         
-        # സെഷനിലെ OTP യും സമയവും അപ്ഡേറ്റ് ചെയ്യുന്നു
         signup_data['otp'] = new_otp
         signup_data['issued_at'] = time.time()
         request.session['signup_data'] = signup_data
         request.session.modified = True 
         
-        # പുതിയ OTP ഇമെയിലിലേക്ക് അയക്കുന്നു
         subject = "New OTP — WheelVerse Signup Verification"
         message = f"Your new WheelVerse signup OTP is: {new_otp}"
         
@@ -218,7 +216,6 @@ def resend_signup_otp_view(request):
         return redirect('signup_verify')
 
 
-# AUTH SESSION CONTROL 
 
 def login_view(request):
     
@@ -229,8 +226,6 @@ def login_view(request):
         email_or_username = request.POST.get('email', '').strip()
         password = request.POST.get('password', '').strip()
 
-
-     # SIMPLE IF-CONDITION VALIDATIONS
         
         if not email_or_username:
             messages.error(request, "Please enter your email or username.")
@@ -403,8 +398,8 @@ def reset_password_view(request):
 @login_required
 def change_email_view(request):
     """
-    STEP 1: User enters new email address.
-    Validates the new email, sends OTP to CURRENT email, then redirects to OTP verification page.
+    User enter new email address.
+    Validates the new email, sends otp to current email, then redirects to otp verification page.
     """
     import time
     current_user = request.user
@@ -412,22 +407,18 @@ def change_email_view(request):
     if request.method == 'POST':
         new_email = request.POST.get('new_email', '').strip().lower()
 
-        # Validation: must not be empty
         if not new_email:
             messages.error(request, "Please enter a valid email address.")
             return render(request, 'accounts/change_email.html')
 
-        # Validation: must differ from current email
         if new_email == current_user.email.lower():
             messages.error(request, "This is already your current registered email.")
             return render(request, 'accounts/change_email.html')
 
-        # Validation: new email must not already be registered
         if User.objects.filter(email__iexact=new_email).exists():
             messages.error(request, "This email is already registered.")
             return render(request, 'accounts/change_email.html')
 
-        # Generate OTP and store in session
         otp_code = f"{random.randint(100000, 999999)}"
         issued_at = time.time()  # Unix timestamp
 
@@ -445,7 +436,6 @@ def change_email_view(request):
         )
 
         try:
-            # OTP is always sent to the CURRENT (old) email for security
             send_mail(
                 subject,
                 body,
@@ -460,14 +450,12 @@ def change_email_view(request):
             return redirect('change_email_otp')
 
         except Exception as e:
-            # Clean up session on mail failure
             request.session.pop('pending_new_email', None)
             request.session.pop('email_change_otp', None)
             request.session.pop('email_otp_issued_at', None)
             messages.error(request, "Failed to send verification email. Please try again.")
             return render(request, 'accounts/change_email.html')
 
-    # GET request — show the Enter New Email form
     return render(request, 'accounts/change_email.html')
 
 
@@ -647,7 +635,7 @@ def validate_address_data(request, data):
     phone_number = data.get("phone_number", "").strip()
     pincode = data.get("pincode", "").strip()
 
-    # 1. Name Validation (Cannot be empty or just numbers/symbols)
+    '''naame Validation (Cannot be empty or just numbers/symbols)'''
     if not name or len(name) < 2 or len(name) > 20:
         messages.error(request, "Please enter a valid name (2 to 20 characters).")
         return False
@@ -684,12 +672,11 @@ def add_address(request):
         form_data = {"name": name, "phone_number": phone_number, "pincode": pincode}
 
         if not validate_address_data(request, form_data):
-            # Render the form back with entered details so user doesn't lose data
             return render(
                 request,
                 "address/address_form.html",
                 {
-                    "posted_data": request.POST,  # Pass back the input data to show in inputs
+                    "posted_data": request.POST, 
                 },
             )
 
@@ -752,7 +739,7 @@ def edit_address(request, id):
                 "pincode": pincode,
                 "country": country,
                 "address_type": address_type,
-                "is_default": address.is_default,  # keep database state original status display
+                "is_default": address.is_default,  
             }
             return render(
                 request,
@@ -824,3 +811,303 @@ def set_default_address(request, id):
         address.save()
         messages.success(request, "Primary address changed successfully.")
     return redirect("address_list")
+
+def user_collections(request):
+    search_query = request.GET.get('search', '').strip()
+    category_id = request.GET.get('category', '')
+    status = request.GET.get('status', '')
+    sort_by = request.GET.get('sort_by', '')
+    rarity = request.GET.get('rarity', '').strip()
+    
+
+    try:
+        price_min = int(request.GET.get('price_min', 0))
+    except (ValueError, TypeError):
+        price_min = 0
+
+    try:
+        price_max = int(request.GET.get('price_max', 150000))
+    except (ValueError, TypeError):
+        price_max = 150000
+
+
+    products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
+    
+
+    categories = Category.objects.filter(is_active=True).annotate(
+        total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))
+    )
+
+
+    if search_query:
+        products_queryset = products_queryset.filter(name__icontains=search_query)
+        
+
+    if category_id:
+        products_queryset = products_queryset.filter(category_id=category_id)
+
+
+    if rarity:
+        products_queryset = products_queryset.filter(rarity__iexact=rarity)
+
+
+    
+
+    products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
+
+    if price_min:
+        products_queryset = products_queryset.filter(min_price__gte=price_min)
+    if price_max:
+        products_queryset = products_queryset.filter(min_price__lte=price_max)
+
+    if sort_by == 'a-z':
+        products_queryset = products_queryset.order_by('name')
+    elif sort_by == 'z-a':
+        products_queryset = products_queryset.order_by('-name')
+    elif sort_by == 'price-low': 
+        products_queryset = products_queryset.order_by('min_price')
+    elif sort_by == 'price-high': 
+        products_queryset = products_queryset.order_by('-min_price')
+    elif sort_by == 'oldest': 
+        products_queryset = products_queryset.order_by('id')
+    else:
+        products_queryset = products_queryset.order_by('-id')
+
+    products_list = list(products_queryset)
+
+    if status == 'in_stock':
+        products_list = [p for p in products_list if p.total_stock > 10]
+    elif status == 'limited':
+        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
+    elif status == 'out_of_stock':
+        products_list = [p for p in products_list if p.total_stock == 0]
+
+    paginator = Paginator(products_list, 6) 
+    page = request.GET.get('page', 1)
+    
+    try:
+        paginated_products = paginator.page(page)
+    except PageNotAnInteger:
+        paginated_products = paginator.page(1)
+    except EmptyPage:
+        paginated_products = paginator.page(paginator.num_pages)
+
+    context = {
+        'products': paginated_products,  
+        'categories': categories,
+        'total_products_count': len(products_list),
+        'current_search': search_query,
+        'current_category': category_id,
+        'current_status': status,
+        'current_sort': sort_by,
+        'current_rarity': rarity,  
+        'price_min': price_min,
+        'price_max': price_max,
+        'rarity_choices': [('', 'All Rarities')] + Product.RARITY_CHOICES,
+}
+    return render(request, 'products/collections.html', context)
+
+@login_required
+def product_detail(request, product_id):
+    product = get_object_or_404(
+        Product.objects.filter(is_deleted=False, is_active=True).annotate(
+            variant_stock=Sum("variants__stock"),
+            min_variant_price=Min("variants__price")
+        ),
+        id=product_id
+    )
+
+    variants = product.variants.filter(
+        is_active=True,
+        is_deleted=False 
+)
+    
+    first_variant = variants.first()
+
+    cart_count = Cart.objects.filter(user=request.user).count()
+    wishlist_count = Wishlist.objects.filter(user=request.user).count()
+
+    return render(request, "products/product_detail.html", {
+        "product": product,
+        "variants": variants,
+        "first_variant": first_variant,
+        "cart_count": cart_count,
+        "wishlist_count": wishlist_count,
+    })
+
+@login_required
+def add_to_cart(request):
+    if request.method == "POST":
+        variant_id = request.POST.get("variant_id")
+        quantity = int(request.POST.get("quantity", 1))
+        
+        variant = get_object_or_404( ProductVariant,
+        id=variant_id,
+        is_active=True,
+        is_deleted=False
+    )
+        product = variant.product
+
+        if quantity > variant.stock:
+            messages.error(request, "Stock unavailable.")
+            return redirect("product_detail", product_id=product.id)
+
+        if Cart.objects.filter(user=request.user, variant=variant).exists():
+            messages.error(request, "This product is already added to cart.")
+            return redirect("product_detail", product_id=product.id)
+
+        Cart.objects.create(
+            user=request.user,
+            variant=variant,
+            quantity=quantity
+        )
+
+        messages.success(request, "Product added to cart successfully.")
+        return redirect("cart")
+
+    return redirect("collections")
+
+
+@login_required
+def cart_view(request):
+    cart_items = Cart.objects.filter(
+    user=request.user,
+    variant__is_active=True,
+    variant__is_deleted=False
+)
+
+    subtotal = sum(item.subtotal() for item in cart_items)
+    discount = Decimal("0.00")
+    shipping = Decimal("0.00")
+
+    if subtotal > 0:
+        shipping = Decimal("80.00")
+
+    grand_total = subtotal - discount + shipping
+    cart_count = cart_items.count()
+
+    return render(request, "products/cart.html", {
+        "cart_items": cart_items,
+        "subtotal": subtotal,
+        "discount": discount,
+        "shipping": shipping,
+        "grand_total": grand_total,
+        "cart_count": cart_count,
+    })
+
+
+@login_required
+def increase_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+
+    if cart_item.quantity >= cart_item.variant.stock:
+        messages.error(request, "Stock unavailable.")
+    else:
+        cart_item.quantity += 1
+        cart_item.save()
+        messages.success(request, "Cart updated successfully.")
+
+    return redirect("cart")
+
+
+@login_required
+def decrease_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+
+    if cart_item.quantity > 1:
+        cart_item.quantity -= 1
+        cart_item.save()
+        messages.success(request, "Cart updated successfully.")
+
+    return redirect("cart")
+
+
+@login_required
+def remove_cart_item(request, item_id):
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+    cart_item.delete()
+
+    messages.success(request, "Product removed from cart.")
+    return redirect("cart")
+
+
+
+
+@login_required
+def wishlist_view(request):
+    wishlist_items = Wishlist.objects.filter(
+    user=request.user,
+    variant__is_active=True,
+    variant__is_deleted=False
+).order_by("-created_at")
+
+    wishlist_value = sum(item.variant.price for item in wishlist_items)
+    available_stock = sum(item.variant.stock for item in wishlist_items)
+
+    cart_count = Cart.objects.filter(user=request.user).count()
+    wishlist_count = wishlist_items.count()
+
+    return render(request, "products/wishlist.html", {
+        "wishlist_items": wishlist_items,
+        "wishlist_value": wishlist_value,
+        "available_stock": available_stock,
+        "cart_count": cart_count,
+        "wishlist_count": wishlist_count,
+    })
+
+
+@login_required
+def add_to_wishlist(request):
+    if request.method == "POST":
+        variant_id = request.POST.get("variant_id")
+
+        if not variant_id:
+            messages.error(request, "Variant not selected.")
+            return redirect("collections")
+
+        variant = get_object_or_404(
+            ProductVariant, 
+            id=variant_id,
+            is_active=True,
+            is_deleted=False
+    )
+
+        if Wishlist.objects.filter(user=request.user, variant=variant).exists():
+            messages.error(request, "This product is already in your wishlist.")
+            return redirect("product_detail", product_id=variant.product.id)
+
+        Wishlist.objects.create(user=request.user, variant=variant)
+
+        messages.success(request, "Product added to wishlist.")
+        return redirect("wishlist")
+
+    return redirect("collections")
+
+
+@login_required
+def remove_wishlist(request, item_id):
+    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
+    item.delete()
+    messages.success(request, "Product removed from wishlist.")
+    return redirect("wishlist")
+
+
+@login_required
+def move_wishlist_to_cart(request, item_id):
+    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
+    variant = item.variant
+
+    if variant.stock <= 0:
+        messages.error(request, "Stock unavailable.")
+        return redirect("wishlist")
+
+    if Cart.objects.filter(user=request.user, variant=variant).exists():
+        item.delete()
+        messages.error(request, "This product is already in your cart. Removed from wishlist.")
+        return redirect("wishlist")
+
+    Cart.objects.create(user=request.user, variant=variant, quantity=1)
+    item.delete()
+
+    messages.success(request, "Product moved to cart.")
+    return redirect("cart")

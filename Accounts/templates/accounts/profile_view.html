@@ -130,7 +130,7 @@
                 <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
                     <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
                 </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="{% url 'wishlist'%}">
                     <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
                 </a>
                 <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
@@ -171,9 +171,7 @@
             <nav class="hidden md:flex items-center gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
                 <a href="#" class="border-b border-primary text-primary pb-1">Home</a>
                 <a href="#" class="hover:text-primary transition-colors">Collections</a>
-                <a href="#" class="hover:text-primary transition-colors">Auctions</a>
-                <a href="#" class="hover:text-primary transition-colors">Garage</a>
-                <a href="#" class="hover:text-primary transition-colors">Marketplace</a>
+                <a href="{% url 'cart'%}" class="hover:text-primary transition-colors">Cart</a>
             </nav>
         </div>
         

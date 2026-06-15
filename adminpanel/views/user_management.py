@@ -15,15 +15,6 @@ def is_admin(user):
 
     return user.is_authenticated and (user.is_staff or user.is_superuser)
 
-
-def get_client_ip(request):
-    
-    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-    if x_forwarded_for:
-        return x_forwarded_for.split(',')[0].strip()
-    return request.META.get('REMOTE_ADDR')
-
-
 @login_required
 @user_passes_test(is_admin, login_url='admin_login')
 def admin_users(request):
@@ -143,7 +134,6 @@ def toggle_user_status(request, user_id):
         action=action_type,
         description=action_desc,
         target_user=user_obj,
-        ip_address=get_client_ip(request),
     )
 
     if user_obj.is_active:

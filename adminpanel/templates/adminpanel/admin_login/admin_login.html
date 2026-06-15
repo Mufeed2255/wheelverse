@@ -1,0 +1,415 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WheelVerse | Admin Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #F5C518;
+            --gold-dark: #c9a000;
+            --gold-glow: rgba(245, 197, 24, 0.25);
+            --bg-dark: #0a0a08;
+            --card-bg: rgba(12, 11, 8, 0.92);
+            --border-gold: rgba(245, 197, 24, 0.5);
+            --text-primary: #ffffff;
+            --text-muted: rgba(255,255,255,0.45);
+            --input-bg: rgba(255,255,255,0.05);
+            --input-border: rgba(255,255,255,0.12);
+            --error: #ff4d4d;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
+            overflow: hidden;
+        }
+
+        /* Background car image with dark overlay */
+        .bg-layer {
+            position: fixed;
+            inset: 0;
+            background-image: url('https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1600&q=80');
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.3) saturate(0.6);
+            z-index: 0;
+        }
+
+        .bg-overlay {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(10,10,8,0.5) 0%, rgba(5,5,3,0.85) 100%);
+            z-index: 1;
+        }
+
+        /* Login Card */
+        .login-wrapper {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            animation: fadeInUp 0.6s ease both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-gold);
+            padding: 52px 44px 44px;
+            position: relative;
+            backdrop-filter: blur(20px);
+            box-shadow:
+                0 0 0 1px rgba(245,197,24,0.08),
+                0 32px 80px rgba(0,0,0,0.8),
+                inset 0 1px 0 rgba(245,197,24,0.15);
+        }
+
+        /* Corner accents */
+        .login-card::before,
+        .login-card::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border-color: var(--gold);
+            border-style: solid;
+        }
+        .login-card::before {
+            top: -1px; left: -1px;
+            border-width: 2px 0 0 2px;
+        }
+        .login-card::after {
+            bottom: -1px; right: -1px;
+            border-width: 0 2px 2px 0;
+        }
+
+        /* Brand */
+        .brand {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .brand-name {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 2.4rem;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .brand-name .wheel {
+            color: #ffffff;
+        }
+
+        .brand-name .verse {
+            color: var(--gold);
+        }
+
+        .brand-subtitle {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.78rem;
+            letter-spacing: 0.28em;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        /* Messages */
+        .messages {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        .messages li {
+            padding: 10px 14px;
+            border-radius: 2px;
+            font-size: 0.82rem;
+            margin-bottom: 6px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+        }
+
+        .messages li.error {
+            background: rgba(255, 77, 77, 0.1);
+            border: 1px solid rgba(255, 77, 77, 0.3);
+            color: #ff7070;
+        }
+
+        .messages li.success {
+            background: rgba(245, 197, 24, 0.08);
+            border: 1px solid rgba(245, 197, 24, 0.25);
+            color: var(--gold);
+        }
+
+        /* Form fields */
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            color: var(--text-muted);
+            font-size: 1rem;
+            pointer-events: none;
+            transition: color 0.2s;
+        }
+
+        .form-input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9rem;
+            padding: 13px 14px 13px 42px;
+            outline: none;
+            transition: border-color 0.25s, background 0.25s, box-shadow 0.25s;
+            -webkit-appearance: none;
+        }
+
+        .form-input::placeholder {
+            color: rgba(255,255,255,0.2);
+            font-size: 0.85rem;
+        }
+
+        .form-input:focus {
+            border-color: var(--gold);
+            background: rgba(245, 197, 24, 0.04);
+            box-shadow: 0 0 0 3px var(--gold-glow);
+        }
+
+        .form-input:focus + .input-icon,
+        .input-wrap:focus-within .input-icon {
+            color: var(--gold);
+        }
+
+        /* Remember / Forgot row */
+        .form-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 28px;
+            margin-top: 4px;
+        }
+
+        .remember-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.03em;
+            user-select: none;
+        }
+
+        .remember-label input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .remember-label input[type="checkbox"]:checked {
+            background: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .remember-label input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            left: 4px;
+            top: 1px;
+            width: 6px;
+            height: 10px;
+            border: 2px solid #000;
+            border-top: none;
+            border-left: none;
+            transform: rotate(40deg);
+        }
+
+        .forgot-link {
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.82rem;
+            color: var(--gold);
+            text-decoration: none;
+            letter-spacing: 0.04em;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+
+        .forgot-link:hover {
+            opacity: 0.75;
+        }
+
+        /* Login button */
+        .btn-login {
+            width: 100%;
+            padding: 15px;
+            background: var(--gold);
+            color: #000000;
+            border: none;
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 0.95rem;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-login::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.5s ease;
+        }
+
+        .btn-login:hover {
+            background: #ffd84d;
+            box-shadow: 0 0 24px var(--gold-glow), 0 4px 20px rgba(245,197,24,0.3);
+        }
+
+        .btn-login:hover::before {
+            transform: translateX(100%);
+        }
+
+        .btn-login:active {
+            transform: scale(0.99);
+        }
+
+        /* Bottom decorative line */
+        .card-bottom-line {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="bg-overlay"></div>
+
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="brand">
+            <div class="brand-name">
+                <span class="wheel">Wheel</span><span class="verse">Verse</span>
+            </div>
+            <div class="brand-subtitle">Admin Control Center</div>
+        </div>
+
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="POST" action="{% url 'admin_login' %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label" for="username">Admin Email</label>
+                <div class="input-wrap">
+                    <span class="input-icon">@</span>
+                    <input
+                        class="form-input"
+                        type="text"
+                        id="username"
+                        name="username"
+                        placeholder="admin@wheelverse.vip"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="password">Secure Password</label>
+                <div class="input-wrap">
+                    <span class="input-icon">🔒</span>
+                    <input
+                        class="form-input"
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="••••••••••••"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+            </div>
+
+            <div class="form-footer-row">
+                <label class="remember-label">
+                    <input type="checkbox" name="remember_me">
+                    Remember Me
+                </label>
+                <a href="#" class="forgot-link">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn-login">Login</button>
+        </form>
+
+        <div class="card-bottom-line"></div>
+    </div>
+</div>
+
+</body>
+</html>
