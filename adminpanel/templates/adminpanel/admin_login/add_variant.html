@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
+    <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
@@ -91,10 +95,25 @@
                         class="upload-zone border-2 border-dashed border-outline-variant/30 rounded-lg p-8 text-center bg-black/20 hover:border-primary/40 cursor-pointer relative">
 
                         <input type="file"
-                               id="variantImageInput"
-                               name="variant_image"
-                               accept="image/*"
-                               class="absolute inset-0 opacity-0 cursor-pointer w-full h-full"/>
+                            id="variantImageInput"
+                            name="variant_images"
+                            accept="image/*"
+                            multiple>
+
+                        <div class="mt-5">
+
+                            <img id="cropImage"
+                                class="hidden w-full max-h-[400px] object-contain">
+
+                        </div>
+
+                        <button type="button"
+                                id="cropBtn"
+                                class="hidden btn-gold">
+
+                            Crop Image
+
+                        </button>
 
                         <div id="uploadPrompt">
                             <span class="material-symbols-outlined text-5xl text-primary/30 block mb-3">cloud_upload</span>
@@ -165,8 +184,85 @@
         const fileSize = document.getElementById('fileSize');
         const removeBtn = document.getElementById('removeImage');
         const uploadError = document.getElementById('uploadError');
+        let cropper;
 
+        const image=document.getElementById("cropImage");
+
+        const cropBtn=document.getElementById("cropBtn");
         const MAX_SIZE_MB = 5;
+        
+
+        input.addEventListener("change",function(e){
+
+            const file=e.target.files[0];
+
+            if(!file) return;
+
+            image.src=URL.createObjectURL(file);
+
+            image.classList.remove("hidden");
+
+            cropBtn.classList.remove("hidden");
+
+            if(cropper){
+
+                cropper.destroy();
+
+            }
+
+            cropper=new Cropper(image,{
+
+                aspectRatio:1,
+
+                viewMode:1,
+
+                autoCropArea:1,
+
+                responsive:true
+
+            });
+
+        });
+
+        cropBtn.addEventListener("click",function(){
+
+            const canvas=cropper.getCroppedCanvas({
+
+                width:800,
+
+                height:800
+
+            });
+
+            canvas.toBlob(function(blob){
+
+                const file=new File(
+
+                    [blob],
+
+                    "cropped.jpg",
+
+                    {
+
+                        type:"image/jpeg"
+
+                    }
+
+                );
+
+                const dt=new DataTransfer();
+
+                dt.items.add(file);
+
+                input.files=dt.files;
+
+                alert("Image cropped successfully.");
+
+            });
+
+        });
+
+
 
         function formatSize(bytes) {
             if (bytes < 1024) return bytes + ' B';

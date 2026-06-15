@@ -67,6 +67,18 @@ class ProductVariant(models.Model):
     def __str__(self):
         return f"{self.product.name} - {self.size} ({self.color})"
 
+class ProductVariantImage(models.Model):
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+    image = models.ImageField(upload_to="variant_images/")
+    is_primary = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.variant} Image"
 
 class AdminActivityLog(models.Model):
     ACTION_CHOICES = [

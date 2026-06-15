@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
-from adminpanel.models import Product, Category, ProductVariant, ProductImage
+from adminpanel.models import Product, Category, ProductVariant, ProductImage, ProductVariantImage
 from django.db.models import Count  
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -401,31 +401,43 @@ def add_variant(request, product_id):
             
     return render(request, 'adminpanel/admin_login/add_variant.html', {'product': product})
 
-
 def edit_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     product = variant.product
-    
+
     if request.method == 'POST':
         variant.price = request.POST.get('price')
         variant.stock = request.POST.get('stock')
         variant.size = request.POST.get('size', '').strip()
         variant.color = request.POST.get('color', '').strip()
-        
-        if request.FILES.get('variant_image'):
-            variant.image = request.FILES.get('variant_image')
-            
+
+        images = request.FILES.getlist('variant_images')
+
         try:
             variant.save()
+
+            if images:
+                ProductVariantImage.objects.filter(variant=variant).delete()
+
+                for index, image in enumerate(images[:3]):
+                    ProductVariantImage.objects.create(
+                        variant=variant,
+                        image=image,
+                        is_primary=(index == 0)
+                    )
+
             update_product_stock(product)
-            messages.success(request, f"Variant updates compiled successfully!")
+
+            messages.success(request, "Variant updated successfully.")
             return redirect('manage_variants', product_id=product.id)
+
         except Exception as e:
             messages.error(request, f"Compilation Error: {str(e)}")
-            
-    return render(request, 'adminpanel/admin_login/edit_variant.html', {'variant': variant, 'product': product})
 
-
+    return render(request, 'adminpanel/admin_login/edit_variant.html', {
+        'variant': variant,
+        'product': product
+    })
 @require_POST
 def toggle_variant_status(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)    

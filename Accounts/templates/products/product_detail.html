@@ -145,16 +145,27 @@
 
         <div>
             <div class="glass rounded-xl min-h-[520px] flex items-center justify-center p-10 overflow-hidden">
-                {% if first_variant and first_variant.image %}
-                    <img id="mainImage"
-                         src="{{ first_variant.image.url }}"
-                         alt="{{ product.name }}"
-                         class="w-full max-h-[470px] object-contain cursor-zoom-in transition duration-700 hover:scale-105">
-                {% else %}
-                    <div class="text-center text-[#f2ca50]/50">
-                        <span class="material-symbols-outlined text-8xl">directions_car</span>
-                        <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
-                    </div>
+                {% with first_image=first_variant.images.first %}
+                    {% if first_image %}
+                        <img id="mainImage"
+                            src="{{ first_image.image.url }}"
+                            alt="{{ product.name }}"
+                            class="w-full max-h-[470px] object-contain cursor-zoom-in transition duration-700 hover:scale-105">
+                    {% else %}
+                        <div class="text-center text-[#f2ca50]/50">
+                            <span class="material-symbols-outlined text-8xl">directions_car</span>
+                            <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
+                        </div>
+                    {% endif %}
+                {% endwith %}
+            </div>
+            <div class="grid grid-cols-5 gap-4 mt-5" id="thumbnailContainer">
+                {% if first_variant %}
+                    {% for image in first_variant.images.all %}
+                        <img src="{{ image.image.url }}"
+                            data-image="{{ image.image.url }}"
+                            class="thumbnail-image {% if forloop.first %}active{% endif %} h-24 w-full object-cover rounded-lg">
+                    {% endfor %}
                 {% endif %}
             </div>
 
@@ -238,8 +249,7 @@
                         data-stock="{{ variant.stock }}"
                         data-color="{{ variant.color }}"
                         data-size="{{ variant.size }}"
-                        data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
-
+                        data-images='[{% for img in variant.images.all %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}]'
                         <p class="orbitron text-[10px] text-[#f2ca50]">
                             {{ variant.color }}
                         </p>
@@ -412,10 +422,9 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     const mainImage = document.getElementById("mainImage");
-    
-    const thumbnails = document.querySelectorAll(".thumbnail-image");
+    const thumbnailContainer = document.getElementById("thumbnailContainer");
+
     const variantButtons = document.querySelectorAll(".variant-btn");
-    const colorButtons = document.querySelectorAll(".color-btn");
 
     const displayPrice = document.getElementById("displayPrice");
     const displayStock = document.getElementById("displayStock");
@@ -429,7 +438,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const qtyInput = document.getElementById("qty");
     const plusBtn = document.getElementById("plusQty");
     const minusBtn = document.getElementById("minusQty");
-
     const addToCartBtn = document.getElementById("addToCartBtn");
 
     let currentStock = {% if first_variant %}{{ first_variant.stock }}{% else %}0{% endif %};
@@ -437,18 +445,14 @@ document.addEventListener("DOMContentLoaded", function () {
     function syncQuantity(value) {
         let qty = parseInt(value || 1);
 
-        if (qty < 1) {
-            qty = 1;
-        }
+        if (qty < 1) qty = 1;
 
         if (currentStock > 0 && qty > currentStock) {
             qty = currentStock;
             alert("Stock unavailable.");
         }
 
-        if (currentStock <= 0) {
-            qty = 1;
-        }
+        if (currentStock <= 0) qty = 1;
 
         if (qtyInput) {
             qtyInput.value = qty;
@@ -460,35 +464,63 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
+    function renderThumbnails(images) {
+        if (!thumbnailContainer) return;
+
+        thumbnailContainer.innerHTML = "";
+
+        images.forEach((url, index) => {
+            thumbnailContainer.innerHTML += `
+                <img src="${url}"
+                     data-image="${url}"
+                     class="thumbnail-image ${index === 0 ? 'active' : ''} h-24 w-full object-cover rounded-lg">
+            `;
+        });
+
+        bindThumbnailClicks();
+    }
+
+    function bindThumbnailClicks() {
+        const thumbnails = document.querySelectorAll(".thumbnail-image");
+
+        thumbnails.forEach(img => {
+            img.addEventListener("click", function () {
+                const imageUrl = this.dataset.image;
+
+                if (mainImage && imageUrl) {
+                    mainImage.src = imageUrl;
+                }
+
+                thumbnails.forEach(item => item.classList.remove("active"));
+                this.classList.add("active");
+            });
+        });
+    }
+
+    function getImagesFromButton(button) {
+        try {
+            return JSON.parse(button.dataset.images || "[]");
+        } catch (e) {
+            return [];
+        }
+    }
+
     function updateSelectedVariant(button) {
         const variantId = button.dataset.variantId;
         const price = button.dataset.price;
         const stock = parseInt(button.dataset.stock || 0);
         const color = button.dataset.color;
         const size = button.dataset.size;
-        const image = button.dataset.image;
+        const images = getImagesFromButton(button);
 
         currentStock = stock;
 
-        if (selectedVariantId) {
-            selectedVariantId.value = variantId;
-        }
+        if (selectedVariantId) selectedVariantId.value = variantId;
+        if (wishlistVariantId) wishlistVariantId.value = variantId;
 
-        if (wishlistVariantId) {
-            wishlistVariantId.value = variantId;
-        }
-
-        if (displayPrice) {
-            displayPrice.textContent = "₹" + price;
-        }
-
-        if (selectedColor) {
-            selectedColor.textContent = color || "N/A";
-        }
-
-        if (selectedSize) {
-            selectedSize.textContent = size || "N/A";
-        }
+        if (displayPrice) displayPrice.textContent = "₹" + price;
+        if (selectedColor) selectedColor.textContent = color || "N/A";
+        if (selectedSize) selectedSize.textContent = size || "N/A";
 
         if (displayStock) {
             if (stock > 0) {
@@ -502,8 +534,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if (mainImage && image) {
-            mainImage.src = image;
+        if (images.length > 0) {
+            if (mainImage) {
+                mainImage.src = images[0];
+            }
+
+            renderThumbnails(images);
+        } else {
+            if (thumbnailContainer) {
+                thumbnailContainer.innerHTML = "";
+            }
         }
 
         syncQuantity(1);
@@ -519,43 +559,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full";
             }
         }
+
+        variantButtons.forEach(btn => btn.classList.remove("active"));
+        button.classList.add("active");
     }
 
     variantButtons.forEach(button => {
         button.addEventListener("click", function () {
             updateSelectedVariant(this);
-
-            variantButtons.forEach(btn => btn.classList.remove("active"));
-            this.classList.add("active");
         });
     });
 
-    colorButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            updateSelectedVariant(this);
-
-            colorButtons.forEach(btn => btn.classList.remove("active", "border-[#f2ca50]"));
-            this.classList.add("active", "border-[#f2ca50]");
-        });
-    });
-    thumbnails.forEach(img => {
-        img.addEventListener("click", function () {
-            updateSelectedVariant(this);
-        });
-    });
-
-    variantButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            updateSelectedVariant(this);
-        });
-    });
-
-    colorButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            updateSelectedVariant(this);
-        });
-    });
-
+    bindThumbnailClicks();
 
     if (plusBtn && qtyInput) {
         plusBtn.addEventListener("click", function () {
@@ -585,7 +600,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (qtyInput) {
         qtyInput.setAttribute("max", currentStock);
-
         qtyInput.addEventListener("input", function () {
             syncQuantity(this.value);
         });
@@ -596,7 +610,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if (reviewBtn) {
         reviewBtn.addEventListener("click", function (e) {
             e.preventDefault();
-
             const reviewsSection = document.getElementById("reviews");
 
             if (reviewsSection) {
