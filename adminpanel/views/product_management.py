@@ -5,7 +5,9 @@ from django.db.models import Count
 from django.contrib import messages
 from django.views.decorators.http import require_POST
 import uuid
+import re
 from django.db.models import Min 
+
 
 def update_product_stock(product):
     from django.db.models import Sum
@@ -143,71 +145,224 @@ def toggle_product_status(request, product_id):
         'status': 'success',
         'is_active': product.is_active
     })
-
 def add_product(request):
+    categories = Category.objects.filter(is_active=True)
+
     if request.method == 'POST':
         name = request.POST.get('name', '').strip()
-        description = request.POST.get('description', '')
+        description = request.POST.get('description', '').strip()
         category_id = request.POST.get('category')
         rarity = request.POST.get('rarity', 'LEGENDARY').upper()
         is_visible_raw = request.POST.get('is_visible')
         is_visible = is_visible_raw in ['true', 'on']
 
-        if not name or not category_id:
-            messages.error(request, "Product name and category are required!")
-            categories = Category.objects.filter(is_active=True)
+        allowed_rarities = [choice[0] for choice in Product.RARITY_CHOICES]
+        name_pattern = r"^[A-Za-z0-9\s\-'&]+$"
+
+        if not name:
+            messages.error(request, "Product name is required.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if len(name) < 3:
+            messages.error(request, "Product name must contain at least 3 characters.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if len(name) > 20:
+            messages.error(request, "Product name cannot exceed 20 characters.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if not re.match(name_pattern, name):
+            messages.error(request, "Invalid product name format.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if Product.objects.filter(name__iexact=name, is_deleted=False).exists():
+            messages.error(request, "This product already exists.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if not category_id:
+            messages.error(request, "Please select a category.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        category = Category.objects.filter(id=category_id, is_active=True).first()
+
+        if not category:
+            messages.error(request, "Selected category is invalid.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if not rarity:
+            messages.error(request, "Please select rarity.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if rarity not in allowed_rarities:
+            messages.error(request, "Invalid rarity selected.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if not description:
+            messages.error(request, "Description is required.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if len(description) < 20:
+            messages.error(request, "Description must contain at least 20 characters.")
+            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+
+        if len(description) > 2000:
+            messages.error(request, "Description cannot exceed 2000 characters.")
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
         try:
-            category = get_object_or_404(Category, id=category_id)
-            
             Product.objects.create(
                 category=category,
                 name=name,
                 description=description,
                 sku=f"WV-{uuid.uuid4().hex[:8].upper()}",
-                rarity=rarity, 
-                is_active=is_visible  
+                rarity=rarity,
+                is_active=is_visible
             )
-            messages.success(request, f"Product '{name}' added successfully!")
+
+            messages.success(request, "Product added successfully.")
             return redirect('admin_products')
-            
+
         except Exception as e:
             messages.error(request, f"Error creating product: {str(e)}")
-            categories = Category.objects.filter(is_active=True)
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
-    categories = Category.objects.filter(is_active=True)
     return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
 
 def edit_product(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    
-    if request.method == 'POST':
-        name = request.POST.get('name')
-        description = request.POST.get('description', '')
-        category_id = request.POST.get('category')
-        rarity = request.POST.get('rarity', 'legendary')
-        is_visible = request.POST.get('is_visible') == 'true'
-
-        category = get_object_or_404(Category, id=category_id)
-        
-        product.name = name
-        product.description = description
-        product.category = category
-        product.rarity = rarity
-        product.is_active = is_visible  
-        product.save()
-        return redirect('admin_products')
 
     categories = Category.objects.filter(is_active=True)
+
+    if request.method == 'POST':
+
+        name = request.POST.get('name', '').strip()
+        description = request.POST.get('description', '').strip()
+        category_id = request.POST.get('category')
+        rarity = request.POST.get('rarity', 'LEGENDARY').upper()
+
+        is_visible_raw = request.POST.get('is_visible')
+        is_visible = is_visible_raw in ['true', 'on']
+
+        allowed_rarities = [choice[0] for choice in Product.RARITY_CHOICES]
+        name_pattern = r"^[A-Za-z0-9\s\-'&]+$"
+
+        # Product Name Validation
+        if not name:
+            messages.error(request, "Product name is required.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        if len(name) < 3:
+            messages.error(request, "Product name must contain at least 3 characters.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        if len(name) > 50:
+            messages.error(request, "Product name cannot exceed 50 characters.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        if not re.match(name_pattern, name):
+            messages.error(request, "Invalid product name format.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        # Duplicate Check
+        if Product.objects.filter(
+            name__iexact=name,
+            is_deleted=False
+        ).exclude(id=product.id).exists():
+
+            messages.error(request, "This product already exists.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        # Category Validation
+        if not category_id:
+            messages.error(request, "Please select a category.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        category = Category.objects.filter(
+            id=category_id,
+            is_active=True
+        ).first()
+
+        if not category:
+            messages.error(request, "Selected category is invalid.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        # Rarity Validation
+        if rarity not in allowed_rarities:
+            messages.error(request, "Invalid rarity selected.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        # Description Validation
+        if not description:
+            messages.error(request, "Description is required.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        if len(description) < 20:
+            messages.error(request, "Description must contain at least 20 characters.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        if len(description) > 2000:
+            messages.error(request, "Description cannot exceed 2000 characters.")
+            return render(request, 'adminpanel/admin_login/edit_product.html', {
+                'product': product,
+                'categories': categories
+            })
+
+        try:
+            product.name = name
+            product.description = description
+            product.category = category
+            product.rarity = rarity
+            product.is_active = is_visible
+
+            product.save()
+
+            messages.success(request, "Product updated successfully.")
+            return redirect('admin_products')
+
+        except Exception as e:
+            messages.error(request, f"Error updating product: {str(e)}")
+
     context = {
         'product': product,
         'categories': categories
     }
-    return render(request, 'adminpanel/admin_login/edit_product.html', context)
 
+    return render(
+        request,
+        'adminpanel/admin_login/edit_product.html',
+        context
+    )
 
 
 def manage_variants(request, product_id):

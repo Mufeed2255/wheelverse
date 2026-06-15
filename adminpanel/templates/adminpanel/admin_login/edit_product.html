@@ -69,6 +69,7 @@
                     <h2 class="font-headline-md text-2xl text-on-surface tracking-wide uppercase">EDIT PRODUCT DETAILS</h2>
                     <p class="text-xs text-on-surface-variant/70 mt-1">Modify the specifications and showroom visibility for this legendary collectible.</p>
                 </div>
+                {% include 'adminpanel/includes/messages.html' %}
 
                 <form id="productForm" method="POST" action="{% url 'edit_product' product.id %}" class="glass-card p-8 rounded max-w-[800px] mx-auto space-y-6">
                     {% csrf_token %}

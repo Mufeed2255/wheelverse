@@ -160,11 +160,18 @@
 
             <div class="grid grid-cols-5 gap-4 mt-5">
                 {% for variant in variants %}
-                    {% if variant.image %}
-                        <img src="{{ variant.image.url }}"
-                             data-image="{{ variant.image.url }}"
-                             class="thumbnail-image {% if forloop.first %}active{% endif %} h-24 w-full object-cover rounded-lg">
-                    {% endif %}
+                    {% with first_image=variant.images.first %}
+                        {% if first_image %}
+                            <img src="{{ first_image.image.url }}"
+                                data-image="{{ first_image.image.url }}"
+                                data-variant-id="{{ variant.id }}"
+                                data-price="{{ variant.price }}"
+                                data-stock="{{ variant.stock }}"
+                                data-color="{{ variant.color }}"
+                                data-size="{{ variant.size }}"
+                                class="thumbnail-image {% if forloop.first %}active{% endif %} h-24 w-full object-cover rounded-lg">
+                        {% endif %}
+                    {% endwith %}
                 {% endfor %}
             </div>
         </div>
@@ -200,23 +207,6 @@
                     </p>
                 </div>
             </div>
-            <div class="mb-6">
-              <p class="orbitron text-[10px] text-[#d0c5af] mb-3">SELECT COLOR</p>
-
-                <div class="flex flex-wrap gap-3">
-                    {% for variant in variants %}
-                        <button type="button"
-                                class="color-btn px-4 py-2 rounded-md border border-[#f2ca50]/20 text-sm hover:border-[#f2ca50] transition"
-                                data-variant-id="{{ variant.id }}"
-                                data-price="{{ variant.price }}"
-                                data-stock="{{ variant.stock }}"
-                                data-color="{{ variant.color }}"
-                                data-size="{{ variant.size }}"
-                                data-image="{% if variant.images.first %}{{ variant.images.first.image.url }}{% endif %}">
-                            {{ variant.color }}
-                        </button>
-                    {% endfor %}
-                </div>
             <div class="mb-6">
                 <p id="displayPrice" class="orbitron text-4xl font-bold">
                     ₹{% if first_variant %}{{ first_variant.price }}{% else %}N/A{% endif %}
@@ -422,7 +412,8 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     const mainImage = document.getElementById("mainImage");
-
+    
+    const thumbnails = document.querySelectorAll(".thumbnail-image");
     const variantButtons = document.querySelectorAll(".variant-btn");
     const colorButtons = document.querySelectorAll(".color-btn");
 
@@ -547,6 +538,24 @@ document.addEventListener("DOMContentLoaded", function () {
             this.classList.add("active", "border-[#f2ca50]");
         });
     });
+    thumbnails.forEach(img => {
+        img.addEventListener("click", function () {
+            updateSelectedVariant(this);
+        });
+    });
+
+    variantButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            updateSelectedVariant(this);
+        });
+    });
+
+    colorButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            updateSelectedVariant(this);
+        });
+    });
+
 
     if (plusBtn && qtyInput) {
         plusBtn.addEventListener("click", function () {

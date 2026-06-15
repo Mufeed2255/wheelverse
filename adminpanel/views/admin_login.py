@@ -41,7 +41,7 @@ def admin_login(request):
 def admin_dashboard(request):
    
     if not request.user.is_staff and not request.user.is_superuser:
-        messages.error(request, 'Access Denied. You do not have administrative privileges.')
+        messages.error(request, 'Welcome to Admin Dashboard')
         logout(request)
         return redirect('admin_login')
 
@@ -66,5 +66,5 @@ def admin_dashboard(request):
 
 def admin_logout_view(request):
     logout(request)
-    messages.success(request, "You have been successfully logged out of the Control Center.")
+    messages.success(request, "You have been successfully logged out admin dashbard.")
     return redirect('admin_login')

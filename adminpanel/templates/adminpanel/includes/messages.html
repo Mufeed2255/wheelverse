@@ -31,21 +31,17 @@
     document.addEventListener("DOMContentLoaded", function() {
         const messageContainer = document.getElementById("django-message-container");
         if (messageContainer) {
-            // 3 സെക്കൻഡ് (3000ms) കഴിഞ്ഞ് വാനിഷ് ആകാനുള്ള ലോജിക്
             setTimeout(function() {
-                // ഫേഡ് ഔട്ട് ആനിമേഷൻ നൽകുന്നു
                 messageContainer.style.opacity = '0';
                 messageContainer.style.transform = 'translate(-50%, -20px)';
                 
-                // ആനിമേഷൻ കഴിഞ്ഞ ശേഷം ഡോമിൽ നിന്ന് പൂർണ്ണമായി നീക്കുന്നു
                 setTimeout(function() {
                     messageContainer.remove();
-                }, 500); // 500ms transition time
+                }, 500); 
             }, 3000);
         }
     });
 
-    // ക്ലോസ് ബട്ടൺ ക്ലിക്ക് ചെയ്താൽ ഉടൻ മാറാൻ വേണ്ടിയുള്ള ഫങ്ഷൻ
     function closeMessage(element) {
         element.style.opacity = '0';
         element.style.transform = 'translate(-50%, -20px)';

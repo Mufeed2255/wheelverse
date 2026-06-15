@@ -917,7 +917,11 @@ def product_detail(request, product_id):
         id=product_id
     )
 
-    variants = product.variants.all()
+    variants = product.variants.filter(
+        is_active=True,
+        is_deleted=False 
+)
+    
     first_variant = variants.first()
 
     cart_count = Cart.objects.filter(user=request.user).count()
@@ -936,8 +940,12 @@ def add_to_cart(request):
     if request.method == "POST":
         variant_id = request.POST.get("variant_id")
         quantity = int(request.POST.get("quantity", 1))
-
-        variant = get_object_or_404(ProductVariant, id=variant_id)
+        
+        variant = get_object_or_404( ProductVariant,
+        id=variant_id,
+        is_active=True,
+        is_deleted=False
+    )
         product = variant.product
 
         if quantity > variant.stock:
@@ -962,11 +970,11 @@ def add_to_cart(request):
 
 @login_required
 def cart_view(request):
-    cart_items = Cart.objects.filter(user=request.user).select_related(
-        "variant",
-        "variant__product",
-        "variant__product__category"
-    )
+    cart_items = Cart.objects.filter(
+    user=request.user,
+    variant__is_active=True,
+    variant__is_deleted=False
+)
 
     subtotal = sum(item.subtotal() for item in cart_items)
     discount = Decimal("0.00")
@@ -1027,11 +1035,11 @@ def remove_cart_item(request, item_id):
 
 @login_required
 def wishlist_view(request):
-    wishlist_items = Wishlist.objects.filter(user=request.user).select_related(
-        "variant",
-        "variant__product",
-        "variant__product__category"
-    ).order_by("-created_at")
+    wishlist_items = Wishlist.objects.filter(
+    user=request.user,
+    variant__is_active=True,
+    variant__is_deleted=False
+).order_by("-created_at")
 
     wishlist_value = sum(item.variant.price for item in wishlist_items)
     available_stock = sum(item.variant.stock for item in wishlist_items)
@@ -1057,7 +1065,12 @@ def add_to_wishlist(request):
             messages.error(request, "Variant not selected.")
             return redirect("collections")
 
-        variant = get_object_or_404(ProductVariant, id=variant_id)
+        variant = get_object_or_404(
+            ProductVariant, 
+            id=variant_id,
+            is_active=True,
+            is_deleted=False
+    )
 
         if Wishlist.objects.filter(user=request.user, variant=variant).exists():
             messages.error(request, "This product is already in your wishlist.")
