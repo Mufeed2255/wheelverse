@@ -247,7 +247,6 @@ def edit_product(request, product_id):
         allowed_rarities = [choice[0] for choice in Product.RARITY_CHOICES]
         name_pattern = r"^[A-Za-z0-9\s\-'&]+$"
 
-        # Product Name Validation
         if not name:
             messages.error(request, "Product name is required.")
             return render(request, 'adminpanel/admin_login/edit_product.html', {
@@ -276,7 +275,6 @@ def edit_product(request, product_id):
                 'categories': categories
             })
 
-        # Duplicate Check
         if Product.objects.filter(
             name__iexact=name,
             is_deleted=False
@@ -288,7 +286,6 @@ def edit_product(request, product_id):
                 'categories': categories
             })
 
-        # Category Validation
         if not category_id:
             messages.error(request, "Please select a category.")
             return render(request, 'adminpanel/admin_login/edit_product.html', {
@@ -308,7 +305,6 @@ def edit_product(request, product_id):
                 'categories': categories
             })
 
-        # Rarity Validation
         if rarity not in allowed_rarities:
             messages.error(request, "Invalid rarity selected.")
             return render(request, 'adminpanel/admin_login/edit_product.html', {
@@ -316,7 +312,6 @@ def edit_product(request, product_id):
                 'categories': categories
             })
 
-        # Description Validation
         if not description:
             messages.error(request, "Description is required.")
             return render(request, 'adminpanel/admin_login/edit_product.html', {
@@ -375,7 +370,6 @@ def manage_variants(request, product_id):
     })
 
 
-# 2. ADD NEW VARIANT
 def add_variant(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     
@@ -408,7 +402,6 @@ def add_variant(request, product_id):
     return render(request, 'adminpanel/admin_login/add_variant.html', {'product': product})
 
 
-# 3. EDIT EXISTING VARIANT
 def edit_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     product = variant.product
@@ -445,15 +438,16 @@ def toggle_variant_status(request, variant_id):
     })
 
 
-
-# 4. DELETE VARIANT (SOFT DELETE)
 def delete_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
-    product_id = variant.product.id
-    
+    product = variant.product
+
     if request.method == 'POST':
-        variant.is_deleted = True  
+        variant.is_deleted = True
         variant.save()
-        update_product_stock(product_id)
-        messages.success(request, "Variant telemetry terminated successfully from inventory.")
-    return redirect('manage_variants', product_id=product_id)
+
+        update_product_stock(product)
+
+        messages.success(request, "Variant removed successfully.")
+
+    return redirect('manage_variants', product_id=product.id)
