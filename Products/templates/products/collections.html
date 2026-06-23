@@ -1,0 +1,662 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>WheelVerse | Elite Collector Legends</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#f2ca50",
+                        background: "#16130b",
+                        surface: "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af"
+                    },
+                    fontFamily: {
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        .glass-card {
+            background: linear-gradient(135deg, rgba(26,26,26,.85), rgba(8,8,8,.95));
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(242,202,80,.12);
+        }
+
+        .product-card-hover:hover {
+            border-color: rgba(242,202,80,.45);
+            box-shadow: 0 0 30px rgba(242,202,80,.12);
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        input[type="range"] { accent-color: #f2ca50; }
+
+        /* Custom radio styling */
+        input[type="radio"] { accent-color: #f2ca50; }
+
+        /* Hero fallback gradient */
+        .hero-bg {
+            background: linear-gradient(135deg, #1a1200 0%, #0e0c07 50%, #1a0a00 100%);
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
+
+<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
+<header class="fixed top-0 left-0 w-full z-[100] bg-surface/90 backdrop-blur-xl border-b border-primary/10">
+    <div class="max-w-[1440px] mx-auto px-10 h-20 flex justify-between items-center">
+
+        <a href="{% url 'landing_page' %}" class="font-display-lg text-3xl tracking-tight text-on-surface no-underline">
+            Wheel<span class="text-primary">Verse</span>
+        </a>
+
+        <nav class="hidden xl:flex items-center gap-10">
+            <a href="{% url 'landing_page' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Home</a>
+            <a href="{% url 'collections' %}" class="font-label-caps text-xs text-primary border-b border-primary pb-1">Collections</a>
+            <a href="{% url 'cart' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Cart</a>
+            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Wishlist</a>
+        </nav>
+
+        <div class="flex items-center gap-6">
+            <!-- Search form — submits to collections with filters preserved -->
+            <form method="GET" action="{% url 'collections' %}" class="relative hidden md:flex items-center">
+                <input type="hidden" name="category" value="{{ current_category }}">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                <input type="hidden" name="price_min" value="{{ price_min }}">
+                <input type="hidden" name="price_max" value="{{ price_max }}">
+                <input type="hidden" name="rarity" value="{{ current_rarity }}">
+
+                <input type="text" name="search" value="{{ current_search }}"
+                       placeholder="Search cars..."
+                       class="bg-transparent border-0 border-b border-primary/20 text-on-surface text-xs pl-2 pr-8 py-2 focus:ring-0 focus:border-primary w-44 transition-all focus:w-56">
+
+                <button type="submit" class="absolute right-1 text-on-surface-variant hover:text-primary">
+                    <span class="material-symbols-outlined text-xl">search</span>
+                </button>
+            </form>
+
+            <a href="{% url 'cart' %}" class="text-on-surface-variant hover:text-primary relative transition-colors">
+
+                <span class="material-symbols-outlined">
+                    shopping_cart
+                </span>
+            
+
+                {% if cart_count %}
+                <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">
+                    {{ cart_count }}
+                </span>
+                {% endif %}
+
+            </a>
+
+            <div class="hidden lg:block border-l border-primary/20 pl-6">
+                <p class="font-label-caps text-[10px] text-primary">ELITE STATUS</p>
+                <p class="font-bold text-xs text-white">Collector_01</p>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- ═══════════════════════════ LAYOUT ═══════════════════════════ -->
+<div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
+
+    <!-- ═══ SIDEBAR FILTERS ═══ -->
+    <aside class="w-[300px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar flex-shrink-0">
+
+        <form method="GET" action="{% url 'collections' %}" id="filterForm" class="space-y-10">
+
+            <!-- Preserve sort & search when filtering -->
+            <input type="hidden" name="search" value="{{ current_search }}">
+            <input type="hidden" name="sort_by" value="{{ current_sort }}">
+
+            <!-- CATEGORIES -->
+            <section>
+                <h3 class="font-label-caps text-xs text-primary mb-6 flex justify-between items-center">
+                    CATEGORIES
+                    <span class="material-symbols-outlined text-sm">expand_more</span>
+                </h3>
+
+                <div class="space-y-1">
+                    <a href="?search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                       class="flex justify-between px-3 py-2 text-sm transition-colors
+                           {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary hover:bg-primary/5{% endif %}">
+                        All Legends <span class="text-xs opacity-60">({{ total_products_count }})</span>
+                    </a>
+
+                    {% for cat in categories %}
+                    <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                       class="flex justify-between px-3 py-2 text-sm transition-colors
+                           {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary hover:bg-primary/5{% endif %}">
+                        {{ cat.name }} <span class="text-xs opacity-60">({{ cat.total_items|default:0 }})</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- PRICE RANGE -->
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-5">PRICE RANGE</h3>
+
+                <!-- Preserve status when price changes -->
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="rarity" value="{{ current_rarity }}">
+                <input type="hidden" name="category" value="{{ current_category }}">
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">FROM (₹)</label>
+                        <input type="number" name="price_min" min="0" max="150000"
+                               value="{{ price_min|default:0 }}"
+                               placeholder="Min"
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-1 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    </div>
+                    <div>
+                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">TO (₹)</label>
+                        <input type="number" name="price_max" min="0" max="150000"
+                               value="{{ price_max|default:150000 }}"
+                               placeholder="Max"
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-1 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    </div>
+                </div>
+            </section>
+
+            <!-- RARITY -->
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-6">RARITY LEVEL</h3>
+
+                <div class="space-y-3 text-sm">
+                    {% for val, label in rarity_choices %}
+                    <label class="flex items-center gap-3 cursor-pointer transition-colors
+                        {% if current_rarity|upper == val %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value="{{ val }}"
+                               {% if current_rarity|upper == val %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        {{ label }}
+                    </label>
+                    {% empty %}
+                    <!-- Fallback if rarity_choices not passed from view -->
+                    <label class="flex items-center gap-3 cursor-pointer {% if not current_rarity %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value=""
+                               {% if not current_rarity %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        All Rarities
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'COMMON' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value="COMMON"
+                               {% if current_rarity|upper == 'COMMON' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Common
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'RARE' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value="RARE"
+                               {% if current_rarity|upper == 'RARE' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Rare
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'EPIC' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value="EPIC"
+                               {% if current_rarity|upper == 'EPIC' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Epic
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'LEGENDARY' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="rarity" value="LEGENDARY"
+                               {% if current_rarity|upper == 'LEGENDARY' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Legendary
+                    </label>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- AVAILABILITY -->
+            <section class="border-t border-primary/10 pt-6">
+                <h3 class="font-label-caps text-xs text-primary mb-6">AVAILABILITY</h3>
+
+                <div class="space-y-3 text-sm">
+                    <label class="flex items-center gap-3 cursor-pointer {% if not current_status %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="status" value=""
+                               {% if not current_status %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        All Items
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'in_stock' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="status" value="in_stock"
+                               {% if current_status == 'in_stock' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        In Stock
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'limited' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="status" value="limited"
+                               {% if current_status == 'limited' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Limited Stock
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'out_of_stock' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                        <input type="radio" name="status" value="out_of_stock"
+                               {% if current_status == 'out_of_stock' %}checked{% endif %}
+                               onchange="document.getElementById('filterForm').submit();"
+                               class="border-primary/30 text-primary focus:ring-primary">
+                        Out of Stock
+                    </label>
+                </div>
+            </section>
+
+            <!-- CLEAR ALL -->
+            <a href="{% url 'collections' %}"
+               class="block w-full text-center py-3 border border-primary/20 font-label-caps text-[10px] text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
+                CLEAR ALL FILTERS
+            </a>
+
+        </form>
+    </aside>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main class="flex-1 min-w-0">
+
+        <!-- HERO BANNER -->
+        <section class="relative h-[320px] w-full overflow-hidden border-b border-primary/10 hero-bg">
+
+            <!-- Try to load static image; if missing, gradient fallback shows -->
+            {% if hero_image %}
+            <img src="{{ hero_image }}" alt="Collector Legends"
+                 class="absolute inset-0 w-full h-full object-cover opacity-60">
+            {% else %}
+            <!-- Gradient pattern fallback — no 404 error -->
+            <div class="absolute inset-0 opacity-20"
+                 style="background-image: repeating-linear-gradient(45deg, #f2ca50 0, #f2ca50 1px, transparent 0, transparent 50%); background-size: 20px 20px;"></div>
+            {% endif %}
+
+            <div class="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent z-10"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
+
+            <div class="relative z-20 h-full flex flex-col justify-center px-12">
+                <div class="flex gap-3 mb-4">
+                    <span class="px-4 py-1 border border-primary/40 text-primary bg-black/30 font-label-caps text-[10px] tracking-widest">
+                        COLLECTIONS
+                    </span>
+                    {% if current_search %}
+                    <span class="px-4 py-1 border border-primary/20 text-on-surface-variant bg-black/30 font-label-caps text-[10px]">
+                        "{{ current_search }}"
+                    </span>
+                    {% endif %}
+                </div>
+
+                <h1 class="font-display-lg text-[48px] leading-none tracking-wide text-white">
+                    EXPLORE <br>
+                    <span class="text-primary">COLLECTOR LEGENDS</span>
+                </h1>
+
+                <p class="mt-4 max-w-lg text-on-surface-variant text-sm">
+                    Curated selection of the world's most sought-after digital automotive masterpieces.
+                </p>
+            </div>
+        </section>
+
+        <!-- SORT + RESULTS BAR -->
+        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-5 border-b border-primary/10 flex items-center justify-between gap-4">
+
+            <div class="flex items-center gap-3">
+                <span class="text-primary font-display-lg text-xl">{{ total_products_count }}</span>
+                <span class="font-label-caps text-on-surface-variant text-[10px]">RESULTS FOUND</span>
+
+                <!-- Active filter pills -->
+                {% if current_search or current_category or current_status or current_rarity %}
+                <div class="flex items-center gap-2 ml-4">
+                    {% if current_search %}
+                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
+                        "{{ current_search }}"
+                        <a href="?category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
+                    </span>
+                    {% endif %}
+                    {% if current_rarity %}
+                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
+                        {{ current_rarity }}
+                        <a href="?search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
+                    </span>
+                    {% endif %}
+                    {% if current_status %}
+                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
+                        {{ current_status|title }}
+                        <a href="?search={{ current_search }}&category={{ current_category }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
+                    </span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+
+            <form method="GET" action="{% url 'collections' %}" id="sortForm" class="flex items-center gap-3">
+                <input type="hidden" name="search" value="{{ current_search }}">
+                <input type="hidden" name="category" value="{{ current_category }}">
+                <input type="hidden" name="status" value="{{ current_status }}">
+                <input type="hidden" name="price_min" value="{{ price_min }}">
+                <input type="hidden" name="price_max" value="{{ price_max }}">
+                <input type="hidden" name="rarity" value="{{ current_rarity }}">
+
+                <select name="sort_by"
+                        onchange="document.getElementById('sortForm').submit();"
+                        class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10 focus:ring-1 focus:ring-primary focus:border-primary rounded-none">
+                    <option value="" {% if not current_sort or current_sort == 'newest' %}selected{% endif %}>SORT: NEWEST FIRST</option>
+                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>SORT: OLDEST FIRST</option>
+                    <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>SORT: NAME A → Z</option>
+                    <option value="z-a" {% if current_sort == 'z-a' %}selected{% endif %}>SORT: NAME Z → A</option>
+                    <option value="price-low" {% if current_sort == 'price-low' %}selected{% endif %}>SORT: PRICE LOW → HIGH</option>
+                    <option value="price-high" {% if current_sort == 'price-high' %}selected{% endif %}>SORT: PRICE HIGH → LOW</option>
+                </select>
+
+                <!-- Reset all filters -->
+                <a href="{% url 'collections' %}"
+                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors"
+                   title="Clear all filters">
+                    <span class="material-symbols-outlined text-sm">refresh</span>
+                </a>
+            </form>
+        </section>
+
+        <!-- PRODUCT GRID -->
+        <section class="px-12 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+
+                {% for product in products %}
+                <div class="glass-card product-card-hover group relative rounded-md overflow-hidden transition-all duration-500 flex flex-col">
+
+                    <!-- Rarity badge -->
+                    <div class="absolute top-4 left-4 z-10">
+                        <span class="px-3 py-1 font-label-caps text-[10px] font-bold uppercase tracking-wider
+                            {% if product.rarity|lower == 'common' %}bg-neutral-600 text-white
+                            {% elif product.rarity|lower == 'rare' %}bg-blue-600 text-white
+                            {% elif product.rarity|lower == 'epic' %}bg-purple-600 text-white
+                            {% elif product.rarity|lower == 'legendary' %}bg-amber-500 text-black
+                            {% else %}bg-gray-600 text-white{% endif %}">
+                            {{ product.rarity }}
+                        </span>
+                    </div>
+
+                    <!-- Low stock warning -->
+                    {% if product.total_stock > 0 and product.total_stock <= 3 %}
+                    <div class="absolute top-4 right-4 z-10 bg-red-800/90 text-white text-[9px] font-label-caps px-2 py-1 tracking-wider">
+                        ONLY {{ product.total_stock }} LEFT
+                    </div>
+                    {% endif %}
+
+                    <!-- Out of stock overlay -->
+                    {% if product.total_stock == 0 %}
+                    <div class="absolute top-4 right-4 z-10 bg-black/80 border border-red-500/40 text-red-400 text-[9px] font-label-caps px-2 py-1 tracking-wider">
+                        OUT OF STOCK
+                    </div>
+                    {% endif %}
+
+                    <!-- Product image → links to detail page -->
+                    <a href="{% url 'product_detail' product_id=product.id %}" class="block">
+                        <div class="aspect-[16/10] bg-black/50 overflow-hidden relative">
+                            {% with first_variant=product.variants.first %}
+                                {% if first_variant %}
+                                    {% with first_image=first_variant.images.first %}
+                                        {% if first_image %}
+                                            <img src="{{ first_image.image.url }}"
+                                                alt="{{ product.name }}"
+                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                        {% elif first_variant.image %}
+                                            <img src="{{ first_variant.image.url }}"
+                                                alt="{{ product.name }}"
+                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                        {% else %}
+                                            <div class="w-full h-full flex items-center justify-center text-primary/40">
+                                                <span class="material-symbols-outlined text-5xl">directions_car</span>
+                                            </div>
+                                        {% endif %}
+                                    {% endwith %}
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center text-primary/40">
+                                        <span class="material-symbols-outlined text-5xl">directions_car</span>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                    </a>
+
+                    <!-- Card body -->
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <p class="font-label-caps text-[10px] text-primary mb-2 tracking-widest">
+                                {{ product.category.name|upper }}
+                            </p>
+
+                            <a href="{% url 'product_detail' product_id=product.id %}" class="block group/title">
+                                <h3 class="font-display-lg text-xl leading-tight text-white group-hover/title:text-primary transition-colors">
+                                    {{ product.name }}
+                                </h3>
+                            </a>
+
+                            {% if product.description %}
+                            <p class="text-on-surface-variant text-xs mt-3 line-clamp-2 leading-relaxed">
+                                {{ product.description }}
+                            </p>
+                            {% endif %}
+                        </div>
+
+                        <div class="mt-6">
+                            <!-- Stock status -->
+                            {% if product.total_stock == 0 %}
+                                <p class="text-[11px] text-red-400 font-label-caps mb-3 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">inventory</span>
+                                    STOCK NOT AVAILABLE
+                                </p>
+                            {% elif product.total_stock <= 3 %}
+                                <p class="text-[11px] text-amber-400 font-label-caps mb-3 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">warning</span>
+                                    ONLY {{ product.total_stock }} LEFT IN VAULT
+                                </p>
+                            {% elif product.total_stock <= 10 %}
+                                <p class="text-[11px] text-yellow-500 mb-3 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">local_fire_department</span>
+                                    LIMITED — {{ product.total_stock }} remaining
+                                </p>
+                            {% else %}
+                                <p class="text-[11px] text-on-surface-variant mb-3 flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">check_circle</span>
+                                    {{ product.total_stock }} units available
+                                </p>
+                            {% endif %}
+
+                            
+                            <!-- Price + wishlist -->
+                            {% with first_variant=product.variants.first %}
+                            <div class="flex gap-3">
+
+                                <a href="{% url 'product_detail' product_id=product.id %}"
+                                class="flex-1 py-3 text-center font-label-caps text-xs font-bold transition-colors
+                                {% if product.total_stock == 0 %}
+                                        bg-surface-variant text-on-surface-variant cursor-not-allowed
+                                {% else %}
+                                        bg-primary text-black hover:bg-primary/90
+                                {% endif %}">
+
+                                    {% if first_variant and first_variant.price %}
+                                        ₹{{ first_variant.price }}
+                                    {% else %}
+                                        VIEW DETAILS
+                                    {% endif %}
+                                </a>
+
+                                {% if first_variant %}
+                                <form method="POST" action="{% url 'add_to_wishlist' %}">
+                                    {% csrf_token %}
+
+                                    <input type="hidden" name="variant_id" value="{{ first_variant.id }}">
+
+                                    <button type="submit"
+                                            class="w-12 h-full border border-primary/30 text-primary hover:bg-primary hover:text-black transition-colors flex items-center justify-center"
+                                            title="Add to Wishlist">
+                                        <span class="material-symbols-outlined text-xl">favorite</span>
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button disabled
+                                        class="w-12 border border-primary/20 text-on-surface-variant cursor-not-allowed flex items-center justify-center"
+                                        title="No Variant Available">
+                                    <span class="material-symbols-outlined text-xl">favorite</span>
+                                </button>
+                                {% endif %}
+
+                            </div>
+                            {% endwith %}
+                        </div>
+                    </div>
+                </div>
+
+                {% empty %}
+                <!-- Empty state -->
+                <div class="col-span-full py-24 text-center glass-card rounded-xl">
+                    <span class="material-symbols-outlined text-6xl text-primary/30 block mb-4">search_off</span>
+                    <h3 class="font-display-lg text-xl text-on-surface mb-2">No vehicles found</h3>
+                    <p class="text-on-surface-variant text-sm mb-6">
+                        {% if current_search %}
+                            No results for "{{ current_search }}". Try a different search.
+                        {% else %}
+                            No vehicles match your current filters.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'collections' %}"
+                       class="inline-block px-8 py-3 bg-primary text-black font-label-caps text-xs hover:bg-primary/90 transition-colors">
+                        CLEAR FILTERS
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- PAGINATION -->
+            {% if products.has_other_pages %}
+            <div class="flex justify-center items-center gap-2 mt-16">
+
+                {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </a>
+                {% else %}
+                <span class="w-10 h-10 border border-primary/10 flex items-center justify-center text-on-surface-variant/30 cursor-not-allowed">
+                    <span class="material-symbols-outlined text-sm">chevron_left</span>
+                </span>
+                {% endif %}
+
+                {% for num in products.paginator.page_range %}
+                    {% if products.number == num %}
+                    <span class="w-10 h-10 bg-primary text-black font-display-lg font-bold flex items-center justify-center text-sm">
+                        {{ num }}
+                    </span>
+                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
+                    <a href="?page={{ num }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                       class="w-10 h-10 border border-primary/20 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors text-sm">
+                        {{ num }}
+                    </a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
+                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </a>
+                {% else %}
+                <span class="w-10 h-10 border border-primary/10 flex items-center justify-center text-on-surface-variant/30 cursor-not-allowed">
+                    <span class="material-symbols-outlined text-sm">chevron_right</span>
+                </span>
+                {% endif %}
+
+            </div>
+
+            <!-- Page info -->
+            <p class="text-center font-label-caps text-[10px] text-on-surface-variant mt-4">
+                PAGE {{ products.number }} OF {{ products.paginator.num_pages }}
+            </p>
+            {% endif %}
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="border-t border-primary/10 bg-black/25 mt-10">
+            <div class="px-12 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+
+                <div>
+                    <h2 class="font-display-lg text-2xl mb-6">
+                        Wheel<span class="text-primary">Verse</span>
+                    </h2>
+                    <p class="text-on-surface-variant text-sm max-w-xs leading-relaxed">
+                        The world's premier digital-physical hybrid automotive collector ecosystem.
+                    </p>
+                    <div class="flex gap-4 mt-6 text-primary">
+                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">share</span>
+                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">public</span>
+                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">alternate_email</span>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-label-caps text-sm tracking-widest mb-6">COLLECTOR SERVICES</h3>
+                    <div class="space-y-4 text-on-surface-variant text-sm">
+                        <a href="#" class="block hover:text-primary transition-colors">Privacy Policy</a>
+                        <a href="#" class="block hover:text-primary transition-colors">Terms of Service</a>
+                        <a href="#" class="block hover:text-primary transition-colors">Authentication Service</a>
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="font-label-caps text-sm tracking-widest mb-6">ELITE STATUS</h3>
+                    <p class="text-on-surface-variant text-sm max-w-xs leading-relaxed">
+                        Designed for premium collectors, racing enthusiasts, and limited edition hunters.
+                    </p>
+                </div>
+            </div>
+
+            <div class="border-t border-primary/10 px-12 py-6 flex flex-col lg:flex-row justify-between gap-4 text-[10px] text-on-surface-variant font-label-caps">
+                <p>© 2026 WheelVerse Cinematic Performance. All Rights Reserved.</p>
+                <div class="flex gap-8">
+                    <span>DESIGNED FOR ENTHUSIASTS</span>
+                    <span>GLOBAL DISTRIBUTION</span>
+                    <span>SECURE TRANSACTION</span>
+                </div>
+            </div>
+        </footer>
+
+    </main>
+</div>
+
+</body>
+</html>
