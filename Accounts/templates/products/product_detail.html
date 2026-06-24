@@ -1,4 +1,4 @@
-{% load static %}
+{% comment %} {% load static %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -158,21 +158,25 @@
                 {% endif %}
             </div>
 
-            <div class="grid grid-cols-5 gap-4 mt-5">
+           <div class="mt-5">
+
                 {% for variant in variants %}
-                    {% with first_image=variant.images.first %}
-                        {% if first_image %}
-                            <img src="{{ first_image.image.url }}"
-                                data-image="{{ first_image.image.url }}"
-                                data-variant-id="{{ variant.id }}"
-                                data-price="{{ variant.price }}"
-                                data-stock="{{ variant.stock }}"
-                                data-color="{{ variant.color }}"
-                                data-size="{{ variant.size }}"
-                                class="thumbnail-image {% if forloop.first %}active{% endif %} h-24 w-full object-cover rounded-lg">
-                        {% endif %}
-                    {% endwith %}
+
+                    <div class="variant-thumbnails grid grid-cols-3 gap-3 {% if not forloop.first %}hidden{% endif %}"
+                         data-variant-thumb="{{ variant.id }}">
+
+                        {% for img in variant.images.all %}
+
+                            <img src="{{ img.image.url }}"
+                                 data-image="{{ img.image.url }}"
+                                 class="thumb-img h-24 w-full object-cover rounded-lg cursor-pointer border-2 {% if forloop.first %}border-[#f2ca50]{% else %}border-transparent{% endif %} hover:border-[#f2ca50] transition">
+
+                        {% endfor %}
+
+                    </div>
+
                 {% endfor %}
+
             </div>
         </div>
 
@@ -238,7 +242,8 @@
                         data-stock="{{ variant.stock }}"
                         data-color="{{ variant.color }}"
                         data-size="{{ variant.size }}"
-                        data-image="{% if variant.image %}{{ variant.image.url }}{% endif %}">
+                        data-image="{% with imgs=variant.images.all %}{% if imgs %}{{ imgs.0.image.url }}{% endif %}{% endwith %}"
+                        data-images='[{% with imgs=variant.images.all %}{% for img in imgs %}"{{ img.image.url }}"{% if not forloop.last %},{% endif %}{% endfor %}{% endwith %}]'>
 
                         <p class="orbitron text-[10px] text-[#f2ca50]">
                             {{ variant.color }}
@@ -467,6 +472,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const color = button.dataset.color;
         const size = button.dataset.size;
         const image = button.dataset.image;
+        let images = [];
+        try { images = JSON.parse(button.dataset.images || "[]"); } catch(e) {}
 
         currentStock = stock;
 
@@ -502,10 +509,20 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if (mainImage && image) {
-            mainImage.src = image;
+        if (mainImage && images.length > 0) {
+            mainImage.src = images[0];
         }
 
+        // Swap thumbnail group
+        document.querySelectorAll(".variant-thumbnails").forEach(el => el.classList.add("hidden"));
+        const activeThumbGroup = document.querySelector(`.variant-thumbnails[data-variant-thumb="${variantId}"]`);
+        if (activeThumbGroup) {
+            activeThumbGroup.classList.remove("hidden");
+            activeThumbGroup.querySelectorAll(".thumb-img").forEach((img, i) => {
+                img.classList.toggle("border-[#f2ca50]", i === 0);
+                img.classList.toggle("border-transparent", i !== 0);
+            });
+        }
         syncQuantity(1);
 
         if (addToCartBtn) {
@@ -538,12 +555,20 @@ document.addEventListener("DOMContentLoaded", function () {
             this.classList.add("active", "border-[#f2ca50]");
         });
     });
-    thumbnails.forEach(img => {
-        img.addEventListener("click", function () {
-            updateSelectedVariant(this);
-        });
+    document.addEventListener("click", function(e) {
+        if (e.target.classList.contains("thumb-img")) {
+            if (mainImage) mainImage.src = e.target.dataset.image;
+            const group = e.target.closest(".variant-thumbnails");
+            if (group) {
+                group.querySelectorAll(".thumb-img").forEach(img => {
+                    img.classList.remove("border-[#f2ca50]");
+                    img.classList.add("border-transparent");
+                });
+                e.target.classList.add("border-[#f2ca50]");
+                e.target.classList.remove("border-transparent");
+            }
+        }
     });
-
     variantButtons.forEach(button => {
         button.addEventListener("click", function () {
             updateSelectedVariant(this);
@@ -612,4 +637,4 @@ document.addEventListener("DOMContentLoaded", function () {
 </script>
 
 </body>
-</html>
+</html> {% endcomment %}

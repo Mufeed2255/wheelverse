@@ -109,6 +109,12 @@ def user_collections(request):
 
 @login_required
 def product_detail(request, product_id):
+    import json
+    from django.shortcuts import get_object_or_404, render
+    from django.db.models import Sum, Min
+    from adminpanel.models import Product, ProductVariant
+    from Products.models import Cart, Wishlist
+
     product = get_object_or_404(
         Product.objects.filter(is_deleted=False, is_active=True).annotate(
             variant_stock=Sum("variants__stock"),
@@ -117,24 +123,32 @@ def product_detail(request, product_id):
         id=product_id
     )
 
-    variants = product.variants.filter(
+    variants = ProductVariant.objects.filter(
+        product=product,
         is_active=True,
-        is_deleted=False 
-)
-    
-    first_variant = variants.first()
+        is_deleted=False
+    ).prefetch_related("images").order_by("id")
+
+    variants_list = list(variants)
+
+    for variant in variants_list:
+        image_urls = [img.image.url for img in variant.images.all()]
+        variant.image_urls_json = json.dumps(image_urls)
+
+    first_variant = variants_list[0] if variants_list else None
 
     cart_count = Cart.objects.filter(user=request.user).count()
     wishlist_count = Wishlist.objects.filter(user=request.user).count()
 
     return render(request, "products/product_detail.html", {
         "product": product,
-        "variants": variants,
+        "variants": variants_list,
         "first_variant": first_variant,
         "cart_count": cart_count,
         "wishlist_count": wishlist_count,
     })
-
+    
+    
 @login_required
 def add_to_cart(request):
     if request.method == "POST":
