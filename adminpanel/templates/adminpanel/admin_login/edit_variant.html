@@ -192,8 +192,12 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                     <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">SIZE / SPECIFICATION</label>
-                    <input type="text" name="size" value="{{ variant.size }}" required
-                           class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded"/>
+                    <select name="size" required
+                        class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded appearance-none">
+                        <option value="" class="bg-[#16130b] text-white">Select Scale</option>
+                        <option value="1:18 Scale" class="bg-[#16130b] text-white" {% if variant.size == "1:18 Scale" %}selected{% endif %}>1:18 Scale</option>
+                        <option value="1:50 Scale" class="bg-[#16130b] text-white" {% if variant.size == "1:50 Scale" %}selected{% endif %}>1:50 Scale</option>
+                    </select>
                 </div>
 
                 <div>

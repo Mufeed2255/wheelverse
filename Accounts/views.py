@@ -15,7 +15,7 @@ from .models import Address
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count, Q, Min, Sum
 from adminpanel.models import Product, Category, ProductVariant
-from .models import Cart, Wishlist
+from Products.models import Cart, Wishlist 
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
