@@ -14,12 +14,15 @@ urlpatterns = [
   
     path('signup/', views.signup_view, name='signup'),
     path('signup-verify/', views.signup_verify_view, name='signup_verify'),
+    path('signup/resend-otp/', views.resend_signup_otp_view, name='resend_signup_otp'),
+
+
     
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
-    path('resend-otp/', views.resend_signup_otp_view, name='resend_otp'),
+    path('forgot-password/resend-otp/', views.resend_otp_view, name='resend_otp'),
     path('verify-otp/', views.verify_otp_view, name='verify_otp'),
     path('reset-password/', views.reset_password_view, name='reset_password'),
     

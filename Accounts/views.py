@@ -20,6 +20,56 @@ from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
 from adminpanel.models import ProductVariant
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+
+
+def send_wheelverse_otp_email(to_email, username, otp, purpose, expiry=5):
+
+    html_content = render_to_string(
+        "emails/otp_email.html",
+        {
+            "username": username,
+            "otp": otp,
+            "purpose": purpose,
+            "expiry": expiry,
+        }
+    )
+
+    text_content = f"""
+Hello {username},
+
+We received a request for {purpose}.
+
+Your verification code is:
+
+{otp}
+
+This OTP will expire in {expiry} minutes.
+
+Do not share this code with anyone.
+
+If you did not request this action, ignore this email.
+
+WheelVerse Team
+Enter the Universe of Wheels
+"""
+
+    email = EmailMultiAlternatives(
+        subject=f"WheelVerse | {purpose.title()} Verification",
+        body=text_content,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[to_email],
+    )
+
+    email.attach_alternative(
+        html_content,
+        "text/html"
+    )
+
+    email.send()
+
+
 
 
 def landing_page(request):
@@ -111,12 +161,12 @@ def signup_view(request):
             subject = "WheelVerse Account Verification OTP"
             message = f"Your WheelVerse signup OTP is: {otp}"
             
-            send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [email],
-                fail_silently=False,
+            send_wheelverse_otp_email(
+                to_email=email,
+                username=username,
+                otp=otp,
+                purpose="Account Verification",
+                expiry=5
             )
 
             messages.success(request, "OTP sent to your email.")
@@ -199,12 +249,12 @@ def resend_signup_otp_view(request):
         subject = "New OTP — WheelVerse Signup Verification"
         message = f"Your new WheelVerse signup OTP is: {new_otp}"
         
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [signup_data['email']],
-            fail_silently=False,
+        send_wheelverse_otp_email(
+            to_email=signup_data['email'],
+            username=signup_data['username'],
+            otp=new_otp,
+            purpose="Account Verification",
+            expiry=5
         )
         
         messages.success(request, "A new OTP has been sent to your email.")
@@ -286,10 +336,16 @@ def forgot_password_view(request):
                 'verified': False
             }
 
-            subject = 'Reset Your WheelVerse Account Security Key'
-            message = f"Security update alert. Use this custom session matrix code to reset parameters: {reset_otp}"
+            # subject = 'Reset Your WheelVerse Account Security Key'
+            # message = f"Security update alert. Use this custom session matrix code to reset parameters: {reset_otp}"
             
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [email], fail_silently=False)
+            send_wheelverse_otp_email(
+                to_email=email,
+                username=user.username,
+                otp=reset_otp,
+                purpose="Password Reset",
+                expiry=5
+            )
             
             messages.success(request, "Recovery gate key routed into your secure mailbox.")
             return redirect('verify_otp')
@@ -322,13 +378,18 @@ def resend_otp_view(request):
         
         subject = 'New Security Token | WheelVerse Protocols'
         message = f"Your requested alternative verification token: {new_otp}"
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
+        send_wheelverse_otp_email(
+            to_email=user.email,
+            username=user.username,
+            otp=new_otp,
+            purpose="Password Reset",
+            expiry=5
+        )
         
         messages.success(request, "A new token verification key has been routed to your mailbox.")
         return redirect('verify_otp')
         
     except Exception as system_err:
-        print("--- SMTP RESEND EXCEPTION HANDLER ---", str(system_err))
         messages.error(request, "Failed to route alternative payload code. Check router settings.")
         return redirect('verify_otp')
 
@@ -436,12 +497,12 @@ def change_email_view(request):
         )
 
         try:
-            send_mail(
-                subject,
-                body,
-                settings.DEFAULT_FROM_EMAIL,
-                [current_user.email],
-                fail_silently=False,
+            send_wheelverse_otp_email(
+                to_email=current_user.email,
+                username=current_user.username,
+                otp=otp_code,
+                purpose="Email Change Verification",
+                expiry=10
             )
             messages.success(
                 request,
@@ -536,12 +597,12 @@ def resend_email_change_otp_view(request):
     )
 
     try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            [current_user.email],
-            fail_silently=False,
+        send_wheelverse_otp_email(
+            to_email=current_user.email,
+            username=current_user.username,
+            otp=new_otp,
+            purpose="Email Change Verification",
+            expiry=10
         )
         messages.success(request, "A new verification code has been sent to your current email address.")
     except Exception as e:

@@ -167,7 +167,7 @@ def add_product(request):
             messages.error(request, "Product name must contain at least 3 characters.")
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
-        if len(name) > 20:
+        if len(name) > 50:
             messages.error(request, "Product name cannot exceed 20 characters.")
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
