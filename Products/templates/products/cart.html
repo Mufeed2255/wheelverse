@@ -76,7 +76,11 @@
                 {% endif %}
             </a>
 
-            <span class="material-symbols-outlined text-[#d0c5af]">account_circle</span>
+            <a href="{% url 'profile_view' %}" class="text-[#d0c5af] hover:text-[#f2ca50] transition-colors">
+                <span class="material-symbols-outlined">
+                    account_circle
+                </span>
+            </a>
         </div>
 
     </div>
@@ -91,14 +95,6 @@
 
         <div class="relative z-20 px-8 lg:px-20 max-w-[1440px] mx-auto w-full">
             <div class="flex flex-col gap-4">
-                <div class="flex gap-3">
-                    <span class="bg-[#f2ca50]/20 text-[#f2ca50] border border-[#f2ca50]/40 px-3 py-1 orbitron text-[10px]">
-                        GARAGE CART
-                    </span>
-                    <span class="bg-red-500/10 text-red-300 border border-red-400/30 px-3 py-1 orbitron text-[10px]">
-                        STOCK PROTECTED
-                    </span>
-                </div>
 
                 <h1 class="orbitron text-4xl md:text-6xl text-white leading-tight">
                     YOUR COLLECTOR <span class="text-[#f2ca50]">CART</span>
@@ -132,16 +128,18 @@
                 <div class="glass-panel rounded-lg p-6 flex flex-col md:flex-row gap-6 transition-all duration-500 hover:border-[#f2ca50]/40">
 
                     <div class="relative w-full md:w-56 h-40 overflow-hidden rounded border border-[#4d4635] bg-black/30">
-                        {% if item.variant.image %}
-                        <img src="{{ item.variant.image.url }}"
-                             alt="{{ item.variant.product.name }}"
-                             class="w-full h-full object-cover">
-                        {% else %}
-                        <div class="w-full h-full flex items-center justify-center text-[#f2ca50]/40">
-                            <span class="material-symbols-outlined text-6xl">directions_car</span>
-                        </div>
-                        {% endif %}
-
+                        {% with first_image=item.variant.images.first %}
+                            {% if first_image %}
+                                <img src="{{ first_image.image.url }}"
+                                    alt="{{ item.variant.product.name }}"
+                                    class="w-full h-full object-cover">
+                            {% elif item.variant.image %}
+                                <img src="{{ item.variant.image.url }}"
+                                    alt="{{ item.variant.product.name }}"
+                                    class="w-full h-full object-cover">
+                            {% else %}
+                            {% endif %}
+                        {% endwith %}
                         <div class="absolute top-2 left-2 bg-[#f2ca50] text-black orbitron text-[10px] px-2 py-0.5 rounded">
                             {{ item.variant.product.rarity|default:"LEGENDARY"|upper }}
                         </div>

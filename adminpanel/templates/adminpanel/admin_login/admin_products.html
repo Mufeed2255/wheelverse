@@ -131,7 +131,6 @@
                         <table class="w-full text-left border-collapse">
                             <thead class="bg-surface-variant/20 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
                                 <tr>
-                                    <th class="px-6 py-4 text-center w-24">Product Image</th>
                                     <th class="px-6 py-4">Product Name</th>
                                     <th class="px-6 py-4">Category</th>
                                     <th class="px-6 py-4 w-24">Stock</th>
@@ -143,15 +142,6 @@
                             <tbody id="products-table-body" class="divide-y divide-primary/5 text-xs">
                                 {% for product in products %}
                                 <tr id="product-row-{{ product.id }}" class="hover:bg-primary/[0.02] transition-all">
-                                    <td class="px-6 py-3 text-center">
-                                        <div class="w-16 h-10 border border-primary/10 rounded overflow-hidden bg-surface-container flex items-center justify-center">
-                                            {% if product.images.first %}
-                                                <img class="w-full h-full object-cover" src="{{ product.images.first.image.url }}" alt="{{ product.name }}">
-                                            {% else %}
-                                                <span class="material-symbols-outlined text-primary/20 text-md">image</span>
-                                            {% endif %}
-                                        </div>
-                                    </td>
                                     <td class="px-6 py-3">
                                         <h4 class="font-medium text-on-surface tracking-wide">{{ product.name }}</h4>
                                         <p class="text-[9px] font-label-caps text-primary/60 mt-0.5">SKU: {{ product.sku|upper }}</p>

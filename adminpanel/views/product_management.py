@@ -1,6 +1,6 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse, HttpResponse
-from adminpanel.models import Product, Category, ProductVariant, ProductImage, ProductVariantImage
+from adminpanel.models import Product, Category, ProductVariant, ProductVariantImage
 from django.db.models import Count  
 from django.contrib import messages
 from django.views.decorators.http import require_POST
@@ -167,7 +167,7 @@ def add_product(request):
             messages.error(request, "Product name must contain at least 3 characters.")
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
-        if len(name) > 20:
+        if len(name) > 50:
             messages.error(request, "Product name cannot exceed 20 characters.")
             return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
 
@@ -362,82 +362,170 @@ def edit_product(request, product_id):
 
 def manage_variants(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    variants = product.variants.filter(is_deleted=False)
+    variants = (
+        product.variants
+        .filter(is_deleted=False)
+        .prefetch_related('images')
+    )
+    first_variant = variants.first()
     
     return render(request, 'adminpanel/admin_login/manage_variants.html', {
         'product': product,
-        'variants': variants
+        'variants': variants,
+        "first_variant": first_variant,
     })
 
 
 def add_variant(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    
-    if request.method == 'POST':
-        price = request.POST.get('price')
-        stock = request.POST.get('stock')
-        size = request.POST.get('size', '').strip()
-        color = request.POST.get('color', '').strip()
-        image = request.FILES.get('variant_image')
+
+    if request.method == "POST":
+        price = request.POST.get("price")
+        stock = request.POST.get("stock")
+        size = request.POST.get("size", "").strip()
+        color = request.POST.get("color", "").strip()
+        images = request.FILES.getlist("variant_images")
 
         if not price or not stock or not size or not color:
-            messages.error(request, "All specification fields are required.")
-            return redirect('add_variant', product_id=product.id)
+            messages.error(request, "All fields are required.")
+            return redirect("add_variant", product_id=product.id)
 
         try:
-            ProductVariant.objects.create(
-                product=product,
-                price=price,
-                stock=stock,
-                size=size,
-                color=color,
-                image=image
-            )
-            update_product_stock(product)
-            messages.success(request, f"Variant '{size} ({color})' successfully deployed into matrix!")
-            return redirect('manage_variants', product_id=product.id)
-        except Exception as e:
-            messages.error(request, f"Initialization Failed: {str(e)}")
-            
-    return render(request, 'adminpanel/admin_login/add_variant.html', {'product': product})
+            price = float(price)
+        except ValueError:
+            messages.error(request, "Price must be a valid number.")
+            return redirect("add_variant", product_id=product.id)
 
+        if price <= 0:
+            messages.error(request, "Price must be greater than 0.")
+            return redirect("add_variant", product_id=product.id)
+
+        if int(stock) < 0:
+            messages.error(request, "Quantity cannot be negative.")
+            return render(
+                request,
+                "adminpanel/admin_login/add_variant.html",
+                {"product": product}
+            )
+
+        if not re.match(r"^[A-Za-z\s]+$", color):
+            messages.error(request, "Color must contain only alphabets.")
+            return render(
+                request,
+                "adminpanel/admin_login/add_variant.html",
+                {"product": product}
+            )
+               
+
+        if len(images) != 3:
+            messages.error(request, "Please upload exactly 3 images.")
+            return redirect("add_variant", product_id=product.id)
+
+        variant = ProductVariant.objects.create(
+            product=product,
+            price=price,
+            stock=stock,
+            size=size,
+            color=color,
+            image=images[0]
+        )
+
+        for index, image in enumerate(images):
+            ProductVariantImage.objects.create(
+                variant=variant,
+                image=image,
+                is_primary=(index == 0)
+            )
+
+        update_product_stock(product)
+        messages.success(request, "Variant added successfully.")
+        return redirect("manage_variants", product_id=product.id)
+
+    return render(request, "adminpanel/admin_login/add_variant.html", {
+        "product": product
+    })
+    
 def edit_variant(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)
     product = variant.product
 
-    if request.method == 'POST':
-        variant.price = request.POST.get('price')
-        variant.stock = request.POST.get('stock')
-        variant.size = request.POST.get('size', '').strip()
-        variant.color = request.POST.get('color', '').strip()
+    if request.method == "POST":
+        price = request.POST.get("price", "").strip()
+        stock = request.POST.get("stock", "").strip()
+        size = request.POST.get("size", "").strip()
+        color = request.POST.get("color", "").strip()
 
-        images = request.FILES.getlist('variant_images')
+        if not price or not stock or not size or not color:
+            messages.error(request, "All fields are required.")
+            return redirect("edit_variant", variant_id=variant.id)
 
         try:
-            variant.save()
+            price = float(price)
+        except ValueError:
+            messages.error(request, "Price must be a valid number (e.g., 1999 or 1999.99).")
+            return redirect("edit_variant", variant_id=variant.id)
 
-            if images:
-                ProductVariantImage.objects.filter(variant=variant).delete()
+        if price <= 0:
+            messages.error(request, "Price must be greater than 0.")
+            return redirect("edit_variant", variant_id=variant.id)
 
-                for index, image in enumerate(images[:3]):
-                    ProductVariantImage.objects.create(
-                        variant=variant,
-                        image=image,
-                        is_primary=(index == 0)
-                    )
 
-            update_product_stock(product)
+        if not stock.isdigit():
+            messages.error(request, "Quantity must contain only numbers.")
+            return redirect("edit_variant", variant_id=variant.id)
 
-            messages.success(request, "Variant updated successfully.")
-            return redirect('manage_variants', product_id=product.id)
+        if int(stock) < 0:
+            messages.error(request, "Quantity cannot be negative.")
+            return redirect("edit_variant", variant_id=variant.id)
 
-        except Exception as e:
-            messages.error(request, f"Compilation Error: {str(e)}")
+        if not re.match(r"^[A-Za-z\s]+$", color):
+            messages.error(request, "Color must contain only alphabets.")
+            return redirect("edit_variant", variant_id=variant.id)
 
-    return render(request, 'adminpanel/admin_login/edit_variant.html', {
-        'variant': variant,
-        'product': product
+        variant.price = price
+        variant.stock = stock
+        variant.size = size
+        variant.color = color
+
+        images = request.FILES.getlist("variant_images")
+        changed_slots = request.POST.get("changed_slots", "")
+        changed_slots = [int(i) for i in changed_slots.split(",") if i != ""]
+
+        existing_images = list(variant.images.all().order_by("id"))
+
+        for slot, image in zip(changed_slots, images):
+            if slot < len(existing_images):
+                existing_images[slot].image = image
+                existing_images[slot].is_primary = slot == 0
+                existing_images[slot].save()
+            else:
+                ProductVariantImage.objects.create(
+                    variant=variant,
+                    image=image,
+                    is_primary=(slot == 0)
+                )
+
+        all_images = list(variant.images.all().order_by("id"))
+
+        for index, img in enumerate(all_images):
+            img.is_primary = index == 0
+            img.save()
+
+        first_image = variant.images.filter(is_primary=True).first()
+        if first_image:
+            variant.image = first_image.image
+
+        variant.save()
+        update_product_stock(product)
+
+        messages.success(request, "Variant updated successfully.")
+        return redirect("manage_variants", product_id=product.id)
+
+    return render(request, "adminpanel/admin_login/edit_variant.html", {
+        "variant": variant,
+        "product": product
     })
+    
 @require_POST
 def toggle_variant_status(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)    

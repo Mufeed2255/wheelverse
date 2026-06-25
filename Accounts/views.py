@@ -15,11 +15,61 @@ from .models import Address
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Count, Q, Min, Sum
 from adminpanel.models import Product, Category, ProductVariant
-from .models import Cart, Wishlist
+from Products.models import Cart, Wishlist 
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
 from adminpanel.models import ProductVariant
+from django.template.loader import render_to_string
+from django.core.mail import EmailMultiAlternatives
+
+
+def send_wheelverse_otp_email(to_email, username, otp, purpose, expiry=5):
+
+    html_content = render_to_string(
+        "emails/otp_email.html",
+        {
+            "username": username,
+            "otp": otp,
+            "purpose": purpose,
+            "expiry": expiry,
+        }
+    )
+
+    text_content = f"""
+Hello {username},
+
+We received a request for {purpose}.
+
+Your verification code is:
+
+{otp}
+
+This OTP will expire in {expiry} minutes.
+
+Do not share this code with anyone.
+
+If you did not request this action, ignore this email.
+
+WheelVerse Team
+Enter the Universe of Wheels
+"""
+
+    email = EmailMultiAlternatives(
+        subject=f"WheelVerse | {purpose.title()} Verification",
+        body=text_content,
+        from_email=settings.EMAIL_HOST_USER,
+        to=[to_email],
+    )
+
+    email.attach_alternative(
+        html_content,
+        "text/html"
+    )
+
+    email.send()
+
+
 
 
 def landing_page(request):
@@ -111,12 +161,12 @@ def signup_view(request):
             subject = "WheelVerse Account Verification OTP"
             message = f"Your WheelVerse signup OTP is: {otp}"
             
-            send_mail(
-                subject,
-                message,
-                settings.EMAIL_HOST_USER,
-                [email],
-                fail_silently=False,
+            send_wheelverse_otp_email(
+                to_email=email,
+                username=username,
+                otp=otp,
+                purpose="Account Verification",
+                expiry=5
             )
 
             messages.success(request, "OTP sent to your email.")
@@ -199,12 +249,12 @@ def resend_signup_otp_view(request):
         subject = "New OTP — WheelVerse Signup Verification"
         message = f"Your new WheelVerse signup OTP is: {new_otp}"
         
-        send_mail(
-            subject,
-            message,
-            settings.EMAIL_HOST_USER,
-            [signup_data['email']],
-            fail_silently=False,
+        send_wheelverse_otp_email(
+            to_email=signup_data['email'],
+            username=signup_data['username'],
+            otp=new_otp,
+            purpose="Account Verification",
+            expiry=5
         )
         
         messages.success(request, "A new OTP has been sent to your email.")
@@ -286,10 +336,16 @@ def forgot_password_view(request):
                 'verified': False
             }
 
-            subject = 'Reset Your WheelVerse Account Security Key'
-            message = f"Security update alert. Use this custom session matrix code to reset parameters: {reset_otp}"
+            # subject = 'Reset Your WheelVerse Account Security Key'
+            # message = f"Security update alert. Use this custom session matrix code to reset parameters: {reset_otp}"
             
-            send_mail(subject, message, settings.EMAIL_HOST_USER, [email], fail_silently=False)
+            send_wheelverse_otp_email(
+                to_email=email,
+                username=user.username,
+                otp=reset_otp,
+                purpose="Password Reset",
+                expiry=5
+            )
             
             messages.success(request, "Recovery gate key routed into your secure mailbox.")
             return redirect('verify_otp')
@@ -322,13 +378,18 @@ def resend_otp_view(request):
         
         subject = 'New Security Token | WheelVerse Protocols'
         message = f"Your requested alternative verification token: {new_otp}"
-        send_mail(subject, message, settings.EMAIL_HOST_USER, [user.email], fail_silently=False)
+        send_wheelverse_otp_email(
+            to_email=user.email,
+            username=user.username,
+            otp=new_otp,
+            purpose="Password Reset",
+            expiry=5
+        )
         
         messages.success(request, "A new token verification key has been routed to your mailbox.")
         return redirect('verify_otp')
         
     except Exception as system_err:
-        print("--- SMTP RESEND EXCEPTION HANDLER ---", str(system_err))
         messages.error(request, "Failed to route alternative payload code. Check router settings.")
         return redirect('verify_otp')
 
@@ -397,10 +458,7 @@ def reset_password_view(request):
 
 @login_required
 def change_email_view(request):
-    """
-    User enter new email address.
-    Validates the new email, sends otp to current email, then redirects to otp verification page.
-    """
+
     import time
     current_user = request.user
 
@@ -420,7 +478,7 @@ def change_email_view(request):
             return render(request, 'accounts/change_email.html')
 
         otp_code = f"{random.randint(100000, 999999)}"
-        issued_at = time.time()  # Unix timestamp
+        issued_at = time.time()  
 
         request.session['pending_new_email'] = new_email
         request.session['email_change_otp'] = otp_code
@@ -436,12 +494,12 @@ def change_email_view(request):
         )
 
         try:
-            send_mail(
-                subject,
-                body,
-                settings.DEFAULT_FROM_EMAIL,
-                [current_user.email],
-                fail_silently=False,
+            send_wheelverse_otp_email(
+                to_email=current_user.email,
+                username=current_user.username,
+                otp=otp_code,
+                purpose="Email Change Verification",
+                expiry=10
             )
             messages.success(
                 request,
@@ -536,12 +594,12 @@ def resend_email_change_otp_view(request):
     )
 
     try:
-        send_mail(
-            subject,
-            body,
-            settings.DEFAULT_FROM_EMAIL,
-            [current_user.email],
-            fail_silently=False,
+        send_wheelverse_otp_email(
+            to_email=current_user.email,
+            username=current_user.username,
+            otp=new_otp,
+            purpose="Email Change Verification",
+            expiry=10
         )
         messages.success(request, "A new verification code has been sent to your current email address.")
     except Exception as e:
@@ -811,303 +869,3 @@ def set_default_address(request, id):
         address.save()
         messages.success(request, "Primary address changed successfully.")
     return redirect("address_list")
-
-def user_collections(request):
-    search_query = request.GET.get('search', '').strip()
-    category_id = request.GET.get('category', '')
-    status = request.GET.get('status', '')
-    sort_by = request.GET.get('sort_by', '')
-    rarity = request.GET.get('rarity', '').strip()
-    
-
-    try:
-        price_min = int(request.GET.get('price_min', 0))
-    except (ValueError, TypeError):
-        price_min = 0
-
-    try:
-        price_max = int(request.GET.get('price_max', 150000))
-    except (ValueError, TypeError):
-        price_max = 150000
-
-
-    products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
-    
-
-    categories = Category.objects.filter(is_active=True).annotate(
-        total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))
-    )
-
-
-    if search_query:
-        products_queryset = products_queryset.filter(name__icontains=search_query)
-        
-
-    if category_id:
-        products_queryset = products_queryset.filter(category_id=category_id)
-
-
-    if rarity:
-        products_queryset = products_queryset.filter(rarity__iexact=rarity)
-
-
-    
-
-    products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
-
-    if price_min:
-        products_queryset = products_queryset.filter(min_price__gte=price_min)
-    if price_max:
-        products_queryset = products_queryset.filter(min_price__lte=price_max)
-
-    if sort_by == 'a-z':
-        products_queryset = products_queryset.order_by('name')
-    elif sort_by == 'z-a':
-        products_queryset = products_queryset.order_by('-name')
-    elif sort_by == 'price-low': 
-        products_queryset = products_queryset.order_by('min_price')
-    elif sort_by == 'price-high': 
-        products_queryset = products_queryset.order_by('-min_price')
-    elif sort_by == 'oldest': 
-        products_queryset = products_queryset.order_by('id')
-    else:
-        products_queryset = products_queryset.order_by('-id')
-
-    products_list = list(products_queryset)
-
-    if status == 'in_stock':
-        products_list = [p for p in products_list if p.total_stock > 10]
-    elif status == 'limited':
-        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
-    elif status == 'out_of_stock':
-        products_list = [p for p in products_list if p.total_stock == 0]
-
-    paginator = Paginator(products_list, 6) 
-    page = request.GET.get('page', 1)
-    
-    try:
-        paginated_products = paginator.page(page)
-    except PageNotAnInteger:
-        paginated_products = paginator.page(1)
-    except EmptyPage:
-        paginated_products = paginator.page(paginator.num_pages)
-
-    context = {
-        'products': paginated_products,  
-        'categories': categories,
-        'total_products_count': len(products_list),
-        'current_search': search_query,
-        'current_category': category_id,
-        'current_status': status,
-        'current_sort': sort_by,
-        'current_rarity': rarity,  
-        'price_min': price_min,
-        'price_max': price_max,
-        'rarity_choices': [('', 'All Rarities')] + Product.RARITY_CHOICES,
-}
-    return render(request, 'products/collections.html', context)
-
-@login_required
-def product_detail(request, product_id):
-    product = get_object_or_404(
-        Product.objects.filter(is_deleted=False, is_active=True).annotate(
-            variant_stock=Sum("variants__stock"),
-            min_variant_price=Min("variants__price")
-        ),
-        id=product_id
-    )
-
-    variants = product.variants.filter(
-        is_active=True,
-        is_deleted=False 
-)
-    
-    first_variant = variants.first()
-
-    cart_count = Cart.objects.filter(user=request.user).count()
-    wishlist_count = Wishlist.objects.filter(user=request.user).count()
-
-    return render(request, "products/product_detail.html", {
-        "product": product,
-        "variants": variants,
-        "first_variant": first_variant,
-        "cart_count": cart_count,
-        "wishlist_count": wishlist_count,
-    })
-
-@login_required
-def add_to_cart(request):
-    if request.method == "POST":
-        variant_id = request.POST.get("variant_id")
-        quantity = int(request.POST.get("quantity", 1))
-        
-        variant = get_object_or_404( ProductVariant,
-        id=variant_id,
-        is_active=True,
-        is_deleted=False
-    )
-        product = variant.product
-
-        if quantity > variant.stock:
-            messages.error(request, "Stock unavailable.")
-            return redirect("product_detail", product_id=product.id)
-
-        if Cart.objects.filter(user=request.user, variant=variant).exists():
-            messages.error(request, "This product is already added to cart.")
-            return redirect("product_detail", product_id=product.id)
-
-        Cart.objects.create(
-            user=request.user,
-            variant=variant,
-            quantity=quantity
-        )
-
-        messages.success(request, "Product added to cart successfully.")
-        return redirect("cart")
-
-    return redirect("collections")
-
-
-@login_required
-def cart_view(request):
-    cart_items = Cart.objects.filter(
-    user=request.user,
-    variant__is_active=True,
-    variant__is_deleted=False
-)
-
-    subtotal = sum(item.subtotal() for item in cart_items)
-    discount = Decimal("0.00")
-    shipping = Decimal("0.00")
-
-    if subtotal > 0:
-        shipping = Decimal("80.00")
-
-    grand_total = subtotal - discount + shipping
-    cart_count = cart_items.count()
-
-    return render(request, "products/cart.html", {
-        "cart_items": cart_items,
-        "subtotal": subtotal,
-        "discount": discount,
-        "shipping": shipping,
-        "grand_total": grand_total,
-        "cart_count": cart_count,
-    })
-
-
-@login_required
-def increase_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
-
-    if cart_item.quantity >= cart_item.variant.stock:
-        messages.error(request, "Stock unavailable.")
-    else:
-        cart_item.quantity += 1
-        cart_item.save()
-        messages.success(request, "Cart updated successfully.")
-
-    return redirect("cart")
-
-
-@login_required
-def decrease_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
-
-    if cart_item.quantity > 1:
-        cart_item.quantity -= 1
-        cart_item.save()
-        messages.success(request, "Cart updated successfully.")
-
-    return redirect("cart")
-
-
-@login_required
-def remove_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
-    cart_item.delete()
-
-    messages.success(request, "Product removed from cart.")
-    return redirect("cart")
-
-
-
-
-@login_required
-def wishlist_view(request):
-    wishlist_items = Wishlist.objects.filter(
-    user=request.user,
-    variant__is_active=True,
-    variant__is_deleted=False
-).order_by("-created_at")
-
-    wishlist_value = sum(item.variant.price for item in wishlist_items)
-    available_stock = sum(item.variant.stock for item in wishlist_items)
-
-    cart_count = Cart.objects.filter(user=request.user).count()
-    wishlist_count = wishlist_items.count()
-
-    return render(request, "products/wishlist.html", {
-        "wishlist_items": wishlist_items,
-        "wishlist_value": wishlist_value,
-        "available_stock": available_stock,
-        "cart_count": cart_count,
-        "wishlist_count": wishlist_count,
-    })
-
-
-@login_required
-def add_to_wishlist(request):
-    if request.method == "POST":
-        variant_id = request.POST.get("variant_id")
-
-        if not variant_id:
-            messages.error(request, "Variant not selected.")
-            return redirect("collections")
-
-        variant = get_object_or_404(
-            ProductVariant, 
-            id=variant_id,
-            is_active=True,
-            is_deleted=False
-    )
-
-        if Wishlist.objects.filter(user=request.user, variant=variant).exists():
-            messages.error(request, "This product is already in your wishlist.")
-            return redirect("product_detail", product_id=variant.product.id)
-
-        Wishlist.objects.create(user=request.user, variant=variant)
-
-        messages.success(request, "Product added to wishlist.")
-        return redirect("wishlist")
-
-    return redirect("collections")
-
-
-@login_required
-def remove_wishlist(request, item_id):
-    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
-    item.delete()
-    messages.success(request, "Product removed from wishlist.")
-    return redirect("wishlist")
-
-
-@login_required
-def move_wishlist_to_cart(request, item_id):
-    item = get_object_or_404(Wishlist, id=item_id, user=request.user)
-    variant = item.variant
-
-    if variant.stock <= 0:
-        messages.error(request, "Stock unavailable.")
-        return redirect("wishlist")
-
-    if Cart.objects.filter(user=request.user, variant=variant).exists():
-        item.delete()
-        messages.error(request, "This product is already in your cart. Removed from wishlist.")
-        return redirect("wishlist")
-
-    Cart.objects.create(user=request.user, variant=variant, quantity=1)
-    item.delete()
-
-    messages.success(request, "Product moved to cart.")
-    return redirect("cart")

@@ -1,0 +1,399 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>WheelVerse | Wishlist</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#f2ca50",
+                        background: "#0A0A0A",
+                        surface: "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-high": "#2d2a21",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        outline: "#4d4635",
+                        error: "#ffb4ab"
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: #0A0A0A;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(26,26,26,.72);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(242,202,80,.15);
+        }
+
+        .carbon-bg {
+            background-image:
+                radial-gradient(circle at 2px 2px, rgba(242,202,80,0.08) 1px, transparent 0),
+                linear-gradient(180deg, rgba(22,19,11,0.98), rgba(10,10,10,1));
+            background-size: 4px 4px, 100% 100%;
+        }
+    </style>
+</head>
+
+<body class="bg-background text-on-surface carbon-bg">
+
+<header class="fixed top-0 left-72 right-0 z-40 bg-[#16130b]/80 backdrop-blur-xl border-b border-[#f2ca50]/15">
+    <div class="flex justify-between items-center px-8 lg:px-14 py-4">
+
+        <a href="{% url 'landing_page' %}" class="orbitron text-3xl text-[#f2ca50] font-bold no-underline">
+            WheelVerse
+        </a>
+
+        <nav class="hidden md:flex items-center gap-6">
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'landing_page' %}">Home</a>
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'collections' %}">Collections</a>
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'cart' %}">Cart</a>
+            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-primary transition-colors">Wishlist</a>
+        </nav>
+
+        <div class="flex items-center gap-4">
+            <a href="{% url 'cart' %}" class="relative text-[#f2ca50]">
+                <span class="material-symbols-outlined">shopping_cart</span>
+
+                {% if cart_count > 0 %}
+                    <span class="absolute -top-2 -right-2 bg-[#f2ca50] text-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center font-bold">
+                        {{ cart_count }}
+                    </span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'profile_view' %}">
+                <span class="material-symbols-outlined text-[#d0c5af] hover:text-primary">account_circle</span>
+            </a>
+        </div>
+
+    </div>
+</header>
+
+<aside class="fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col justify-between">
+    <div class="p-6">
+        <div class="flex flex-col items-center text-center mt-4 mb-8">
+            <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.2)] mb-4">
+                {% if request.user.profile_picture %}
+                    <img alt="Collector Preview" class="w-full h-full object-cover rounded-lg" src="{{ request.user.profile_picture.url }}"/>
+                {% else %}
+                    <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-2xl rounded-lg">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+            <h2 class="font-display-lg text-lg tracking-wider text-primary">{{ request.user.username|upper|default:"COLLECTOR" }}</h2>
+            <p class="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-primary">stars</span> LEGENDARY COLLECTOR
+            </p>
+        </div>
+
+        <nav class="space-y-1">
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="{% url 'profile_view' %}">
+                <span class="material-symbols-outlined text-lg">account_circle</span> Profile Info
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-primary bg-[#231f14] border-l-2 border-primary" href="{% url 'wishlist' %}">
+                <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">account_balance_wallet</span> Wallet
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">confirmation_number</span> Coupons
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all 
+                    {% if request.resolver_match.url_name == 'address_list' %}
+                        text-primary bg-[#231f14] border-l-2 border-primary
+                    {% else %}
+                        text-on-surface-variant hover:text-primary
+                    {% endif %}" 
+               href="{% url 'address_list' %}">
+                <span class="material-symbols-outlined text-lg">location_on</span> 
+                Saved Addresses
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">token</span> Garage Showcase
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
+        <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
+        <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
+        <a class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2" href="{% url 'logout' %}">
+            <span class="material-symbols-outlined text-lg">logout</span> Logout
+        </a>
+    </div>
+</aside>
+
+<main class="ml-72 pt-28 min-h-screen">
+    <div class="w-full px-10 lg:px-14 pb-20">
+
+        {% if messages %}
+        <div class="mb-8 space-y-3">
+            {% for message in messages %}
+            <div class="glass-panel px-5 py-4 font-orbitron text-xs rounded
+                {% if message.tags == 'error' %}text-red-300{% else %}text-primary{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <section class="mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <div>
+
+                <h1 class="font-orbitron text-5xl lg:text-7xl text-primary leading-tight">
+                    YOUR COLLECTOR <br> WISHLIST
+                </h1>
+
+                <p class="text-on-surface-variant mt-5 max-w-2xl">
+                    Save your favorite collector editions and move them to cart when ready.
+                </p>
+            </div>
+
+            <a href="{% url 'collections' %}"
+               class="px-7 py-4 bg-primary text-black font-orbitron text-xs flex items-center justify-center gap-2 no-underline font-bold rounded shadow-[0_0_20px_rgba(242,202,80,0.25)]">
+                ADD MORE
+                <span class="material-symbols-outlined text-sm">arrow_right_alt</span>
+            </a>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
+                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">bookmark</span>
+                </div>
+                <div>
+                    <p class="text-on-surface-variant font-orbitron text-[10px]">SAVED PRODUCTS</p>
+                    <p class="font-orbitron text-2xl">{{ wishlist_count }} <span class="text-primary text-sm">ITEMS</span></p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
+                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">inventory</span>
+                </div>
+                <div>
+                    <p class="text-on-surface-variant font-orbitron text-[10px]">AVAILABLE STOCK</p>
+                    <p class="font-orbitron text-2xl">{{ available_stock }} <span class="text-primary text-sm">UNITS</span></p>
+                </div>
+            </div>
+
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
+                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-primary">payments</span>
+                </div>
+                <div>
+                    <p class="text-on-surface-variant font-orbitron text-[10px]">WISHLIST VALUE</p>
+                    <p class="font-orbitron text-2xl text-primary">₹{{ wishlist_value }}</p>
+                </div>
+            </div>
+        </section>
+
+        <div class="flex flex-col md:flex-row gap-4 mb-10">
+            <div class="flex-1 relative">
+                <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
+                <input id="wishlistSearch"
+                       class="w-full bg-surface-container/60 border border-primary/20 px-12 py-4 font-orbitron text-xs focus:ring-1 focus:ring-primary outline-none text-on-surface placeholder:text-on-surface-variant/50 rounded"
+                       placeholder="SEARCH WISHLIST..."
+                       type="text">
+            </div>
+        </div>
+
+        <section>
+            {% if wishlist_items %}
+            <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+
+                {% for item in wishlist_items %}
+                <div class="wishlist-card glass-panel group overflow-hidden border-t-2 border-t-primary/20 hover:border-t-primary transition-all duration-300 rounded-xl"
+                     data-name="{{ item.variant.product.name|lower }}"
+                     data-color="{{ item.variant.color|lower }}"
+                     data-size="{{ item.variant.size|lower }}">
+
+                    <div class="h-56 relative overflow-hidden bg-black">
+                        {% with first_image=item.variant.images.first %}
+                            {% if first_image %}
+                                <img src="{{ first_image.image.url }}"
+                                     alt="{{ item.variant.product.name }}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            {% elif item.variant.image %}
+                                <img src="{{ item.variant.image.url }}"
+                                     alt="{{ item.variant.product.name }}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-surface-container">
+                                    <span class="material-symbols-outlined text-primary/40 text-6xl">directions_car</span>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+
+                        <form method="POST" action="{% url 'remove_wishlist' item.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="absolute top-4 right-4 w-8 h-8 bg-black/80 border border-primary/30 text-primary hover:text-red-300 hover:border-red-300 flex items-center justify-center rounded">
+                                <span class="material-symbols-outlined text-sm">close</span>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="font-orbitron text-lg text-white">
+                                    {{ item.variant.product.name }}
+                                </h3>
+
+                                <p class="text-on-surface-variant text-[10px] font-orbitron mt-1">
+                                    {{ item.variant.product.category.name|upper }}
+                                </p>
+                            </div>
+
+                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">stars</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
+                                <p class="text-on-surface-variant text-[9px] font-orbitron">COLOR</p>
+                                <p class="text-white font-orbitron text-sm">{{ item.variant.color }}</p>
+                            </div>
+
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
+                                <p class="text-on-surface-variant text-[9px] font-orbitron">SIZE</p>
+                                <p class="text-white font-orbitron text-sm">{{ item.variant.size }}</p>
+                            </div>
+
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
+                                <p class="text-on-surface-variant text-[9px] font-orbitron">PRICE</p>
+                                <p class="text-primary font-orbitron text-sm">₹{{ item.variant.price }}</p>
+                            </div>
+
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
+                                <p class="text-on-surface-variant text-[9px] font-orbitron">STOCK</p>
+                                <p class="font-orbitron text-sm {% if item.variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                    {{ item.variant.stock }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3">
+                            {% if item.variant.stock > 0 %}
+                            <form method="POST" action="{% url 'move_wishlist_to_cart' item.id %}" class="flex-1">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="w-full bg-primary text-black py-3 font-orbitron text-[10px] hover:brightness-110 transition-all font-bold rounded">
+                                    ADD TO CART
+                                </button>
+                            </form>
+                            {% else %}
+                            <button disabled
+                                    class="flex-1 bg-surface-container-high text-on-surface-variant py-3 font-orbitron text-[10px] cursor-not-allowed rounded">
+                                OUT OF STOCK
+                            </button>
+                            {% endif %}
+
+                            <form method="POST" action="{% url 'remove_wishlist' item.id %}">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="px-4 h-full border border-outline/40 text-on-surface-variant hover:text-red-300 hover:border-red-300 transition-colors rounded">
+                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+            {% else %}
+            <div class="glass-panel p-16 text-center rounded-xl">
+                <span class="material-symbols-outlined text-7xl text-primary/40">heart_broken</span>
+
+                <h2 class="font-orbitron text-3xl text-white mt-6">
+                    YOUR WISHLIST IS EMPTY
+                </h2>
+
+                <p class="text-on-surface-variant mt-3">
+                    Add products from the collection or product detail page.
+                </p>
+
+                <a href="{% url 'collections' %}"
+                   class="inline-block bg-primary text-black font-orbitron text-xs px-8 py-4 mt-8 no-underline rounded font-bold">
+                    EXPLORE COLLECTIONS
+                </a>
+            </div>
+            {% endif %}
+        </section>
+
+    </div>
+</main>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("wishlistSearch");
+    const cards = document.querySelectorAll(".wishlist-card");
+
+    if (searchInput) {
+        searchInput.addEventListener("input", function () {
+            const value = this.value.toLowerCase();
+
+            cards.forEach(card => {
+                const name = card.dataset.name || "";
+                const color = card.dataset.color || "";
+                const size = card.dataset.size || "";
+
+                if (name.includes(value) || color.includes(value) || size.includes(value)) {
+                    card.style.display = "";
+                } else {
+                    card.style.display = "none";
+                }
+            });
+        });
+    }
+});
+</script>
+
+</body>
+</html>

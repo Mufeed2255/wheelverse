@@ -14,12 +14,15 @@ urlpatterns = [
   
     path('signup/', views.signup_view, name='signup'),
     path('signup-verify/', views.signup_verify_view, name='signup_verify'),
+    path('signup/resend-otp/', views.resend_signup_otp_view, name='resend_signup_otp'),
+
+
     
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
-    path('resend-otp/', views.resend_signup_otp_view, name='resend_otp'),
+    path('forgot-password/resend-otp/', views.resend_otp_view, name='resend_otp'),
     path('verify-otp/', views.verify_otp_view, name='verify_otp'),
     path('reset-password/', views.reset_password_view, name='reset_password'),
     
@@ -29,18 +32,4 @@ urlpatterns = [
     path("addresses/<int:id>/delete/", views.delete_address, name="delete_address"),    
     path("addresses/<int:id>/set-default/", views.set_default_address, name="set_default_address"),
     
-   
-    path("collections/", views.user_collections, name="collections"),
-    path("product/<int:product_id>/", views.product_detail, name="product_detail"),
-
-    path("cart/", views.cart_view, name="cart"),
-    path("cart/add/", views.add_to_cart, name="add_to_cart"),
-    path("cart/increase/<int:item_id>/", views.increase_cart_item, name="increase_cart_item"),
-    path("cart/decrease/<int:item_id>/", views.decrease_cart_item, name="decrease_cart_item"),
-    path("cart/remove/<int:item_id>/", views.remove_cart_item, name="remove_cart_item"),
-    
-    path("wishlist/", views.wishlist_view, name="wishlist"),
-    path("wishlist/add/", views.add_to_wishlist, name="add_to_wishlist"),
-    path("wishlist/remove/<int:item_id>/", views.remove_wishlist, name="remove_wishlist"),
-    path("wishlist/move-to-cart/<int:item_id>/", views.move_wishlist_to_cart, name="move_wishlist_to_cart"),
 ]

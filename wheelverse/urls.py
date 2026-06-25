@@ -8,6 +8,7 @@ urlpatterns = [
     path('', include('Accounts.urls')), 
     path('accounts/', include('allauth.urls')),
     path('adminpanel/', include('adminpanel.urls')),
+    path("", include("Products.urls")),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

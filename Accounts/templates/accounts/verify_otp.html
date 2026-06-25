@@ -200,11 +200,17 @@
             </span>
         </div>
 
-       <div class="mt-6 text-center">
+        <div class="mt-6 text-center">
             <p class="text-xs text-on-surface-variant/60 font-body-md">
-                <a href="{% url 'resend_otp' %}" class="text-primary hover:text-primary-container font-semibold transition-colors underline underline-offset-4 tracking-wider ml-1 uppercase text-[11px] font-label-caps">
+
+                <a
+                    id="resendBtn"
+                    href="{% url 'resend_otp' %}"
+                    class="text-primary hover:text-primary-container font-semibold transition-colors underline underline-offset-4 tracking-wider ml-1 uppercase text-[11px] font-label-caps pointer-events-none opacity-50 cursor-not-allowed"
+                >
                     Resend Code
                 </a>
+
             </p>
         </div>
 
@@ -256,6 +262,7 @@ const timerText = document.getElementById("otpTimer");
 const resendBtn = document.getElementById("resendBtn");
 
 const countdown = setInterval(() => {
+
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
 
@@ -263,14 +270,27 @@ const countdown = setInterval(() => {
         `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
     if (timeLeft <= 0) {
+
         clearInterval(countdown);
+
         timerText.innerText = "00:00";
 
-        resendBtn.disabled = false;
-        resendBtn.classList.remove("opacity-50", "cursor-not-allowed");
+        resendBtn.classList.remove(
+            "pointer-events-none",
+            "opacity-50",
+            "cursor-not-allowed"
+        );
+
+        resendBtn.classList.add(
+            "cursor-pointer",
+            "hover:underline"
+        );
+
+        resendBtn.innerText = "Resend Code";
     }
 
     timeLeft--;
+
 }, 1000);
 
 setTimeout(function () {

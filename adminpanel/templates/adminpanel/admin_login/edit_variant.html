@@ -3,14 +3,13 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>WheelVerse Admin - Edit Variants</title>
+    <title>WheelVerse Admin - Edit Variant</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
     <script>
         tailwind.config = {
@@ -21,7 +20,6 @@
                         "background": "#16130b",
                         "surface-container-low": "#1f1b13",
                         "primary": "#f2ca50",
-                        "error": "#ffb4ab",
                         "outline-variant": "#4d4635"
                     },
                     fontFamily: {
@@ -39,23 +37,107 @@
             background-size: 4px 4px;
             background-color: #0a0a0a;
         }
+
         .glass-card {
             background: rgba(26, 26, 26, 0.8);
             border: 1px solid rgba(242, 202, 80, 0.15);
         }
-        .upload-zone {
+
+        .img-slot {
             transition: all 0.3s ease;
+            border: 2px dashed rgba(242,202,80,0.2);
+            background: rgba(0,0,0,0.25);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
-        .upload-zone.dragover {
-            border-color: rgba(242, 202, 80, 0.8);
-            background: rgba(242, 202, 80, 0.05);
-            transform: scale(1.01);
+
+        .img-slot:hover {
+            border-color: rgba(242,202,80,0.6);
+            background: rgba(242,202,80,0.03);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+
+        .img-slot.filled,
+        .img-slot.existing {
+            border-style: solid;
+            border-color: rgba(242,202,80,0.4);
         }
-        .fade-in { animation: fadeIn 0.3s ease; }
+
+        .slot-remove {
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            width: 24px;
+            height: 24px;
+            background: rgba(220,38,38,0.95);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+            cursor: pointer;
+            z-index: 30;
+        }
+
+        .img-slot:hover .slot-remove {
+            opacity: 1;
+        }
+
+        .slot-remove.hidden {
+            display: none !important;
+        }
+
+        .slot-badge {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.75);
+            padding: 4px 8px;
+            font-family: Orbitron, sans-serif;
+            font-size: 9px;
+            color: rgba(242,202,80,0.75);
+            letter-spacing: 0.1em;
+            z-index: 20;
+        }
+
+        .primary-badge,
+        .existing-badge {
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            font-family: Orbitron, sans-serif;
+            font-size: 8px;
+            letter-spacing: 0.08em;
+            padding: 2px 7px;
+            border-radius: 2px;
+            z-index: 20;
+        }
+
+        .primary-badge {
+            background: #f2ca50;
+            color: #000;
+            font-weight: 700;
+        }
+
+        .existing-badge {
+            background: rgba(242,202,80,0.15);
+            color: rgba(242,202,80,0.7);
+            border: 1px solid rgba(242,202,80,0.3);
+        }
+
+        .progress-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(242,202,80,0.2);
+            transition: background 0.3s;
+        }
+
+        .progress-dot.active {
+            background: #f2ca50;
+        }
     </style>
 </head>
 
@@ -67,147 +149,201 @@
 <main class="ml-64 mt-20 h-[calc(100vh-5rem)] carbon-texture p-8 overflow-y-auto">
     <div class="max-w-4xl mx-auto">
 
-        <div class="flex justify-between items-center mb-8">
-            <h2 class="font-headline-md text-2xl tracking-wider uppercase text-on-background">
-                EDIT VARIANT
-            </h2>
+        <div class="flex items-center gap-4 mb-8">
+            <a href="{% url 'manage_variants' product.id %}"
+               class="w-9 h-9 border border-white/10 rounded flex items-center justify-center hover:border-primary/40 transition">
+                <span class="material-symbols-outlined text-base text-primary/60">arrow_back</span>
+            </a>
+
+            <div>
+                <h2 class="font-headline-md text-2xl tracking-wider uppercase">EDIT VARIANT</h2>
+                <p class="text-[11px] text-gray-500 mt-0.5">
+                    {{ product.name }} — {{ variant.color }}, {{ variant.size }}
+                </p>
+            </div>
         </div>
 
-        {% include 'adminpanel/includes/messages.html' %}
+        {% if messages %}
+            {% for message in messages %}
+            <div class="mb-4 px-4 py-3 rounded border text-sm font-label-caps tracking-wider
+                {% if message.tags == 'error' %}border-red-500/30 text-red-400 bg-red-500/5{% else %}border-primary/30 text-primary bg-primary/5{% endif %}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
 
-        <form method="POST" enctype="multipart/form-data" class="glass-card p-8 rounded-xl space-y-6 shadow-2xl">
+        <form method="POST" enctype="multipart/form-data" id="variantForm" class="glass-card p-8 rounded-xl space-y-8 shadow-2xl">
             {% csrf_token %}
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
+               <div>
                     <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">
                         PRICE (INR)
                     </label>
-                    <input type="number" step="0.01" name="price" value="{{ variant.price }}" required
-                           class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0"/>
+
+                    <input
+                        type="text"
+                        name="price"
+                        value="{{ variant.price }}"
+                        required
+                        inputmode="decimal"
+                        oninput="
+                            this.value=this.value
+                            .replace(/[^0-9.]/g,'')
+                            .replace(/(\..*)\./g,'$1');
+                        "
+                        class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded"
+                    />
                 </div>
 
                 <div>
                     <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">
                         TOTAL QUANTITY
                     </label>
-                    <input type="number" name="stock" value="{{ variant.stock }}" required
-                           class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0"/>
+
+                    <input
+                        type="text"
+                        name="stock"
+                        value="{{ variant.stock }}"
+                        required
+                        maxlength="6"
+                        inputmode="numeric"
+                        oninput="this.value=this.value.replace(/[^0-9]/g,'')"
+                        class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded"
+                    />
                 </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">
-                        SIZE / SPECIFICATION
-                    </label>
-                    <input type="text" name="size" value="{{ variant.size }}" required
-                           class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0"/>
+                    <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">SIZE / SPECIFICATION</label>
+                    <select name="size" required
+                        class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded appearance-none">
+                        <option value="" class="bg-[#16130b] text-white">Select Scale</option>
+                        <option value="1:18 Scale" class="bg-[#16130b] text-white" {% if variant.size == "1:18 Scale" %}selected{% endif %}>1:18 Scale</option>
+                        <option value="1:50 Scale" class="bg-[#16130b] text-white" {% if variant.size == "1:50 Scale" %}selected{% endif %}>1:50 Scale</option>
+                    </select>
                 </div>
 
                 <div>
                     <label class="block font-label-caps text-xs tracking-widest text-primary mb-2">
                         PRODUCT COLOR
                     </label>
-                    <input type="text" name="color" value="{{ variant.color }}" required
-                           class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0"/>
+
+                    <input
+                        type="text"
+                        name="color"
+                        value="{{ variant.color }}"
+                        required
+                        maxlength="25"
+                        oninput="this.value=this.value.replace(/[^A-Za-z ]/g,'')"
+                        class="w-full bg-black/40 border border-outline-variant/30 p-3 text-sm text-white focus:border-primary focus:ring-0 rounded"
+                    />
                 </div>
             </div>
 
-            <!-- IMAGE SECTION -->
             <div>
-                <label class="block font-label-caps text-xs tracking-widest text-primary mb-3">
-                    VISUAL DOCUMENTATION
-                </label>
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <label class="block font-label-caps text-xs tracking-widest text-primary">
+                            VISUAL DOCUMENTATION
+                        </label>
+                        <p class="text-[10px] text-gray-500 mt-1">
+                            Remove old image and upload all 3 new images before saving
+                        </p>
+                    </div>
 
-                <!-- CURRENT IMAGES -->
-                <div class="mb-5">
-                    <p class="font-label-caps text-[10px] text-primary/50 tracking-widest mb-3">
-                        CURRENT IMAGES
-                    </p>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        {% for image in variant.images.all %}
-                            <div class="bg-black/30 border border-primary/10 rounded-lg p-3">
-                                <img src="{{ image.image.url }}"
-                                     alt="Variant image"
-                                     class="w-full h-28 object-cover rounded border border-primary/20 fade-in">
-
-                                <p class="font-label-caps text-[9px] text-primary/60 tracking-wider mt-2 truncate">
-                                    {{ image.image.name }}
-                                </p>
-
-                                {% if image.is_primary %}
-                                    <p class="text-[9px] text-green-400 font-label-caps mt-1">
-                                        PRIMARY IMAGE
-                                    </p> 
-                                {% endif %}
-                            </div>
-                        {% empty %}
-                            <div class="col-span-full text-center border border-primary/10 p-6 rounded-lg text-primary/50">
-                                <span class="material-symbols-outlined text-4xl">image</span>
-                                <p class="font-label-caps text-[10px] mt-2">NO IMAGES FOUND</p>
-                            </div>
-                        {% endfor %}
+                    <div class="flex items-center gap-2">
+                        <div class="progress-dot" id="dot0"></div>
+                        <div class="progress-dot" id="dot1"></div>
+                        <div class="progress-dot" id="dot2"></div>
+                        <span class="font-label-caps text-[10px] text-primary/50 ml-2" id="slotCounter">0 / 3</span>
                     </div>
                 </div>
 
-                <!-- NORMAL INPUT ONLY FOR SELECTING IMAGE -->
-                <input type="file"
-                       id="variantImageInput"
-                       accept="image/*"
-                       class="hidden">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    {% with imgs=variant.images.all %}
 
-                <!-- THIS INPUT SUBMITS CROPPED IMAGES -->
-                <input type="file"
-                       id="croppedImageInput"
-                       name="variant_images"
-                       multiple
-                       class="hidden">
+                    {% for img in imgs %}
+                    {% if forloop.counter0 < 3 %}
+                    <div class="img-slot existing rounded-lg h-44 flex flex-col items-center justify-center"
+                         id="slot{{ forloop.counter0 }}"
+                         onclick="openSlot({{ forloop.counter0 }})">
 
-                <!-- UPLOAD ZONE -->
-                <div id="uploadZone"
-                     class="upload-zone border-2 border-dashed border-outline-variant/30 rounded-lg p-8 text-center bg-black/20 hover:border-primary/40 cursor-pointer relative">
+                        <img src="{{ img.image.url }}"
+                             id="preview{{ forloop.counter0 }}"
+                             class="absolute inset-0 w-full h-full object-cover rounded-lg"/>
 
-                    <label for="variantImageInput" class="cursor-pointer block">
-                        <span class="material-symbols-outlined text-5xl text-primary/30 block mb-3">
-                            cloud_upload
+                        {% if forloop.first %}
+                        <div class="primary-badge">PRIMARY</div>
+                        {% else %}
+                        <div class="existing-badge">CURRENT</div>
+                        {% endif %}
+
+                        <div class="slot-badge" id="label{{ forloop.counter0 }}">CLICK TO REPLACE</div>
+
+                        <div class="slot-remove"
+                             id="remove{{ forloop.counter0 }}"
+                             onclick="event.stopPropagation(); removeSlot({{ forloop.counter0 }})">
+                            <span class="material-symbols-outlined text-xs text-white">close</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% for i in "012" %}
+                    {% if forloop.counter0 >= imgs.count %}
+                    <div class="img-slot rounded-lg h-44 flex flex-col items-center justify-center"
+                         id="slot{{ forloop.counter0 }}"
+                         onclick="openSlot({{ forloop.counter0 }})">
+
+                        <span class="material-symbols-outlined text-3xl text-primary/20 mb-2">
+                            add_photo_alternate
                         </span>
 
-                        <h4 class="font-headline-md text-sm text-primary mb-1">
-                            CROP & ADD NEW IMAGE
-                        </h4>
+                        <span class="font-label-caps text-[9px] text-primary/30 tracking-widest">
+                            UPLOAD PHOTO
+                        </span>
 
-                        <p class="text-[11px] text-gray-500 mb-3">
-                            Click to browse image, crop it, then save
-                        </p>
+                        {% if forloop.first %}
+                        <span class="font-label-caps text-[8px] text-gray-600 mt-1">PRIMARY</span>
+                        {% endif %}
 
-                        <p class="text-[10px] text-outline-variant font-label-caps tracking-widest">
-                            JPG, PNG, WEBP — MAX 5MB — MAX 3 IMAGES
-                        </p>
-                    </label>
+                        <img id="preview{{ forloop.counter0 }}"
+                             class="absolute inset-0 w-full h-full object-cover rounded-lg hidden"/>
+
+                        <div class="slot-badge hidden" id="label{{ forloop.counter0 }}"></div>
+
+                        <div class="slot-remove hidden"
+                             id="remove{{ forloop.counter0 }}"
+                             onclick="event.stopPropagation(); removeSlot({{ forloop.counter0 }})">
+                            <span class="material-symbols-outlined text-xs text-white">close</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% endwith %}
                 </div>
 
-                <!-- CROPPED PREVIEW -->
-                <div id="croppedPreviewContainer" class="hidden mt-4">
-                    <p class="font-label-caps text-[10px] text-primary/60 tracking-widest mb-3">
-                        CROPPED IMAGES SELECTED
-                    </p>
+                <input type="file" id="fileInput0" accept="image/*" class="hidden" onchange="handleFileSelect(0, this)"/>
+                <input type="file" id="fileInput1" accept="image/*" class="hidden" onchange="handleFileSelect(1, this)"/>
+                <input type="file" id="fileInput2" accept="image/*" class="hidden" onchange="handleFileSelect(2, this)"/>
 
-                    <div id="croppedPreviewGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
-                </div>
+                <input type="file" name="variant_images" id="finalImages" multiple class="hidden"/>
+                <input type="hidden" name="changed_slots" id="changedSlots">
 
-                <p id="uploadError" class="hidden mt-2 text-[11px] text-red-400 font-label-caps tracking-wider"></p>
+                <p id="uploadError" class="hidden mt-3 text-[11px] text-red-400 font-label-caps tracking-wider"></p>
             </div>
 
-            <div class="flex justify-end gap-4 pt-4">
+            <div class="flex justify-end gap-4 pt-2">
                 <a href="{% url 'manage_variants' product.id %}"
-                   class="px-6 py-3 border border-white/10 font-label-caps text-xs tracking-widest hover:bg-white/5">
+                   class="px-6 py-3 border border-white/10 font-label-caps text-xs tracking-widest hover:bg-white/5 rounded">
                     CANCEL
                 </a>
 
                 <button type="submit"
-                        class="px-6 py-3 bg-primary text-black font-label-caps text-xs font-bold tracking-widest hover:bg-primary/90 shadow-[0_0_15px_rgba(242,202,80,0.3)]">
+                        class="px-6 py-3 bg-primary text-black font-label-caps text-xs font-bold tracking-widest hover:bg-primary/90 shadow-[0_0_15px_rgba(242,202,80,0.3)] rounded">
                     SAVE CHANGES
                 </button>
             </div>
@@ -215,194 +351,214 @@
     </div>
 </main>
 
-<!-- CROP MODAL -->
-<div id="cropModal" class="hidden fixed inset-0 bg-black/90 z-[9999] flex items-center justify-center p-8">
+<div id="cropModal" class="hidden fixed inset-0 bg-black/95 z-[9999] flex items-center justify-center p-8">
     <div class="bg-[#16130b] border border-[#f2ca50]/30 rounded-xl p-6 w-full max-w-3xl">
-        <h3 class="font-label-caps text-primary text-sm mb-4">
-            CROP IMAGE
-        </h3>
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-label-caps text-primary text-sm" id="cropModalTitle">REPLACE IMAGE</h3>
+            <span class="font-label-caps text-[10px] text-gray-500">16:10 ratio</span>
+        </div>
 
-        <div class="max-h-[500px] overflow-hidden bg-black/40 rounded-lg">
-            <img id="cropImage" class="max-w-full mx-auto">
+        <div class="max-h-[460px] overflow-hidden bg-black/40 rounded-lg">
+            <img id="cropImage" class="max-w-full mx-auto block"/>
         </div>
 
         <div class="flex justify-end gap-4 mt-6">
-            <button type="button"
-                    id="cancelCrop"
-                    class="px-5 py-3 border border-white/10 text-white font-label-caps text-xs">
+            <button type="button" id="cancelCrop"
+                    class="px-5 py-3 border border-white/10 text-white font-label-caps text-xs hover:bg-white/5 rounded">
                 CANCEL
             </button>
 
-            <button type="button"
-                    id="saveCrop"
-                    class="px-5 py-3 bg-primary text-black font-label-caps text-xs font-bold">
-                CROP & ADD
+            <button type="button" id="saveCrop"
+                    class="px-5 py-3 bg-primary text-black font-label-caps text-xs font-bold rounded">
+                CROP & SAVE
             </button>
         </div>
     </div>
 </div>
 
 <script>
-    const variantImageInput = document.getElementById("variantImageInput");
-    const croppedImageInput = document.getElementById("croppedImageInput");
-    const cropModal = document.getElementById("cropModal");
-    const cropImage = document.getElementById("cropImage");
-    const cancelCrop = document.getElementById("cancelCrop");
-    const saveCrop = document.getElementById("saveCrop");
-    const uploadError = document.getElementById("uploadError");
-    const croppedPreviewContainer = document.getElementById("croppedPreviewContainer");
-    const croppedPreviewGrid = document.getElementById("croppedPreviewGrid");
+const MAX_SIZE_MB = 5;
 
-    const MAX_SIZE_MB = 5;
-    const MAX_IMAGES = 3;
+let slotFiles = [null, null, null];
+let changedSlots = [];
+let currentSlot = null;
+let cropper = null;
 
-    let cropper = null;
-    let croppedFiles = [];
+function openSlot(index) {
+    currentSlot = index;
+    document.getElementById("fileInput" + index).click();
+}
 
-    function showError(message) {
-        uploadError.textContent = message;
-        uploadError.classList.remove("hidden");
+function handleFileSelect(index, input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    showError("");
+
+    if (!file.type.startsWith("image/")) {
+        showError("Only image files are allowed.");
+        input.value = "";
+        return;
     }
 
-    function clearError() {
-        uploadError.textContent = "";
-        uploadError.classList.add("hidden");
+    if (file.size > MAX_SIZE_MB * 1024 * 1024) {
+        showError("Each image must be under 5 MB.");
+        input.value = "";
+        return;
     }
 
-    function refreshCroppedInput() {
-        const dataTransfer = new DataTransfer();
+    const reader = new FileReader();
 
-        croppedFiles.forEach(file => {
-            dataTransfer.items.add(file);
+    reader.onload = function(e) {
+        document.getElementById("cropImage").src = e.target.result;
+        document.getElementById("cropModalTitle").textContent = "IMAGE " + (index + 1);
+        document.getElementById("cropModal").classList.remove("hidden");
+
+        if (cropper) cropper.destroy();
+
+        cropper = new Cropper(document.getElementById("cropImage"), {
+            aspectRatio: 16 / 10,
+            viewMode: 1,
+            autoCropArea: 1,
+            responsive: true,
+            background: false
         });
+    };
 
-        croppedImageInput.files = dataTransfer.files;
+    reader.readAsDataURL(file);
+    input.value = "";
+}
+
+document.getElementById("saveCrop").addEventListener("click", function() {
+    if (!cropper || currentSlot === null) return;
+
+    cropper.getCroppedCanvas({
+        width: 1200,
+        height: 750
+    }).toBlob(function(blob) {
+        const file = new File(
+            [blob],
+            "slot-" + currentSlot + "-" + Date.now() + ".jpg",
+            { type: "image/jpeg" }
+        );
+
+        slotFiles[currentSlot] = file;
+
+        if (!changedSlots.includes(currentSlot)) {
+            changedSlots.push(currentSlot);
+        }
+
+        renderSlot(currentSlot, file);
+        updateProgress();
+        syncFinalInput();
+
+        document.getElementById("cropModal").classList.add("hidden");
+
+        cropper.destroy();
+        cropper = null;
+    }, "image/jpeg", 0.92);
+});
+
+document.getElementById("cancelCrop").addEventListener("click", function() {
+    document.getElementById("cropModal").classList.add("hidden");
+    if (cropper) cropper.destroy();
+    cropper = null;
+});
+
+function renderSlot(index, file) {
+    const slot = document.getElementById("slot" + index);
+
+    slot.className = "img-slot filled rounded-lg h-44 flex flex-col items-center justify-center";
+    slot.setAttribute("onclick", "openSlot(" + index + ")");
+
+    slot.innerHTML = `
+        <img src="${URL.createObjectURL(file)}"
+             id="preview${index}"
+             class="absolute inset-0 w-full h-full object-cover rounded-lg"/>
+
+        ${index === 0 ? '<div class="primary-badge">PRIMARY</div>' : '<div class="existing-badge">NEW</div>'}
+
+        <div class="slot-badge" id="label${index}">CLICK TO REPLACE</div>
+
+        <div class="slot-remove"
+             id="remove${index}"
+             onclick="event.stopPropagation(); removeSlot(${index})">
+            <span class="material-symbols-outlined text-xs text-white">close</span>
+        </div>
+    `;
+}
+
+function removeSlot(index) {
+    slotFiles[index] = null;
+    changedSlots = changedSlots.filter(i => i !== index);
+
+    const slot = document.getElementById("slot" + index);
+
+    slot.className = "img-slot rounded-lg h-44 flex flex-col items-center justify-center";
+    slot.setAttribute("onclick", "openSlot(" + index + ")");
+
+    slot.innerHTML = `
+        <span class="material-symbols-outlined text-3xl text-primary/20 mb-2">add_photo_alternate</span>
+
+        <span class="font-label-caps text-[9px] text-primary/30 tracking-widest">UPLOAD PHOTO</span>
+
+        ${index === 0 ? '<span class="font-label-caps text-[8px] text-gray-600 mt-1">PRIMARY</span>' : ''}
+
+        <img id="preview${index}" class="absolute inset-0 w-full h-full object-cover rounded-lg hidden"/>
+
+        <div class="slot-badge hidden" id="label${index}"></div>
+
+        <div class="slot-remove hidden" id="remove${index}">
+            <span class="material-symbols-outlined text-xs text-white">close</span>
+        </div>
+    `;
+
+    updateProgress();
+    syncFinalInput();
+}
+
+function updateProgress() {
+    const count = slotFiles.filter(Boolean).length;
+
+    for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById("dot" + i);
+
+        if (slotFiles[i]) {
+            dot.classList.add("active");
+        } else {
+            dot.classList.remove("active");
+        }
     }
 
-    function refreshPreview() {
-        croppedPreviewGrid.innerHTML = "";
+    document.getElementById("slotCounter").textContent = count + " / 3";
+}
 
-        if (croppedFiles.length === 0) {
-            croppedPreviewContainer.classList.add("hidden");
-            return;
-        }
+function syncFinalInput() {
+    const dt = new DataTransfer();
 
-        croppedPreviewContainer.classList.remove("hidden");
+    slotFiles.forEach(file => {
+        if (file) dt.items.add(file);
+    });
 
-        croppedFiles.forEach((file, index) => {
-            const url = URL.createObjectURL(file);
+    document.getElementById("finalImages").files = dt.files;
+    document.getElementById("changedSlots").value = changedSlots.join(",");
+}
 
-            croppedPreviewGrid.innerHTML += `
-                <div class="relative bg-black/30 border border-primary/10 rounded-lg p-3">
-                    <img src="${url}"
-                         class="w-full h-28 object-cover rounded border border-primary/20">
+document.getElementById("variantForm").addEventListener("submit", function() {
+    syncFinalInput();
+});
 
-                    <p class="font-label-caps text-[9px] text-primary/60 tracking-wider mt-2 truncate">
-                        ${file.name}
-                    </p>
+function showError(msg) {
+    const el = document.getElementById("uploadError");
 
-                    ${index === 0 ? '<p class="text-[9px] text-green-400 font-label-caps mt-1">PRIMARY IMAGE</p>' : ''}
-
-                    <button type="button"
-                            onclick="removeCroppedImage(${index})"
-                            class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center">
-                        ×
-                    </button>
-                </div>
-            `;
-        });
+    if (msg) {
+        el.textContent = msg;
+        el.classList.remove("hidden");
+    } else {
+        el.textContent = "";
+        el.classList.add("hidden");
     }
-
-    function removeCroppedImage(index) {
-        croppedFiles.splice(index, 1);
-        refreshCroppedInput();
-        refreshPreview();
-    }
-
-    variantImageInput.addEventListener("change", function () {
-        clearError();
-
-        const file = this.files[0];
-
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-            showError("Only image files are allowed.");
-            this.value = "";
-            return;
-        }
-
-        if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-            showError(`Image size must be less than ${MAX_SIZE_MB} MB.`);
-            this.value = "";
-            return;
-        }
-
-        if (croppedFiles.length >= MAX_IMAGES) {
-            showError("Maximum 3 images allowed.");
-            this.value = "";
-            return;
-        }
-
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-            cropImage.src = e.target.result;
-            cropModal.classList.remove("hidden");
-
-            if (cropper) {
-                cropper.destroy();
-            }
-
-            cropper = new Cropper(cropImage, {
-                aspectRatio: 16 / 10,
-                viewMode: 1,
-                autoCropArea: 1,
-                responsive: true,
-                background: false
-            });
-        };
-
-        reader.readAsDataURL(file);
-    });
-
-    saveCrop.addEventListener("click", function () {
-        if (!cropper) return;
-
-        cropper.getCroppedCanvas({
-            width: 1200,
-            height: 750
-        }).toBlob(function (blob) {
-            const file = new File(
-                [blob],
-                "variant-cropped-" + Date.now() + ".jpg",
-                { type: "image/jpeg" }
-            );
-
-            croppedFiles.push(file);
-
-            refreshCroppedInput();
-            refreshPreview();
-
-            cropModal.classList.add("hidden");
-
-            cropper.destroy();
-            cropper = null;
-
-            variantImageInput.value = "";
-        }, "image/jpeg", 0.9);
-    });
-
-    cancelCrop.addEventListener("click", function () {
-        cropModal.classList.add("hidden");
-
-        if (cropper) {
-            cropper.destroy();
-            cropper = null;
-        }
-
-        variantImageInput.value = "";
-    });
+}
 </script>
 
 </body>
