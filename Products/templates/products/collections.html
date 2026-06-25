@@ -65,7 +65,6 @@
 
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
-<!-- ═══════════════════════════ HEADER ═══════════════════════════ -->
 <header class="fixed top-0 left-0 w-full z-[100] bg-surface/90 backdrop-blur-xl border-b border-primary/10">
     <div class="max-w-[1440px] mx-auto px-10 h-20 flex justify-between items-center">
 
@@ -114,18 +113,13 @@
 
             </a>
 
-            <div class="hidden lg:block border-l border-primary/20 pl-6">
-                <p class="font-label-caps text-[10px] text-primary">ELITE STATUS</p>
-                <p class="font-bold text-xs text-white">Collector_01</p>
-            </div>
         </div>
     </div>
 </header>
 
-<!-- ═══════════════════════════ LAYOUT ═══════════════════════════ -->
 <div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
 
-    <!-- ═══ SIDEBAR FILTERS ═══ -->
+
     <aside class="w-[300px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar flex-shrink-0">
 
         <form method="GET" action="{% url 'collections' %}" id="filterForm" class="space-y-10">
@@ -287,7 +281,6 @@
         </form>
     </aside>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
     <main class="flex-1 min-w-0">
 
         <!-- HERO BANNER -->

@@ -184,31 +184,34 @@ def add_to_cart(request):
 
 @login_required
 def cart_view(request):
+
     cart_items = Cart.objects.filter(
-    user=request.user,
-    variant__is_active=True,
-    variant__is_deleted=False
-)
+        user=request.user,
+        variant__is_active=True,
+        variant__is_deleted=False
+    )
 
     subtotal = sum(item.subtotal() for item in cart_items)
+
     discount = Decimal("0.00")
     shipping = Decimal("0.00")
 
     if subtotal > 0:
         shipping = Decimal("80.00")
 
+    # Always calculate grand total
     grand_total = subtotal - discount + shipping
-    cart_count = cart_items.count()
 
-    return render(request, "products/cart.html", {
+    context = {
         "cart_items": cart_items,
         "subtotal": subtotal,
         "discount": discount,
         "shipping": shipping,
         "grand_total": grand_total,
-        "cart_count": cart_count,
-    })
+        "cart_count": cart_items.count(),
+    }
 
+    return render(request, "products/cart.html", context)
 
 @login_required
 def increase_cart_item(request, item_id):
@@ -258,7 +261,11 @@ def wishlist_view(request):
     wishlist_value = sum(item.variant.price for item in wishlist_items)
     available_stock = sum(item.variant.stock for item in wishlist_items)
 
-    cart_count = Cart.objects.filter(user=request.user).count()
+    cart_count = Cart.objects.filter(
+        user=request.user,
+        variant__is_active=True,
+        variant__is_deleted=False
+    ).count()
     wishlist_count = wishlist_items.count()
 
     return render(request, "products/wishlist.html", {

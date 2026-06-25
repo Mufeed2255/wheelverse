@@ -164,42 +164,78 @@
         </div>
     </aside>
 
-    <!-- Top Navigation Bar -->
-    <header class="fixed top-0 right-0 left-72 h-20 z-40 bg-[#110f0a] border-b border-white/5 flex items-center justify-between px-12">
-        <div class="flex items-center gap-12">
-            <a href="/" class="font-display-lg text-2xl tracking-wider text-primary">WHEELVERSE</a>
-            <nav class="hidden md:flex items-center gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
-                <a href="#" class="border-b border-primary text-primary pb-1">Home</a>
-                <a href="#" class="hover:text-primary transition-colors">Collections</a>
-                <a href="{% url 'cart'%}" class="hover:text-primary transition-colors">Cart</a>
+    <header class="fixed top-0 left-72 right-0 z-40 bg-[#16130b]/80 backdrop-blur-xl border-b border-[#f2ca50]/15">
+
+        <div class="flex justify-between items-center px-8 lg:px-20 py-4 max-w-[1440px] mx-auto">
+
+            <!-- Logo -->
+            <a href="{% url 'landing_page' %}"
+            class="orbitron text-3xl text-[#f2ca50] font-bold no-underline">
+                WheelVerse
+            </a>
+
+            <!-- Navigation -->
+            <nav class="hidden md:flex items-center gap-6">
+                <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]"
+                href="{% url 'landing_page' %}">
+                    Home
+                </a>
+
+                <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]"
+                href="{% url 'collections' %}">
+                    Collections
+                </a>
+
+                <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]"
+                href="{% url 'cart' %}">
+                    Cart
+                </a>
+
+                <a class="orbitron text-xs text-primary"
+                href="{% url 'wishlist' %}">
+                    Wishlist
+                </a>
             </nav>
-        </div>
-        
-        <div class="flex items-center gap-6">
-            <button class="text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-xl">search</span>
-            </button>
-            <button class="text-on-surface-variant hover:text-primary transition-colors relative">
-                <span class="material-symbols-outlined text-xl">shopping_cart</span>
-                <span class="absolute -top-2 -right-2 bg-primary text-background text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
-            </button>
-            
-            <div class="flex items-center gap-3 pl-4 border-l border-white/10">
-                <div class="text-right">
-                    <p class="font-label-caps text-[9px] text-primary tracking-widest">ELITE STATUS</p>
-                    <p class="font-label-caps text-xs text-on-surface leading-none mt-1">{{ request.user.username|default:"Collector_01" }}</p>
-                </div>
-                <div class="w-10 h-10 rounded border border-primary/40 overflow-hidden">
-                    {% if request.user.profile_picture %}
-                        <img alt="User" class="w-full h-full object-cover" src="{{ request.user.profile_picture.url }}"/>
-                    {% else %}
-                        <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-sm">
-                            {{ request.user.username|slice:":1"|upper }}
-                        </div>
+
+            <!-- Right -->
+            <div class="flex items-center gap-4">
+
+                <!-- Search -->
+                <button class="text-[#d0c5af] hover:text-[#f2ca50] transition-colors">
+                    <span class="material-symbols-outlined">
+                        search
+                    </span>
+                </button>
+
+                <!-- Cart -->
+                <a href="{% url 'cart' %}" class="relative text-[#f2ca50]">
+
+                    <span class="material-symbols-outlined">
+                        shopping_cart
+                    </span>
+
+                    {% if cart_count > 0 %}
+                    <span class="absolute -top-2 -right-2 bg-[#f2ca50] text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                        {{ cart_count }}
+                    </span>
                     {% endif %}
-                </div>
+
+                </a>
+
+                <!-- Profile -->
+                <a href="{% url 'profile_view' %}"
+                class="text-[#d0c5af] hover:text-[#f2ca50] transition-colors">
+
+                    <span class="material-symbols-outlined">
+                        account_circle
+                    </span>
+
+                </a>
+
             </div>
+
         </div>
+
     </header>
 
     <!-- Main Section Layout -->

@@ -31,7 +31,11 @@
                     },
                     fontFamily: {
                         orbitron: ["Orbitron"],
-                        poppins: ["Poppins"]
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
                     }
                 }
             }
@@ -45,125 +49,132 @@
             font-family: Poppins, sans-serif;
         }
 
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
         .glass-panel {
             background: rgba(26,26,26,.72);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(242,202,80,.15);
         }
 
-        .side-panel {
-            background: rgba(56,52,43,.9);
-            backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(242,202,80,.15);
-        }
-
-        .gold-glow {
-            box-shadow: 0 0 25px rgba(242,202,80,.25);
+        .carbon-bg {
+            background-image:
+                radial-gradient(circle at 2px 2px, rgba(242,202,80,0.08) 1px, transparent 0),
+                linear-gradient(180deg, rgba(22,19,11,0.98), rgba(10,10,10,1));
+            background-size: 4px 4px, 100% 100%;
         }
     </style>
 </head>
 
-<body>
+<body class="bg-background text-on-surface carbon-bg">
 
-<header class="fixed top-0 left-0 w-full z-50 bg-surface/90 backdrop-blur-xl border-b border-primary/15">
-    <div class="max-w-[1440px] mx-auto h-20 px-10 flex items-center justify-between">
+<header class="fixed top-0 left-72 right-0 z-40 bg-[#16130b]/80 backdrop-blur-xl border-b border-[#f2ca50]/15">
+    <div class="flex justify-between items-center px-8 lg:px-14 py-4">
 
-        <a href="{% url 'landing_page' %}" class="font-orbitron text-3xl font-bold text-white no-underline">
-            Wheel<span class="text-primary">Verse</span>
+        <a href="{% url 'landing_page' %}" class="orbitron text-3xl text-[#f2ca50] font-bold no-underline">
+            WheelVerse
         </a>
 
-        <nav class="hidden lg:flex items-center gap-10">
-            <a href="{% url 'landing_page' %}" class="font-orbitron text-xs text-primary border-b border-primary pb-1">Home</a>
-            <a href="{% url 'collections' %}" class="font-orbitron text-xs text-on-surface-variant hover:text-primary">Collections</a>
-            <a href="{% url 'cart' %}" class="font-orbitron text-xs text-on-surface-variant hover:text-primary">Cart</a>
-            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Wishlist</a>
+        <nav class="hidden md:flex items-center gap-6">
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'landing_page' %}">Home</a>
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'collections' %}">Collections</a>
+            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'cart' %}">Cart</a>
+            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-primary transition-colors">Wishlist</a>
         </nav>
 
-        <div class="flex items-center gap-6">
-            <span class="material-symbols-outlined text-on-surface-variant hover:text-primary">search</span>
-
-            <a href="{% url 'cart' %}" class="relative text-on-surface-variant hover:text-primary">
+        <div class="flex items-center gap-4">
+            <a href="{% url 'cart' %}" class="relative text-[#f2ca50]">
                 <span class="material-symbols-outlined">shopping_cart</span>
 
-                {% if cart_count %}
-                <span class="absolute -top-2 -right-2 bg-primary text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {{ cart_count }}
-                </span>
+                {% if cart_count > 0 %}
+                    <span class="absolute -top-2 -right-2 bg-[#f2ca50] text-black text-[10px] min-w-5 h-5 px-1 rounded-full flex items-center justify-center font-bold">
+                        {{ cart_count }}
+                    </span>
                 {% endif %}
             </a>
 
-            <div class="hidden lg:block border-l border-primary/20 pl-6">
-                <p class="font-orbitron text-[10px] text-primary">ELITE STATUS</p>
-                <p class="font-bold text-xs text-white">Collector_01</p>
-            </div>
+            <a href="{% url 'profile_view' %}">
+                <span class="material-symbols-outlined text-[#d0c5af] hover:text-primary">account_circle</span>
+            </a>
         </div>
 
     </div>
 </header>
 
-    <!-- Side Navigation Bar -->
-    <aside class="fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col justify-between">
-        <div class="p-6">
-            <div class="flex flex-col items-center text-center mt-4 mb-8">
-                <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.2)] mb-4">
-                    <img alt="Collector Preview" class="w-full h-full object-cover rounded-lg" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBQb0ys0jAhr6n3m6EwdIcMJkNQmff_r8UG0GIEMTdQW1XHeaHIRoW_fcp41YapjwsGUqQauVQwc13Qqg93iXYzjtIYyP-OzbxtPA012WFyvYrAYv1iX44n9UcXAIimd2CTr9vZVCbSeU8CEJOaG17hxB4zYfPuX5i9uU-rg64-SnfqsLNrjgka7PNV3d4y1ktOrQInqMOvVrMBTUZFLcinHNPA_w-6hNNjq_dclTxqGA69C5nXs68Z-kANG46RO2RyxKn317WGKkI"/>
-                </div>
-                <h2 class="font-display-lg text-lg tracking-wider text-primary">{{ request.user.username|upper|default:" " }} GARAGE</h2>
-                <p class="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs text-primary">stars</span> LEGENDARY COLLECTOR
-                </p>
+<aside class="fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col justify-between">
+    <div class="p-6">
+        <div class="flex flex-col items-center text-center mt-4 mb-8">
+            <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.2)] mb-4">
+                {% if request.user.profile_picture %}
+                    <img alt="Collector Preview" class="w-full h-full object-cover rounded-lg" src="{{ request.user.profile_picture.url }}"/>
+                {% else %}
+                    <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-2xl rounded-lg">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
             </div>
-
-            <nav class="space-y-1">
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="{% url 'profile_view' %}">
-                    <span class="material-symbols-outlined text-lg">account_circle</span> Profile Info
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">account_balance_wallet</span> Wallet
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">confirmation_number</span> Coupons
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all 
-                        {% if request.resolver_match.url_name == 'address_list' %}
-                            text-primary bg-[#231f14] border-l-2 border-primary
-                        {% else %}
-                            text-on-surface-variant hover:text-primary
-                        {% endif %}" 
-                href="{% url 'address_list' %}">
-                    <span class="material-symbols-outlined text-lg">location_on</span> 
-                    Saved Addresses
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">token</span> Garage Showcase
-                </a>
-            </nav>
+            <h2 class="font-display-lg text-lg tracking-wider text-primary">{{ request.user.username|upper|default:"COLLECTOR" }}</h2>
+            <p class="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-primary">stars</span> LEGENDARY COLLECTOR
+            </p>
         </div>
 
-        <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
-            <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
-            <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
-            <a class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2" href="{% url 'logout' %}">
-                <span class="material-symbols-outlined text-lg">logout</span> Logout
+        <nav class="space-y-1">
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="{% url 'profile_view' %}">
+                <span class="material-symbols-outlined text-lg">account_circle</span> Profile Info
             </a>
-        </div>
-    </aside>
 
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
+            </a>
 
-<main class="pt-28 xl:pl-[280px] min-h-screen">
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-primary bg-[#231f14] border-l-2 border-primary" href="{% url 'wishlist' %}">
+                <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
+            </a>
 
-    <div class="max-w-[1200px] mx-auto px-8 pb-20">
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">account_balance_wallet</span> Wallet
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">confirmation_number</span> Coupons
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all 
+                    {% if request.resolver_match.url_name == 'address_list' %}
+                        text-primary bg-[#231f14] border-l-2 border-primary
+                    {% else %}
+                        text-on-surface-variant hover:text-primary
+                    {% endif %}" 
+               href="{% url 'address_list' %}">
+                <span class="material-symbols-outlined text-lg">location_on</span> 
+                Saved Addresses
+            </a>
+
+            <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
+                <span class="material-symbols-outlined text-lg">token</span> Garage Showcase
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
+        <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
+        <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
+        <a class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2" href="{% url 'logout' %}">
+            <span class="material-symbols-outlined text-lg">logout</span> Logout
+        </a>
+    </div>
+</aside>
+
+<main class="ml-72 pt-28 min-h-screen">
+    <div class="w-full px-10 lg:px-14 pb-20">
 
         {% if messages %}
         <div class="mb-8 space-y-3">
             {% for message in messages %}
-            <div class="glass-panel px-5 py-4 font-orbitron text-xs
+            <div class="glass-panel px-5 py-4 font-orbitron text-xs rounded
                 {% if message.tags == 'error' %}text-red-300{% else %}text-primary{% endif %}">
                 {{ message }}
             </div>
@@ -171,27 +182,27 @@
         </div>
         {% endif %}
 
-        <header class="mb-10">
-            <div class="flex gap-3 mb-5">
-                <span class="px-3 py-1 bg-primary/20 text-primary border border-primary/30 font-orbitron text-[10px]">
-                    SAVED PICKS
-                </span>
-                <span class="px-3 py-1 bg-surface-container text-on-surface-variant border border-outline font-orbitron text-[10px]">
-                    DATABASE RECORDS
-                </span>
+        <section class="mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <div>
+
+                <h1 class="font-orbitron text-5xl lg:text-7xl text-primary leading-tight">
+                    YOUR COLLECTOR <br> WISHLIST
+                </h1>
+
+                <p class="text-on-surface-variant mt-5 max-w-2xl">
+                    Save your favorite collector editions and move them to cart when ready.
+                </p>
             </div>
 
-            <h1 class="font-orbitron text-5xl lg:text-7xl text-primary leading-tight">
-                YOUR <br> COLLECTOR <br> WISHLIST
-            </h1>
-
-            <p class="text-on-surface-variant mt-5">
-                Save your favorite collector editions and move them to cart when ready.
-            </p>
-        </header>
+            <a href="{% url 'collections' %}"
+               class="px-7 py-4 bg-primary text-black font-orbitron text-xs flex items-center justify-center gap-2 no-underline font-bold rounded shadow-[0_0_20px_rgba(242,202,80,0.25)]">
+                ADD MORE
+                <span class="material-symbols-outlined text-sm">arrow_right_alt</span>
+            </a>
+        </section>
 
         <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="glass-panel p-6 flex items-center gap-5">
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
                 <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary">bookmark</span>
                 </div>
@@ -201,7 +212,7 @@
                 </div>
             </div>
 
-            <div class="glass-panel p-6 flex items-center gap-5">
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
                 <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary">inventory</span>
                 </div>
@@ -211,7 +222,7 @@
                 </div>
             </div>
 
-            <div class="glass-panel p-6 flex items-center gap-5">
+            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
                 <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
                     <span class="material-symbols-outlined text-primary">payments</span>
                 </div>
@@ -226,24 +237,18 @@
             <div class="flex-1 relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
                 <input id="wishlistSearch"
-                       class="w-full bg-surface-container/60 border border-primary/20 px-12 py-4 font-orbitron text-xs focus:ring-1 focus:ring-primary outline-none text-on-surface placeholder:text-on-surface-variant/50"
+                       class="w-full bg-surface-container/60 border border-primary/20 px-12 py-4 font-orbitron text-xs focus:ring-1 focus:ring-primary outline-none text-on-surface placeholder:text-on-surface-variant/50 rounded"
                        placeholder="SEARCH WISHLIST..."
                        type="text">
             </div>
-
-            <a href="{% url 'collections' %}"
-               class="px-6 py-4 bg-primary text-black font-orbitron text-xs flex items-center justify-center gap-2 no-underline">
-                ADD MORE
-                <span class="material-symbols-outlined text-sm">arrow_right_alt</span>
-            </a>
         </div>
 
         <section>
             {% if wishlist_items %}
-            <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
 
                 {% for item in wishlist_items %}
-                <div class="wishlist-card glass-panel group overflow-hidden border-t-2 border-t-primary/20 hover:border-t-primary transition-all duration-300"
+                <div class="wishlist-card glass-panel group overflow-hidden border-t-2 border-t-primary/20 hover:border-t-primary transition-all duration-300 rounded-xl"
                      data-name="{{ item.variant.product.name|lower }}"
                      data-color="{{ item.variant.color|lower }}"
                      data-size="{{ item.variant.size|lower }}">
@@ -252,20 +257,23 @@
                         {% with first_image=item.variant.images.first %}
                             {% if first_image %}
                                 <img src="{{ first_image.image.url }}"
-                                    alt="{{ item.variant.product.name }}"
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                     alt="{{ item.variant.product.name }}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             {% elif item.variant.image %}
                                 <img src="{{ item.variant.image.url }}"
-                                    alt="{{ item.variant.product.name }}"
-                                    class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                     alt="{{ item.variant.product.name }}"
+                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                             {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-surface-container">
+                                    <span class="material-symbols-outlined text-primary/40 text-6xl">directions_car</span>
+                                </div>
                             {% endif %}
                         {% endwith %}
 
                         <form method="POST" action="{% url 'remove_wishlist' item.id %}">
                             {% csrf_token %}
                             <button type="submit"
-                                    class="absolute top-4 right-4 w-8 h-8 bg-black/80 border border-primary/30 text-primary hover:text-red-300 hover:border-red-300 flex items-center justify-center">
+                                    class="absolute top-4 right-4 w-8 h-8 bg-black/80 border border-primary/30 text-primary hover:text-red-300 hover:border-red-300 flex items-center justify-center rounded">
                                 <span class="material-symbols-outlined text-sm">close</span>
                             </button>
                         </form>
@@ -287,22 +295,22 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-surface-container p-3 border border-outline/40">
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
                                 <p class="text-on-surface-variant text-[9px] font-orbitron">COLOR</p>
                                 <p class="text-white font-orbitron text-sm">{{ item.variant.color }}</p>
                             </div>
 
-                            <div class="bg-surface-container p-3 border border-outline/40">
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
                                 <p class="text-on-surface-variant text-[9px] font-orbitron">SIZE</p>
                                 <p class="text-white font-orbitron text-sm">{{ item.variant.size }}</p>
                             </div>
 
-                            <div class="bg-surface-container p-3 border border-outline/40">
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
                                 <p class="text-on-surface-variant text-[9px] font-orbitron">PRICE</p>
                                 <p class="text-primary font-orbitron text-sm">₹{{ item.variant.price }}</p>
                             </div>
 
-                            <div class="bg-surface-container p-3 border border-outline/40">
+                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
                                 <p class="text-on-surface-variant text-[9px] font-orbitron">STOCK</p>
                                 <p class="font-orbitron text-sm {% if item.variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %}">
                                     {{ item.variant.stock }}
@@ -315,13 +323,13 @@
                             <form method="POST" action="{% url 'move_wishlist_to_cart' item.id %}" class="flex-1">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="w-full bg-primary text-black py-3 font-orbitron text-[10px] hover:brightness-110 transition-all font-bold">
+                                        class="w-full bg-primary text-black py-3 font-orbitron text-[10px] hover:brightness-110 transition-all font-bold rounded">
                                     ADD TO CART
                                 </button>
                             </form>
                             {% else %}
                             <button disabled
-                                    class="flex-1 bg-surface-container-high text-on-surface-variant py-3 font-orbitron text-[10px] cursor-not-allowed">
+                                    class="flex-1 bg-surface-container-high text-on-surface-variant py-3 font-orbitron text-[10px] cursor-not-allowed rounded">
                                 OUT OF STOCK
                             </button>
                             {% endif %}
@@ -329,7 +337,7 @@
                             <form method="POST" action="{% url 'remove_wishlist' item.id %}">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="px-4 h-full border border-outline/40 text-on-surface-variant hover:text-red-300 hover:border-red-300 transition-colors">
+                                        class="px-4 h-full border border-outline/40 text-on-surface-variant hover:text-red-300 hover:border-red-300 transition-colors rounded">
                                     <span class="material-symbols-outlined text-sm">delete</span>
                                 </button>
                             </form>
@@ -340,7 +348,7 @@
 
             </div>
             {% else %}
-            <div class="glass-panel p-16 text-center">
+            <div class="glass-panel p-16 text-center rounded-xl">
                 <span class="material-symbols-outlined text-7xl text-primary/40">heart_broken</span>
 
                 <h2 class="font-orbitron text-3xl text-white mt-6">
@@ -352,7 +360,7 @@
                 </p>
 
                 <a href="{% url 'collections' %}"
-                   class="inline-block bg-primary text-black font-orbitron text-xs px-8 py-4 mt-8 no-underline">
+                   class="inline-block bg-primary text-black font-orbitron text-xs px-8 py-4 mt-8 no-underline rounded font-bold">
                     EXPLORE COLLECTIONS
                 </a>
             </div>
@@ -360,7 +368,6 @@
         </section>
 
     </div>
-
 </main>
 
 <script>
@@ -385,7 +392,6 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     }
-    
 });
 </script>
 

@@ -390,6 +390,33 @@ def add_variant(request, product_id):
             messages.error(request, "All fields are required.")
             return redirect("add_variant", product_id=product.id)
 
+        try:
+            price = float(price)
+        except ValueError:
+            messages.error(request, "Price must be a valid number.")
+            return redirect("add_variant", product_id=product.id)
+
+        if price <= 0:
+            messages.error(request, "Price must be greater than 0.")
+            return redirect("add_variant", product_id=product.id)
+
+        if int(stock) < 0:
+            messages.error(request, "Quantity cannot be negative.")
+            return render(
+                request,
+                "adminpanel/admin_login/add_variant.html",
+                {"product": product}
+            )
+
+        if not re.match(r"^[A-Za-z\s]+$", color):
+            messages.error(request, "Color must contain only alphabets.")
+            return render(
+                request,
+                "adminpanel/admin_login/add_variant.html",
+                {"product": product}
+            )
+               
+
         if len(images) != 3:
             messages.error(request, "Please upload exactly 3 images.")
             return redirect("add_variant", product_id=product.id)
@@ -423,14 +450,45 @@ def edit_variant(request, variant_id):
     product = variant.product
 
     if request.method == "POST":
-        variant.price = request.POST.get("price")
-        variant.stock = request.POST.get("stock")
-        variant.size = request.POST.get("size", "").strip()
-        variant.color = request.POST.get("color", "").strip()
+        price = request.POST.get("price", "").strip()
+        stock = request.POST.get("stock", "").strip()
+        size = request.POST.get("size", "").strip()
+        color = request.POST.get("color", "").strip()
+
+        if not price or not stock or not size or not color:
+            messages.error(request, "All fields are required.")
+            return redirect("edit_variant", variant_id=variant.id)
+
+        try:
+            price = float(price)
+        except ValueError:
+            messages.error(request, "Price must be a valid number (e.g., 1999 or 1999.99).")
+            return redirect("edit_variant", variant_id=variant.id)
+
+        if price <= 0:
+            messages.error(request, "Price must be greater than 0.")
+            return redirect("edit_variant", variant_id=variant.id)
+
+
+        if not stock.isdigit():
+            messages.error(request, "Quantity must contain only numbers.")
+            return redirect("edit_variant", variant_id=variant.id)
+
+        if int(stock) < 0:
+            messages.error(request, "Quantity cannot be negative.")
+            return redirect("edit_variant", variant_id=variant.id)
+
+        if not re.match(r"^[A-Za-z\s]+$", color):
+            messages.error(request, "Color must contain only alphabets.")
+            return redirect("edit_variant", variant_id=variant.id)
+
+        variant.price = price
+        variant.stock = stock
+        variant.size = size
+        variant.color = color
 
         images = request.FILES.getlist("variant_images")
         changed_slots = request.POST.get("changed_slots", "")
-
         changed_slots = [int(i) for i in changed_slots.split(",") if i != ""]
 
         existing_images = list(variant.images.all().order_by("id"))
