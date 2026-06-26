@@ -235,6 +235,9 @@ def decrease_cart_item(request, item_id):
         cart_item.quantity -= 1
         cart_item.save()
         messages.success(request, "Cart updated successfully.")
+    else:
+        cart_item.quantity < 1
+        messages.success(request,'cannot decrease')
 
     return redirect("cart")
 
