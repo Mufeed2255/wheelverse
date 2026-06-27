@@ -1,0 +1,217 @@
+<style>
+        .wv-topbar{
+        position:fixed;
+        top:0;
+        left:18rem;
+        right:0;
+        height:80px;
+        z-index:9999;
+        background:rgba(17,15,10,.96);
+        backdrop-filter:blur(18px);
+        border-bottom:1px solid rgba(242,202,80,.12);
+    }
+
+    .wv-topbar-inner{
+        height:100%;
+        padding:0 48px;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+    }
+
+    /* ---------- Logo ---------- */
+
+    .wv-topbar-logo{
+        display:flex;
+        align-items:center;
+        text-decoration:none;
+        white-space:nowrap;
+
+        font-family:'Orbitron',sans-serif;
+        font-size:42px;
+        font-weight:800;
+        letter-spacing:-0.04em;
+        line-height:1;
+    }
+
+    .wv-logo-wheel{
+        color:#f2ca50;
+    }
+
+    .wv-logo-verse{
+        color:#ffffff;
+    }
+
+    /* ---------- Navigation ---------- */
+
+    .wv-topbar-nav{
+        display:flex;
+        align-items:center;
+        gap:42px;
+    }
+
+    .wv-topbar-nav a{
+        font-family:'Orbitron',sans-serif;
+        font-size:13px;
+        font-weight:500;
+        letter-spacing:.12em;
+        color:#d0c5af;
+        text-decoration:none;
+        transition:.25s;
+    }
+
+    .wv-topbar-nav a:hover{
+        color:#f2ca50;
+    }
+
+    /* Active page */
+
+    .wv-topbar-nav a.active{
+        color:#f2ca50;
+        position:relative;
+    }
+
+    .wv-topbar-nav a.active::after{
+        content:"";
+        position:absolute;
+        left:0;
+        bottom:-14px;
+        width:100%;
+        height:2px;
+        background:#f2ca50;
+    }
+
+    /* ---------- Right Icons ---------- */
+
+    .wv-topbar-right{
+        display:flex;
+        align-items:center;
+        gap:24px;
+    }
+
+    .wv-topbar-icon{
+        position:relative;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:#d0c5af;
+        transition:.25s;
+    }
+
+    .wv-topbar-icon .material-symbols-outlined{
+        font-size:32px;
+    }
+
+    .wv-topbar-icon:hover{
+        color:#f2ca50;
+    }
+
+    .wv-cart-count{
+        position:absolute;
+        top:-8px;
+        right:-8px;
+        width:22px;
+        height:22px;
+        border-radius:50%;
+        background:#f2ca50;
+        color:#000;
+        font-family:'Orbitron',sans-serif;
+        font-size:10px;
+        font-weight:700;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+    }
+
+    @media(max-width:1024px){
+
+        .wv-topbar{
+            left:0;
+        }
+
+        .wv-topbar-inner{
+            padding:0 20px;
+        }
+
+        .wv-topbar-logo{
+            font-size:34px;
+        }
+
+        .wv-topbar-nav{
+            display:none;
+        }
+    }
+</style>
+
+
+<header class="fixed top-0 left-0 right-0 h-20 bg-[#16130b]/95 backdrop-blur-xl border-b border-[#f2ca50]/15 z-[9999]">
+
+    <div class="w-full h-full px-8 lg:px-16 flex items-center justify-between">
+
+
+        <!-- Logo -->
+        <a href="{% url 'landing_page' %}" class="wv-topbar-logo">
+
+            <span class="wv-logo-wheel">Wheel</span>
+            <span class="wv-logo-verse">Verse</span>
+
+        </a>
+
+        <!-- Navigation -->
+
+        <nav class="wv-topbar-nav">
+
+            <a href="{% url 'landing_page' %}"
+               class="{% if request.resolver_match.url_name == 'landing_page' %}active{% endif %}">
+                Home
+            </a>
+
+            <a href="{% url 'collections' %}"
+               class="{% if request.resolver_match.url_name == 'collections' %}active{% endif %}">
+                Collections
+            </a>
+
+            <a href="{% url 'cart' %}"
+               class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
+                Cart
+            </a>
+
+            <a href="{% url 'wishlist' %}"
+               class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
+                Wishlist
+            </a>
+
+        </nav>
+
+        <!-- Right Side -->
+
+        <div class="wv-topbar-right">
+
+            <a href="{% url 'cart' %}" class="wv-topbar-icon">
+
+                <span class="material-symbols-outlined">
+                    shopping_cart
+                </span>
+
+                {% if cart_count %}
+                    <span class="wv-cart-count">
+                        {{ cart_count }}
+                    </span>
+                {% endif %}
+
+            </a>
+
+            <a href="{% url 'profile_view' %}" class="wv-topbar-icon">
+
+                <span class="material-symbols-outlined">
+                    account_circle
+                </span>
+
+            </a>
+
+        </div>
+
+
+    </div>
+
+</header>

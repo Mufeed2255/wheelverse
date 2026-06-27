@@ -50,41 +50,8 @@
 </head>
 
 <body>
+{% include "include/user_topbar.html" %}
 
-<header class="fixed top-0 w-full z-50 bg-[#16130b]/80 backdrop-blur-xl border-b border-[#f2ca50]/15">
-    <div class="flex justify-between items-center px-8 lg:px-20 py-4 max-w-[1440px] mx-auto">
-
-        <a href="{% url 'landing_page' %}" class="orbitron text-3xl text-[#f2ca50] font-bold no-underline">
-            WheelVerse
-        </a>
-
-        <nav class="hidden md:flex items-center gap-6">
-            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'landing_page' %}">Home</a>
-            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'collections' %}">Collections</a>
-            <a class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]" href="{% url 'cart' %}">Cart</a>
-            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Wishlist</a>
-        </nav>
-
-        <div class="flex items-center gap-4">
-            <a href="{% url 'cart' %}" class="relative text-[#f2ca50]">
-                <span class="material-symbols-outlined">shopping_cart</span>
-
-                {% if cart_count %}
-                <span class="absolute -top-2 -right-2 bg-[#f2ca50] text-black text-[10px] w-5 h-5 rounded-full flex items-center justify-center font-bold">
-                    {{ cart_count }}
-                </span>
-                {% endif %}
-            </a>
-
-            <a href="{% url 'profile_view' %}" class="text-[#d0c5af] hover:text-[#f2ca50] transition-colors">
-                <span class="material-symbols-outlined">
-                    account_circle
-                </span>
-            </a>
-        </div>
-
-    </div>
-</header>
 
 <main class="pt-24 pb-20">
 
@@ -275,10 +242,11 @@
                             </div>
 
                             {% if cart_items %}
-                            <button class="w-full btn-gold py-5 mt-6 flex items-center justify-center gap-2">
+                            <a href="{% url 'checkout' %}"
+                            class="w-full btn-gold py-5 mt-6 flex items-center justify-center gap-2">
                                 PROCEED TO CHECKOUT
                                 <span class="material-symbols-outlined">lock</span>
-                            </button>
+                            </a>
                             {% else %}
                             <button disabled class="w-full bg-[#38342b] text-[#d0c5af] orbitron py-5 mt-6 cursor-not-allowed">
                                 CART EMPTY
@@ -294,17 +262,6 @@
                         <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-[#f2ca50]/10 rounded-full blur-[100px] pointer-events-none"></div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 mt-6">
-                        <div class="glass-panel p-4 rounded text-center">
-                            <span class="material-symbols-outlined text-[#f2ca50] mb-2">verified</span>
-                            <p class="orbitron text-[8px] text-[#d0c5af]">100% AUTHENTIC</p>
-                        </div>
-
-                        <div class="glass-panel p-4 rounded text-center">
-                            <span class="material-symbols-outlined text-[#f2ca50] mb-2">local_shipping</span>
-                            <p class="orbitron text-[8px] text-[#d0c5af]">GLOBAL DELIVERY</p>
-                        </div>
-                    </div>
 
                 </div>
             </aside>

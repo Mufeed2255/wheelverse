@@ -65,60 +65,10 @@
 
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
-<header class="fixed top-0 left-0 w-full z-[100] bg-surface/90 backdrop-blur-xl border-b border-primary/10">
-    <div class="max-w-[1440px] mx-auto px-10 h-20 flex justify-between items-center">
+{% include "include/user_topbar.html" %}
 
-        <a href="{% url 'landing_page' %}" class="font-display-lg text-3xl tracking-tight text-on-surface no-underline">
-            Wheel<span class="text-primary">Verse</span>
-        </a>
 
-        <nav class="hidden xl:flex items-center gap-10">
-            <a href="{% url 'landing_page' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Home</a>
-            <a href="{% url 'collections' %}" class="font-label-caps text-xs text-primary border-b border-primary pb-1">Collections</a>
-            <a href="{% url 'cart' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Cart</a>
-            <a href="{% url 'wishlist' %}" class="font-label-caps text-xs text-on-surface-variant hover:text-primary transition-colors">Wishlist</a>
-        </nav>
-
-        <div class="flex items-center gap-6">
-            <!-- Search form — submits to collections with filters preserved -->
-            <form method="GET" action="{% url 'collections' %}" class="relative hidden md:flex items-center">
-                <input type="hidden" name="category" value="{{ current_category }}">
-                <input type="hidden" name="status" value="{{ current_status }}">
-                <input type="hidden" name="sort_by" value="{{ current_sort }}">
-                <input type="hidden" name="price_min" value="{{ price_min }}">
-                <input type="hidden" name="price_max" value="{{ price_max }}">
-                <input type="hidden" name="rarity" value="{{ current_rarity }}">
-
-                <input type="text" name="search" value="{{ current_search }}"
-                       placeholder="Search cars..."
-                       class="bg-transparent border-0 border-b border-primary/20 text-on-surface text-xs pl-2 pr-8 py-2 focus:ring-0 focus:border-primary w-44 transition-all focus:w-56">
-
-                <button type="submit" class="absolute right-1 text-on-surface-variant hover:text-primary">
-                    <span class="material-symbols-outlined text-xl">search</span>
-                </button>
-            </form>
-
-            <a href="{% url 'cart' %}" class="text-on-surface-variant hover:text-primary relative transition-colors">
-
-                <span class="material-symbols-outlined">
-                    shopping_cart
-                </span>
-            
-
-                {% if cart_count %}
-                <span class="absolute -top-1 -right-2 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold">
-                    {{ cart_count }}
-                </span>
-                {% endif %}
-
-            </a>
-
-        </div>
-    </div>
-</header>
-
-<div class="max-w-[1440px] mx-auto pt-20 flex min-h-screen">
-
+<div class="max-w-[1600px] mx-auto pt-20 flex min-h-screen">
 
     <aside class="w-[300px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar flex-shrink-0">
 
@@ -323,63 +273,104 @@
         </section>
 
         <!-- SORT + RESULTS BAR -->
-        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-5 border-b border-primary/10 flex items-center justify-between gap-4">
+        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-5 border-b border-primary/10">
 
-            <div class="flex items-center gap-3">
-                <span class="text-primary font-display-lg text-xl">{{ total_products_count }}</span>
-                <span class="font-label-caps text-on-surface-variant text-[10px]">RESULTS FOUND</span>
+            <div class="flex items-center justify-between gap-6 flex-wrap">
 
-                <!-- Active filter pills -->
-                {% if current_search or current_category or current_status or current_rarity %}
-                <div class="flex items-center gap-2 ml-4">
-                    {% if current_search %}
-                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
-                        "{{ current_search }}"
-                        <a href="?category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
+                <!-- Search -->
+                <form method="GET"
+                    action="{% url 'collections' %}"
+                    class="flex items-center w-[420px] bg-surface-container border border-primary/20 overflow-hidden">
+
+                    <!-- Preserve filters -->
+                    <input type="hidden" name="category" value="{{ current_category }}">
+                    <input type="hidden" name="status" value="{{ current_status }}">
+                    <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                    <input type="hidden" name="price_min" value="{{ price_min }}">
+                    <input type="hidden" name="price_max" value="{{ price_max }}">
+                    <input type="hidden" name="rarity" value="{{ current_rarity }}">
+
+                    <span class="material-symbols-outlined px-4 text-primary">
+                        search
                     </span>
-                    {% endif %}
-                    {% if current_rarity %}
-                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
-                        {{ current_rarity }}
-                        <a href="?search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
-                    </span>
-                    {% endif %}
-                    {% if current_status %}
-                    <span class="px-2 py-1 bg-primary/10 border border-primary/20 text-primary font-label-caps text-[9px]">
-                        {{ current_status|title }}
-                        <a href="?search={{ current_search }}&category={{ current_category }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}" class="ml-1 opacity-60 hover:opacity-100">×</a>
-                    </span>
-                    {% endif %}
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ current_search }}"
+                        placeholder="Search by vehicle name..."
+                        class="flex-1 bg-transparent border-0 outline-none text-sm text-white placeholder:text-[#8a8375] px-2 py-3">
+
+                    <button
+                        type="submit"
+                        class="px-6 py-3 bg-primary text-black font-label-caps text-[11px] font-bold hover:bg-yellow-400 transition">
+                        SEARCH
+                    </button>
+
+                </form>
+
+                <div class="flex items-center gap-6">
+
+                    <div class="flex items-center gap-3">
+                        <span class="text-primary font-display-lg text-xl">
+                            {{ total_products_count }}
+                        </span>
+
+                        <span class="font-label-caps text-on-surface-variant text-[10px]">
+                            RESULTS FOUND
+                        </span>
+                    </div>
+
+                    <!-- Sorting -->
+
+                    <form method="GET"
+                        action="{% url 'collections' %}"
+                        id="sortForm">
+
+                        <input type="hidden" name="search" value="{{ current_search }}">
+                        <input type="hidden" name="category" value="{{ current_category }}">
+                        <input type="hidden" name="status" value="{{ current_status }}">
+                        <input type="hidden" name="price_min" value="{{ price_min }}">
+                        <input type="hidden" name="price_max" value="{{ price_max }}">
+                        <input type="hidden" name="rarity" value="{{ current_rarity }}">
+
+                        <select
+                            name="sort_by"
+                            onchange="this.form.submit();"
+                            class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10">
+
+                            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>
+                                NEWEST FIRST
+                            </option>
+
+                            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>
+                                OLDEST FIRST
+                            </option>
+
+                            <option value="a-z" {% if current_sort == "a-z" %}selected{% endif %}>
+                                NAME A-Z
+                            </option>
+
+                            <option value="z-a" {% if current_sort == "z-a" %}selected{% endif %}>
+                                NAME Z-A
+                            </option>
+
+                            <option value="price-low" {% if current_sort == "price-low" %}selected{% endif %}>
+                                PRICE LOW-HIGH
+                            </option>
+
+                            <option value="price-high" {% if current_sort == "price-high" %}selected{% endif %}>
+                                PRICE HIGH-LOW
+                            </option>
+
+                        </select>
+
+                    </form>
+
                 </div>
-                {% endif %}
+
             </div>
 
-            <form method="GET" action="{% url 'collections' %}" id="sortForm" class="flex items-center gap-3">
-                <input type="hidden" name="search" value="{{ current_search }}">
-                <input type="hidden" name="category" value="{{ current_category }}">
-                <input type="hidden" name="status" value="{{ current_status }}">
-                <input type="hidden" name="price_min" value="{{ price_min }}">
-                <input type="hidden" name="price_max" value="{{ price_max }}">
-                <input type="hidden" name="rarity" value="{{ current_rarity }}">
-
-                <select name="sort_by"
-                        onchange="document.getElementById('sortForm').submit();"
-                        class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10 focus:ring-1 focus:ring-primary focus:border-primary rounded-none">
-                    <option value="" {% if not current_sort or current_sort == 'newest' %}selected{% endif %}>SORT: NEWEST FIRST</option>
-                    <option value="oldest" {% if current_sort == 'oldest' %}selected{% endif %}>SORT: OLDEST FIRST</option>
-                    <option value="a-z" {% if current_sort == 'a-z' %}selected{% endif %}>SORT: NAME A → Z</option>
-                    <option value="z-a" {% if current_sort == 'z-a' %}selected{% endif %}>SORT: NAME Z → A</option>
-                    <option value="price-low" {% if current_sort == 'price-low' %}selected{% endif %}>SORT: PRICE LOW → HIGH</option>
-                    <option value="price-high" {% if current_sort == 'price-high' %}selected{% endif %}>SORT: PRICE HIGH → LOW</option>
-                </select>
-
-                <!-- Reset all filters -->
-                <a href="{% url 'collections' %}"
-                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors"
-                   title="Clear all filters">
-                    <span class="material-symbols-outlined text-sm">refresh</span>
-                </a>
-            </form>
         </section>
 
         <!-- PRODUCT GRID -->
@@ -604,49 +595,8 @@
         </section>
 
         <!-- FOOTER -->
-        <footer class="border-t border-primary/10 bg-black/25 mt-10">
-            <div class="px-12 py-12 grid grid-cols-1 md:grid-cols-3 gap-10">
+        {% include "include/user_footer.html" %}
 
-                <div>
-                    <h2 class="font-display-lg text-2xl mb-6">
-                        Wheel<span class="text-primary">Verse</span>
-                    </h2>
-                    <p class="text-on-surface-variant text-sm max-w-xs leading-relaxed">
-                        The world's premier digital-physical hybrid automotive collector ecosystem.
-                    </p>
-                    <div class="flex gap-4 mt-6 text-primary">
-                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">share</span>
-                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">public</span>
-                        <span class="material-symbols-outlined text-lg cursor-pointer hover:scale-110 transition-transform">alternate_email</span>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="font-label-caps text-sm tracking-widest mb-6">COLLECTOR SERVICES</h3>
-                    <div class="space-y-4 text-on-surface-variant text-sm">
-                        <a href="#" class="block hover:text-primary transition-colors">Privacy Policy</a>
-                        <a href="#" class="block hover:text-primary transition-colors">Terms of Service</a>
-                        <a href="#" class="block hover:text-primary transition-colors">Authentication Service</a>
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="font-label-caps text-sm tracking-widest mb-6">ELITE STATUS</h3>
-                    <p class="text-on-surface-variant text-sm max-w-xs leading-relaxed">
-                        Designed for premium collectors, racing enthusiasts, and limited edition hunters.
-                    </p>
-                </div>
-            </div>
-
-            <div class="border-t border-primary/10 px-12 py-6 flex flex-col lg:flex-row justify-between gap-4 text-[10px] text-on-surface-variant font-label-caps">
-                <p>© 2026 WheelVerse Cinematic Performance. All Rights Reserved.</p>
-                <div class="flex gap-8">
-                    <span>DESIGNED FOR ENTHUSIASTS</span>
-                    <span>GLOBAL DISTRIBUTION</span>
-                    <span>SECURE TRANSACTION</span>
-                </div>
-            </div>
-        </footer>
 
     </main>
 </div>

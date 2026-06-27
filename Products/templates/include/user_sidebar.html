@@ -1,0 +1,222 @@
+<style>
+    .wv-topbar {
+        position: fixed;
+        top: 0;
+        left: 18rem;
+        right: 0;
+        height: 80px;
+        z-index: 40;
+        background: rgba(17, 15, 10, 0.95);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(242, 202, 80, 0.14);
+    }
+
+    .wv-topbar-inner {
+        height: 100%;
+        width: 100%;
+        padding: 0 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .wv-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 52px;
+        min-width: 0;
+    }
+
+    .wv-topbar-logo {
+        font-family: Orbitron, sans-serif;
+        font-size: 26px;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        color: #f2ca50;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .wv-topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 34px;
+    }
+
+    .wv-topbar-nav a {
+        font-family: Orbitron, sans-serif;
+        font-size: 12px;
+        color: #d0c5af;
+        text-decoration: none;
+        transition: 0.25s;
+    }
+
+    .wv-topbar-nav a:hover {
+        color: #f2ca50;
+    }
+
+    .wv-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .wv-topbar-icon {
+        position: relative;
+        color: #d0c5af;
+        transition: 0.25s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .wv-topbar-icon:hover {
+        color: #f2ca50;
+    }
+
+    .wv-cart-count {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        width: 21px;
+        height: 21px;
+        border-radius: 999px;
+        background: #f2ca50;
+        color: #000;
+        font-size: 11px;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    @media (max-width: 1024px) {
+        .wv-topbar {
+            left: 0;
+        }
+
+        .wv-topbar-inner {
+            padding: 0 24px;
+        }
+
+        .wv-topbar-nav {
+            display: none;
+        }
+    }
+
+    .sidebar-scroll {
+        overflow-y: scroll;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .sidebar-scroll::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+        display: none;
+    }
+
+</style>
+
+<aside class="sidebar-scroll fixed left-0 top-20 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col">
+        <div class="p-6">
+        <div class="flex flex-col items-center text-center mt-4 mb-8">
+
+            <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.25)] mb-4">
+                {% if request.user.profile_picture %}
+                    <img src="{{ request.user.profile_picture.url }}" alt="Profile" class="w-full h-full rounded-lg object-cover">
+                {% else %}
+                    <div class="w-full h-full rounded-lg bg-neutral-800 flex items-center justify-center text-primary text-2xl font-bold">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <h2 class="font-display-lg text-lg tracking-wider text-primary">
+                {{ request.user.username|upper|default:"COLLECTOR" }}
+            </h2>
+
+            <p class="font-label-caps text-[10px] text-on-surface-variant mt-2 flex items-center gap-1">
+                <span class="material-symbols-outlined text-xs text-primary">stars</span>
+                ELITE COLLECTOR
+            </p>
+        </div>
+
+        <nav class="space-y-1">
+            <a href="{% url 'profile_view' %}"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all
+               {% if request.resolver_match.url_name == 'profile_view' %}
+                   text-primary bg-[#231f14] border-l-2 border-primary
+               {% else %}
+                   text-on-surface-variant hover:text-primary
+               {% endif %}">
+                <span class="material-symbols-outlined text-lg">account_circle</span>
+                Profile Info
+            </a>
+
+            <a href="#"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+                <span class="material-symbols-outlined text-lg">inventory_2</span>
+                My Garage Orders
+            </a>
+
+            <a href="{% url 'wishlist' %}"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all
+               {% if request.resolver_match.url_name == 'wishlist' %}
+                   text-primary bg-[#231f14] border-l-2 border-primary
+               {% else %}
+                   text-on-surface-variant hover:text-primary
+               {% endif %}">
+                <span class="material-symbols-outlined text-lg">favorite</span>
+                Wishlist Vault
+            </a>
+
+            <a href="#"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+                <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
+                Wallet
+            </a>
+
+            <a href="#"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+                <span class="material-symbols-outlined text-lg">confirmation_number</span>
+                Coupons
+            </a>
+
+            <a href="{% url 'address_list' %}"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest transition-all
+               {% if request.resolver_match.url_name == 'address_list' %}
+                   text-primary bg-[#231f14] border-l-2 border-primary
+               {% else %}
+                   text-on-surface-variant hover:text-primary
+               {% endif %}">
+                <span class="material-symbols-outlined text-lg">location_on</span>
+                Saved Addresses
+            </a>
+
+            <a href="#"
+               class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+                <span class="material-symbols-outlined text-lg">garage</span>
+                Garage Showcase
+            </a>
+        </nav>
+    </div>
+
+    <div class="p-6 border-t border-white/5">
+        <div class="space-y-4 font-label-caps text-xs tracking-widest">
+            <a href="#" class="block px-4 text-on-surface-variant hover:text-primary transition">
+                Privacy Policy
+            </a>
+
+            <a href="#" class="block px-4 text-on-surface-variant hover:text-primary transition">
+                About Us
+            </a>
+
+            <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-4 mt-3 border-t border-white/5 text-red-300 hover:text-red-500 transition">
+                <span class="material-symbols-outlined">logout</span>
+                Logout
+            </a>
+        </div>
+    </div>
+
+</aside>

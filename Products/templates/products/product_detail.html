@@ -87,41 +87,11 @@
     </style>
 </head>
 
-<body>
+<body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
-<header class="fixed top-0 left-0 w-full z-50 bg-[#0e0c07]/90 backdrop-blur-xl border-b border-[#f2ca50]/10">
-    <div class="max-w-[1440px] mx-auto h-20 px-10 flex items-center justify-between">
+    {% include "include/user_topbar.html" %}
 
-        <a href="{% url 'landing_page' %}" class="orbitron text-3xl font-bold text-white no-underline">
-            Wheel<span class="gold">Verse</span>
-        </a>
-
-        <nav class="hidden lg:flex items-center gap-10">
-            <a href="{% url 'landing_page' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Home</a>
-            <a href="{% url 'collections' %}" class="orbitron text-xs text-[#f2ca50] border-b border-[#f2ca50] pb-1">Collections</a>
-            <a href="{%url 'cart' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Cart</a>
-            <a href="{%url 'wishlist' %}" class="orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">Whishlist</a>
-            
-        </nav>
-
-        <div class="flex items-center gap-5">
-            <span class="material-symbols-outlined text-[#d0c5af] cursor-pointer hover:text-[#f2ca50]">search</span>
-            <a href="{% url 'cart' %}" class="text-[#d0c5af] cursor-pointer hover:text-[#f2ca50] transition-colors">
-              <span class="material-symbols-outlined">
-                  shopping_cart
-              </span>
-          </a>
-
-            <div class="hidden lg:block border-l border-[#f2ca50]/20 pl-6">
-                <p class="orbitron text-[10px] gold">ELITE STATUS</p>
-                <p class="font-bold text-xs text-white">Collector_01</p>
-            </div>
-        </div>
-
-    </div>
-</header>
-
-<main class="max-w-[1440px] mx-auto px-10 pt-28 pb-20">
+    <main class="max-w-[1700px] mx-auto px-8 lg:px-14 pt-28 pb-20">
     {% if messages %}
         <div class="mb-8 space-y-3">
             {% for message in messages %}
