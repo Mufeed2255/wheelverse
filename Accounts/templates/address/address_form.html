@@ -56,19 +56,11 @@
 <body class="font-body-md text-body-md bg-background text-on-surface selection:bg-primary selection:text-background">
         {% include "include/user_topbar.html" %}
         {% include "include/user_sidebar.html" %}
+        {% include "adminpanel/includes/messages.html" %}
 
     <main class="pl-72 pt-28 min-h-screen carbon-texture">
         <div class="max-w-[900px] mx-auto px-10 pb-20">
             
-            {% if messages %}
-            <div class="mb-6 space-y-2">
-                {% for message in messages %}
-                <div class="p-4 glass-panel border-l-4 {% if message.tags == 'error' %}border-red-500 text-red-200{% else %}border-primary text-primary{% endif %} flex items-center gap-3">
-                    <span class="material-symbols-outlined">info</span><span>{{ message }}</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
 
             <div class="flex justify-between items-end mb-10">
                 <div>
@@ -147,7 +139,7 @@
                                     </div>
                                     <div class="space-y-2">
                                         <label class="font-label-caps text-[10px] text-primary block tracking-widest">COUNTRY</label>
-                                        <input name="country" value="{{ address.country|default:'UNITED STATES' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
+                                        <input name="country" value="{{ address.country|default:'INDIA' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
                                     </div>
                                 </div>
                             </div>

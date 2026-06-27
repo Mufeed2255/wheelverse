@@ -2,18 +2,15 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.shortcuts import get_object_or_404, redirect, render
-from django.db.models import Count, Q, Min, Sum
+from django.db.models import Count, Q, Min
 from adminpanel.models import Product, Category, ProductVariant
-from Products.models import Cart, Wishlist, Order, OrderItem, OrderAddress
+from Products.models import Cart, Wishlist
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from decimal import Decimal
-from Accounts.models import Address
-from django.db import transaction
-import re
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-
+from decimal import Decimal
 
 def user_collections(request):
     search_query = request.GET.get('search', '').strip()
@@ -185,11 +182,9 @@ def add_to_cart(request):
     return redirect("collections")
 
 
-@login_required
-def cart_view(request):
-
+def get_cart_totals(user):
     cart_items = Cart.objects.filter(
-        user=request.user,
+        user=user,
         variant__is_active=True,
         variant__is_deleted=False
     )
@@ -197,13 +192,15 @@ def cart_view(request):
     subtotal = sum(item.subtotal() for item in cart_items)
 
     discount = Decimal("0.00")
-    shipping = Decimal("0.00")
-
-    if subtotal > 0:
-        shipping = Decimal("80.00")
-
-    # Always calculate grand total
+    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
     grand_total = subtotal - discount + shipping
+
+    return cart_items, subtotal, discount, shipping, grand_total
+
+
+@login_required
+def cart_view(request):
+    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
 
     context = {
         "cart_items": cart_items,
@@ -216,17 +213,40 @@ def cart_view(request):
 
     return render(request, "products/cart.html", context)
 
+
 @login_required
 def increase_cart_item(request, item_id):
     cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
 
     if cart_item.quantity >= cart_item.variant.stock:
-        messages.error(request, "Stock unavailable.")
-    else:
-        cart_item.quantity += 1
-        cart_item.save()
-        messages.success(request, "Cart updated successfully.")
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": False,
+                "message": "Stock unavailable."
+            })
 
+        messages.error(request, "Stock unavailable.")
+        return redirect("cart")
+
+    cart_item.quantity += 1
+    cart_item.save()
+
+    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "success": True,
+            "item_id": cart_item.id,
+            "quantity": cart_item.quantity,
+            "item_subtotal": str(cart_item.subtotal()),
+            "subtotal": str(subtotal),
+            "discount": str(discount),
+            "shipping": str(shipping),
+            "grand_total": str(grand_total),
+            "cart_count": cart_items.count(),
+        })
+
+    messages.success(request, "Cart updated successfully.")
     return redirect("cart")
 
 
@@ -234,14 +254,35 @@ def increase_cart_item(request, item_id):
 def decrease_cart_item(request, item_id):
     cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
 
-    if cart_item.quantity > 1:
-        cart_item.quantity -= 1
-        cart_item.save()
-        messages.success(request, "Cart updated successfully.")
-    else:
-        cart_item.quantity < 1
-        messages.success(request,'cannot decrease')
+    if cart_item.quantity <= 1:
+        if request.headers.get("x-requested-with") == "XMLHttpRequest":
+            return JsonResponse({
+                "success": False,
+                "message": "Minimum quantity is 1."
+            })
 
+        messages.error(request, "Minimum quantity is 1.")
+        return redirect("cart")
+
+    cart_item.quantity -= 1
+    cart_item.save()
+
+    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse({
+            "success": True,
+            "item_id": cart_item.id,
+            "quantity": cart_item.quantity,
+            "item_subtotal": str(cart_item.subtotal()),
+            "subtotal": str(subtotal),
+            "discount": str(discount),
+            "shipping": str(shipping),
+            "grand_total": str(grand_total),
+            "cart_count": cart_items.count(),
+        })
+
+    messages.success(request, "Cart updated successfully.")
     return redirect("cart")
 
 
@@ -252,7 +293,6 @@ def remove_cart_item(request, item_id):
 
     messages.success(request, "Product removed from cart.")
     return redirect("cart")
-
 
 
 
@@ -340,226 +380,3 @@ def move_wishlist_to_cart(request, item_id):
     return redirect("cart")
 
 
-def validate_checkout_address(data):
-    name = data.get("name", "").strip()
-    phone_number = data.get("phone_number", "").strip()
-    pincode = data.get("pincode", "").strip()
-    address_line_1 = data.get("address_line_1", "").strip()
-    city = data.get("city", "").strip()
-    state = data.get("state", "").strip()
-
-    if not name or len(name) < 2 or len(name) > 20:
-        return False, "Please enter a valid name (2 to 20 characters)."
-
-    phone_regex = r"^\+?[\d\s-]{7,10}$"
-    if not phone_number or not re.match(phone_regex, phone_number):
-        return False, "Please enter a valid phone number."
-
-    if not address_line_1 or len(address_line_1) < 5:
-        return False, "Please enter a valid address."
-
-    if not city or len(city) < 2:
-        return False, "Please enter a valid city."
-
-    if not state or len(state) < 2:
-        return False, "Please enter a valid state."
-
-    if not pincode or not re.match(r"^\d{6}$", pincode):
-        return False, "Pincode must be exactly 6 digits."
-
-    return True, ""
-
-
-
-@login_required
-@require_POST
-def checkout_add_address(request):
-    is_valid, error_message = validate_checkout_address(request.POST)
-
-    if not is_valid:
-        return JsonResponse({"success": False, "message": error_message}, status=400)
-
-    is_default = request.POST.get("is_default") == "on"
-
-    if is_default:
-        Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
-
-    if not Address.objects.filter(user=request.user).exists():
-        is_default = True
-
-    address = Address.objects.create(
-        user=request.user,
-        name=request.POST.get("name").strip(),
-        phone_number=request.POST.get("phone_number").strip(),
-        address_line_1=request.POST.get("address_line_1").strip(),
-        address_line_2=request.POST.get("address_line_2", "").strip(),
-        city=request.POST.get("city").strip(),
-        state=request.POST.get("state").strip(),
-        pincode=request.POST.get("pincode").strip(),
-        country="INDIA",
-        address_type=request.POST.get("address_type", "HOME"),
-        is_default=is_default,
-    )
-
-    return JsonResponse({
-        "success": True,
-        "message": "Address added successfully.",
-        "address": {
-            "id": address.id,
-            "name": address.name,
-            "phone_number": address.phone_number,
-            "address_line_1": address.address_line_1,
-            "address_line_2": address.address_line_2 or "",
-            "city": address.city,
-            "state": address.state,
-            "pincode": address.pincode,
-            "country": address.country,
-            "address_type": address.address_type,
-            "is_default": address.is_default,
-        }
-    })
-    
-    
-@login_required
-def checkout(request):
-    cart_items = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).select_related("variant", "variant__product").prefetch_related("variant__images")
-
-    if not cart_items.exists():
-        messages.error(request, "Your cart is empty.")
-        return redirect("cart")
-
-    subtotal = sum(item.subtotal() for item in cart_items)
-    discount = Decimal("0.00")
-    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
-    grand_total = subtotal - discount + shipping
-
-    addresses = Address.objects.filter(user=request.user).order_by("-is_default", "-created_at")
-
-    return render(request, "products/checkout.html", {
-        "cart_items": cart_items,
-        "addresses": addresses,
-        "subtotal": subtotal,
-        "discount": discount,
-        "shipping": shipping,
-        "grand_total": grand_total,
-        "cart_count": cart_items.count(),
-    })
-
-@login_required
-@transaction.atomic
-def place_order(request):
-    if request.method != "POST":
-        return redirect("checkout")
-
-    cart_items = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).select_related("variant", "variant__product")
-
-    if not cart_items.exists():
-        messages.error(request, "Your cart is empty.")
-        return redirect("cart")
-
-    selected_address_id = request.POST.get("selected_address")
-    payment_method = request.POST.get("payment_method", "COD")
-
-    if not selected_address_id:
-        messages.error(request, "Please select a delivery address.")
-        return redirect("checkout")
-
-    selected_address = get_object_or_404(
-        Address,
-        id=selected_address_id,
-        user=request.user
-    )
-
-    full_name = selected_address.name
-    email = request.user.email
-    phone = selected_address.phone_number
-
-    address = selected_address.address_line_1
-    if selected_address.address_line_2:
-        address += f", {selected_address.address_line_2}"
-
-    city = selected_address.city
-    state = selected_address.state
-    postal_code = selected_address.pincode
-
-    if not phone.isdigit() or len(phone) != 10:
-        messages.error(request, "Selected address phone number must be 10 digits.")
-        return redirect("checkout")
-
-    if not postal_code.isdigit() or len(postal_code) != 6:
-        messages.error(request, "Selected address pincode must be 6 digits.")
-        return redirect("checkout")
-
-    if payment_method != "COD":
-        messages.error(request, "Currently only Cash on Delivery is available.")
-        return redirect("checkout")
-
-    subtotal = Decimal("0.00")
-
-    for item in cart_items:
-        variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
-
-        if item.quantity > variant.stock:
-            messages.error(
-                request,
-                f"Only {variant.stock} stock available for {variant.product.name}."
-            )
-            return redirect("cart")
-
-        subtotal += item.variant.price * item.quantity
-
-    discount = Decimal("0.00")
-    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
-    grand_total = subtotal - discount + shipping
-
-    order = Order.objects.create(
-        user=request.user,
-        subtotal=subtotal,
-        discount=discount,
-        shipping_charge=shipping,
-        total_amount=grand_total,
-        payment_method="COD",
-        status="PENDING",
-    )
-
-    OrderAddress.objects.create(
-        order=order,
-        full_name=full_name,
-        email=email,
-        phone=phone,
-        address=address,
-        city=city,
-        state=state,
-        postal_code=postal_code,
-    )
-
-    for item in cart_items:
-        variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
-        item_total = variant.price * item.quantity
-
-        OrderItem.objects.create(
-            order=order,
-            variant=variant,
-            product_name=variant.product.name,
-            variant_color=variant.color,
-            variant_size=variant.size,
-            price=variant.price,
-            quantity=item.quantity,
-            item_total=item_total,
-        )
-
-        variant.stock -= item.quantity
-        variant.save()
-
-    cart_items.delete()
-
-    messages.success(request, "Order placed successfully.")
-    return redirect("order_success", order_id=order.id)

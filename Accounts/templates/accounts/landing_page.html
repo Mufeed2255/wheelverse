@@ -367,9 +367,9 @@ tailwind.config = {
       <div class="hidden lg:flex items-center gap-8">
         <a class="nav-link active" href="{% url 'landing_page' %}">Home</a>
         <a class="nav-link" href="{% url 'collections' %}">Collections</a>
-        <a class="nav-link" href="#">Cart</a>
-        <a class="nav-link" href="#">Orders</a>
-        <a class="nav-link" href="#">Wishlist</a>
+        <a class="nav-link" href="{% url 'cart' %}">Cart</a>
+        <a class="nav-link" href="">Orders</a>
+        <a class="nav-link" href="{% url 'wishlist' %}">Wishlist</a>
       </div>
     </div>
     

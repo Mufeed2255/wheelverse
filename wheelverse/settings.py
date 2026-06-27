@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'Accounts', 
     'adminpanel',
     'Products',
+    'Orders',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',

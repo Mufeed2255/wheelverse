@@ -90,18 +90,9 @@
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
     {% include "include/user_topbar.html" %}
+    {% include "adminpanel/includes/messages.html" %}
 
     <main class="max-w-[1700px] mx-auto px-8 lg:px-14 pt-28 pb-20">
-    {% if messages %}
-        <div class="mb-8 space-y-3">
-            {% for message in messages %}
-            <div class="glass-panel px-5 py-4 text-sm orbitron
-                {% if message.tags == 'error' %}text-red-300 border-red-400/30{% else %}text-[#f2ca50]{% endif %}">
-                {{ message }}
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
 
     <div class="flex items-center gap-2 mb-8 text-xs orbitron">
         <a href="{% url 'landing_page' %}" class="text-[#d0c5af] no-underline">Home</a>
@@ -196,7 +187,7 @@
                 </p>
             </div>
 
-            <p class="text-[#d0c5af] text-sm leading-relaxed mb-7">
+            <p class="text-[#d0c5af] text-sm leading-relaxed mb-7 break-words break-all overflow-hidden max-w-full">
                 {{ product.description }}
             </p>
 
