@@ -262,8 +262,9 @@
         {% if first_variant and first_variant.stock > 0 %}
             <button id="addToCartBtn"
                     type="submit"
-                    class="btn-gold py-4 rounded-sm text-sm w-full">
-                ADD TO CART
+                    {% if not first_variant or first_variant.stock <= 0 %}disabled{% endif %}
+                    class="{% if first_variant and first_variant.stock > 0 %}btn-gold{% else %}bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed{% endif %} py-4 rounded-sm text-sm w-full">
+                {% if first_variant and first_variant.stock > 0 %}ADD TO CART{% else %}OUT OF STOCK{% endif %}
             </button>
         {% else %}
             <button id="addToCartBtn"
@@ -489,10 +490,12 @@ document.addEventListener("DOMContentLoaded", function () {
         if (addToCartBtn) {
             if (stock > 0) {
                 addToCartBtn.disabled = false;
+                addToCartBtn.type = "submit";       // ← KEY FIX
                 addToCartBtn.textContent = "ADD TO CART";
                 addToCartBtn.className = "btn-gold py-4 rounded-sm text-sm w-full";
             } else {
                 addToCartBtn.disabled = true;
+                addToCartBtn.type = "button";       // ← prevent accidental submit
                 addToCartBtn.textContent = "OUT OF STOCK";
                 addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full";
             }

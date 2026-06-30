@@ -115,6 +115,15 @@
         height: 0;
         display: none;
     }
+    .user-menu a.active{
+
+    background:#262114;
+
+    border-left:4px solid #f2ca50;
+
+    color:#f2ca50;
+
+}
 
 </style>
 
@@ -154,7 +163,7 @@
                 Profile Info
             </a>
 
-            <a href="#"
+            <a href="{% url 'my_orders'%}"
                class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
                 <span class="material-symbols-outlined text-lg">inventory_2</span>
                 My Garage Orders

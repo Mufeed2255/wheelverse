@@ -1,1 +1,435 @@
+{% load static %}
 
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    
+    <title>WheelVerse | My Garage Orders</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0c0a06",
+                        "on-background": "#eae1d4",
+                        "surface": "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-low": "#1f1b13",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline": "#99907c",
+                        "outline-variant": "#4d4635",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "on-primary": "#3c2f00",
+                        "on-primary-fixed": "#241a00",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a"
+                        
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+        }
+
+        .page-content {
+            margin-left: 360px;
+            padding-top: 130px;
+            min-height: 100vh;
+            background: #080705;
+        }
+
+        @media(max-width: 900px) {
+            .page-content {
+                margin-left: 0;
+                padding-top: 120px;
+            }
+        }
+
+        glass-panel {
+            background: rgba(26,26,26,.72);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(242,202,80,.15);
+        }
+
+        .hud-card {
+            background: rgba(26, 26, 26, 0.75);
+            border: 1px solid rgba(242, 202, 80, 0.16);
+            transition: 0.35s ease;
+        }
+
+        .hud-card:hover {
+            border-color: rgba(242, 202, 80, 0.45);
+            box-shadow: 0 0 28px rgba(242, 202, 80, 0.12);
+            transform: translateY(-3px);
+        }
+
+        .hud-image {
+            transition: 0.6s ease;
+        }
+
+        .hud-card:hover .hud-image {
+            transform: scale(1.08);
+        }
+
+        .gold-gradient {
+            background: linear-gradient(135deg, #f2ca50 0%, #d4af37 100%);
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 25px rgba(242, 202, 80, 0.35);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+        }
+
+        .filter-btn {
+            font-family: Orbitron, sans-serif;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            padding: 13px 22px;
+            border-radius: 4px;
+            transition: 0.25s ease;
+        }
+
+        .filter-normal {
+            background: rgba(35,31,23,.85);
+            border: 1px solid rgba(77,70,53,.9);
+            color: #d0c5af;
+        }
+
+        .filter-normal:hover {
+            color: #f2ca50;
+            border-color: rgba(242,202,80,.45);
+        }
+
+        .filter-active {
+            background: linear-gradient(135deg, #f2ca50 0%, #d4af37 100%);
+            color: #241a00;
+            box-shadow: 0 0 22px rgba(242,202,80,.35);
+        }
+
+        .search-box {
+            background: rgba(35,31,23,.65);
+            border: 1px solid rgba(77,70,53,.8);
+        }
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+</head>
+
+<body class="font-body-md min-h-screen flex flex-col">
+
+{% include "include/user_sidebar.html" %}
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="page-content">
+    <div class="max-w-[1200px] mx-auto px-12 py-10">
+
+        <div class="mb-10">
+            <h2 class="font-display-lg text-3xl tracking-wide text-primary uppercase">
+                MY GARAGE ORDERS
+            </h2>
+            <p class="text-on-surface-variant text-sm mt-1 opacity-70 max-w-2xl">
+                Manage your active acquisitions and track every WheelVerse collectible from checkout to delivery.
+            </p>
+        </div>
+
+        <div class="glass-panel rounded border border-white/5 p-6 mb-8">
+            <div class="flex flex-col xl:flex-row gap-5 xl:items-center xl:justify-between">
+
+                <div class="flex flex-wrap gap-3">
+                    <a href="{% url 'my_orders' %}"
+                       class="filter-btn {% if status_filter == 'all' %}filter-active{% else %}filter-normal{% endif %}">
+                        ALL ORDERS
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.all }}</span>
+                    </a>
+
+                    <a href="?status=PENDING{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="filter-btn {% if status_filter == 'PENDING' %}filter-active{% else %}filter-normal{% endif %}">
+                        PENDING
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.pending }}</span>
+                    </a>
+
+                    <a href="?status=CONFIRMED{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="filter-btn {% if status_filter == 'CONFIRMED' %}filter-active{% else %}filter-normal{% endif %}">
+                        CONFIRMED
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.confirmed }}</span>
+                    </a>
+
+                    <a href="?status=SHIPPED{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="filter-btn {% if status_filter == 'SHIPPED' %}filter-active{% else %}filter-normal{% endif %}">
+                        IN TRANSIT
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.shipped }}</span>
+                    </a>
+
+                    <a href="?status=DELIVERED{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="filter-btn {% if status_filter == 'DELIVERED' %}filter-active{% else %}filter-normal{% endif %}">
+                        DELIVERED
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.delivered }}</span>
+                    </a>
+                </div>
+
+                <form method="GET" class="search-box flex items-center rounded px-4 py-2 w-full xl:w-[280px]">
+                    <span class="material-symbols-outlined text-on-surface-variant text-lg mr-2">search</span>
+
+                    <input
+                        type="text"
+                        name="search"
+                        value="{{ search_query }}"
+                        placeholder="SEARCH ORDERS..."
+                        class="w-full bg-transparent border-none focus:ring-0 text-xs text-on-surface placeholder:text-on-surface-variant/40 font-label-caps tracking-widest"
+                    >
+
+                    {% if status_filter != 'all' %}
+                        <input type="hidden" name="status" value="{{ status_filter }}">
+                    {% endif %}
+                </form>
+
+            </div>
+        </div>
+
+        <div class="space-y-6">
+
+            {% for order in orders %}
+                {% with first_item=order.items.first %}
+
+                <article class="hud-card rounded overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-12">
+
+                        <div class="lg:col-span-4 min-h-[260px] relative overflow-hidden bg-[#110e07]">
+                            {% if first_item.variant and first_item.variant.images.first %}
+                                <img
+                                    src="{{ first_item.variant.images.first.image.url }}"
+                                    alt="{{ first_item.product_name }}"
+                                    class="hud-image w-full h-full object-cover opacity-80"
+                                >
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-8xl">
+                                        directions_car
+                                    </span>
+                                </div>
+                            {% endif %}
+
+                            <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent"></div>
+
+                            <span class="absolute top-4 left-4 bg-primary text-on-primary-fixed font-label-caps text-[10px] px-3 py-1 rounded">
+                                WHEELVERSE
+                            </span>
+                        </div>
+
+                        <div class="lg:col-span-8 p-7 flex flex-col justify-between">
+                            <div>
+                                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+
+                                    <div>
+                                        <p class="font-label-caps text-[10px] text-primary tracking-widest mb-2">
+                                            #{{ order.order_id }}
+                                        </p>
+
+                                        <h3 class="font-display-lg text-2xl md:text-3xl text-on-surface uppercase tracking-wide leading-tight">
+                                            {% if first_item %}
+                                                {{ first_item.product_name }}
+                                            {% else %}
+                                                WheelVerse Collectible
+                                            {% endif %}
+                                        </h3>
+
+                                        <p class="text-on-surface-variant text-sm mt-2">
+                                            {{ order.items.count }} item{% if order.items.count > 1 %}s{% endif %}
+                                            • {{ order.payment_method }}
+                                            • INR: {{ order.total_amount }}
+                                        </p>
+
+                                        {% if order.items.count > 1 %}
+                                            <p class="text-[#ff4b4b] text-xs font-label-caps mt-2">
+                                                {{ order.items.count|add:"-1" }} MORE ITEM
+                                            </p>
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="md:text-right">
+                                        {% if order.status == "DELIVERED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-green-500/10 border border-green-500/40 text-green-400 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-green-500"></span>
+                                                DELIVERED
+                                            </div>
+                                        {% elif order.status == "SHIPPED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-blue-500/10 border border-blue-500/40 text-blue-400 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-blue-500 animate-pulse"></span>
+                                                IN TRANSIT
+                                            </div>
+                                        {% elif order.status == "CONFIRMED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-primary/10 border border-primary/40 text-primary text-[10px] font-label-caps">
+                                                <span class="status-dot bg-primary animate-pulse"></span>
+                                                CONFIRMED
+                                            </div>
+                                        {% elif order.status == "CANCELLED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-red-500/10 border border-red-500/40 text-red-400 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-red-500"></span>
+                                                CANCELLED
+                                            </div>
+                                        {% elif order.status == "RETURN_REQUESTED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-orange-500/10 border border-orange-500/40 text-orange-300 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-orange-300 animate-pulse"></span>
+                                                RETURN REQUESTED
+                                            </div>
+                                        {% elif order.status == "RETURNED" %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-purple-500/10 border border-purple-500/40 text-purple-300 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-purple-300"></span>
+                                                RETURNED
+                                            </div>
+                                        {% else %}
+                                            <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-yellow-500/10 border border-yellow-500/40 text-yellow-300 text-[10px] font-label-caps">
+                                                <span class="status-dot bg-yellow-300 animate-pulse"></span>
+                                                PENDING
+                                            </div>
+                                        {% endif %}
+
+                                        <p class="font-label-caps text-[10px] text-on-surface-variant mt-3">
+                                            {{ order.ordered_at|date:"M d, Y" }}
+                                        </p>
+                                    </div>
+
+                                </div>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-y border-white/5 py-5 mt-6">
+                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                        <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">SUBTOTAL</p>
+                                        <p class="font-body-md text-sm text-on-surface">INR: {{ order.subtotal }}</p>
+                                    </div>
+
+                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                        <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">SHIPPING</p>
+                                        <p class="font-body-md text-sm text-on-surface">INR: {{ order.shipping_charge }}</p>
+                                    </div>
+
+                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                        <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">TOTAL_AMOUNT</p>
+                                        <p class="font-body-md text-sm text-primary">INR: {{ order.total_amount }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-wrap justify-end gap-4 mt-6">
+                                {% if order.status == "DELIVERED" %}
+                                    <a href="#"
+                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                        WRITE REVIEW
+                                    </a>
+                                {% elif order.status == "SHIPPED" %}
+                                    <a href="{% url 'order_detail' order.id %}"
+                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                        TRACK SHIPMENT
+                                    </a>
+                                {% else %}
+                                    <a href="{% url 'order_detail' order.id %}"
+                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                        TRACK ORDER
+                                    </a>
+                                {% endif %}
+
+                                <a href="{% url 'order_detail' order.id %}"
+                                   class="gold-gradient text-on-primary-fixed px-6 py-3 text-[10px] font-label-caps tracking-widest flex items-center gap-2 hover:scale-[1.03] transition">
+                                    VIEW DETAILS
+                                    <span class="material-symbols-outlined text-sm">arrow_forward</span>
+                                </a>
+                            </div>
+                        </div>
+
+                    </div>
+                </article>
+
+                {% endwith %}
+            {% empty %}
+
+                <div class="glass-panel rounded border border-white/5 p-16 text-center">
+                    <span class="material-symbols-outlined text-primary text-7xl">inventory_2</span>
+
+                    <h2 class="font-display-lg text-3xl text-primary mt-6">
+                        NO GARAGE ORDERS FOUND
+                    </h2>
+
+                    <p class="text-on-surface-variant mt-3">
+                        Your WheelVerse acquisitions will appear here.
+                    </p>
+
+                    <a href="{% url 'collections' %}"
+                       class="inline-block mt-8 gold-gradient text-on-primary-fixed font-label-caps px-8 py-4 rounded">
+                        EXPLORE COLLECTIONS
+                    </a>
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% if page_obj.has_other_pages %}
+            <div class="flex justify-center items-center gap-3 mt-10">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="border border-primary/30 text-primary px-4 py-2 font-label-caps text-xs hover:bg-primary hover:text-background transition">
+                        PREV
+                    </a>
+                {% endif %}
+
+                <span class="font-label-caps text-primary">
+                    PAGE {{ page_obj.number }} OF {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
+                       class="border border-primary/30 text-primary px-4 py-2 font-label-caps text-xs hover:bg-primary hover:text-background transition">
+                        NEXT
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
+</main>
+
+</body>
+</html>

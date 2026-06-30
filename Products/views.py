@@ -11,6 +11,9 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from decimal import Decimal
+from django.db.models import Prefetch
+
+
 
 def user_collections(request):
     search_query = request.GET.get('search', '').strip()
@@ -33,6 +36,13 @@ def user_collections(request):
 
     products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
     
+    products_queryset = products_queryset.prefetch_related(
+    Prefetch(
+        'variants',
+        queryset=ProductVariant.objects.filter(is_active=True, is_deleted=False).order_by('id'),
+        to_attr='active_variants'
+    )
+)
 
     categories = Category.objects.filter(is_active=True).annotate(
         total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))

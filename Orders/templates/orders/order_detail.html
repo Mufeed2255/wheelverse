@@ -1,0 +1,403 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WheelVerse | Order Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#f2ca50",
+                        background: "#0c0a06",
+                        surface: "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline-variant": "#4d4635",
+                        error: "#ffb4ab",
+                        "error-container": "#93000a",
+                    },
+                    fontFamily: {
+                        "display-lg": ["Orbitron"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "body-md": ["Poppins"],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+        }
+
+        .page-content {
+            margin-left: 360px;
+            padding-top: 130px;
+            min-height: 100vh;
+            background: #080705;
+        }
+
+        @media(max-width:900px) {
+            .page-content {
+                margin-left: 0;
+                padding-top: 120px;
+            }
+        }
+
+        .carbon-glass {
+            background: rgba(26, 26, 26, 0.78);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(242, 202, 80, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .carbon-glass::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.025) 1px, transparent 0);
+            background-size: 24px 24px;
+            pointer-events: none;
+        }
+
+        .gold-gradient {
+            background: linear-gradient(90deg, #d4af37 0%, #f2ca50 50%, #d4af37 100%);
+        }
+
+        .gold-glow {
+            box-shadow: 0 0 22px rgba(242, 202, 80, 0.35);
+        }
+
+        .danger-zone {
+            background: rgba(147, 0, 10, 0.22);
+            border: 1px solid rgba(255, 180, 171, 0.22);
+        }
+
+        .product-img {
+            transition: 0.7s ease;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.06);
+        }
+    </style>
+</head>
+
+<body class="font-body-md min-h-screen">
+
+{% include "include/user_sidebar.html" %}
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="page-content">
+    <div class="max-w-[1200px] mx-auto px-12 py-10">
+
+        <div class="mb-10">
+            <div class="font-label-caps text-xs tracking-widest mb-4">
+                <a href="{% url 'my_orders' %}" class="text-on-surface-variant hover:text-primary">
+                    GARAGE ORDERS
+                </a>
+                <span class="mx-2 text-on-surface-variant">›</span>
+                <span class="text-primary">ORDER DETAILS</span>
+            </div>
+
+            <h1 class="font-display-lg text-5xl tracking-widest text-on-surface uppercase">
+                ORDER DETAILS
+            </h1>
+
+            <p class="text-on-surface-variant text-sm mt-3">
+                Track your legendary collectible shipment inside the WheelVerse universe.
+            </p>
+        </div>
+
+        <section class="carbon-glass p-7 mb-8">
+            <div class="relative z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+
+                <div class="flex items-center gap-5">
+                    <div class="w-20 h-20 rounded bg-primary/10 border border-primary/25 flex items-center justify-center">
+                        <span class="material-symbols-outlined text-primary text-5xl">
+                            {% if order.status == "DELIVERED" %}
+                                verified
+                            {% elif order.status == "CANCELLED" %}
+                                cancel
+                            {% else %}
+                                local_shipping
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div>
+                        <div class="flex flex-wrap items-center gap-3 mb-2">
+                            <span class="font-label-caps text-xs bg-primary text-[#241a00] px-3 py-1 rounded">
+                                {{ order.status }}
+                            </span>
+
+                            <span class="font-label-caps text-xs text-on-surface-variant">
+                                ID: #{{ order.order_id }}
+                            </span>
+                        </div>
+
+                        <h2 class="font-headline-md text-2xl md:text-3xl text-on-surface uppercase">
+                            {% if order.status == "DELIVERED" %}
+                                DELIVERED ON {{ order.updated_at|date:"F d, Y" }}
+                            {% elif order.status == "CANCELLED" %}
+                                ORDER CANCELLED
+                            {% else %}
+                                EST. DELIVERY: {{ order.ordered_at|date:"F d, Y" }}
+                            {% endif %}
+                        </h2>
+                    </div>
+                </div>
+
+                <div>
+                    <a href="#"
+                       class="inline-block px-8 py-3 border border-primary/40 text-primary font-label-caps text-xs tracking-widest hover:bg-primary hover:text-[#241a00] transition">
+                        DOWNLOAD INVOICE
+                    </a>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="carbon-glass p-10 mb-8">
+            <div class="relative z-10">
+                <div class="relative h-16 flex items-center">
+                    <div class="absolute left-0 right-0 h-1 bg-surface-container-highest"></div>
+                    <div class="absolute left-0 h-1 bg-primary gold-glow" style="width: {{ progress_percent }}%;"></div>
+
+                    <div class="relative z-10 flex justify-between w-full">
+                        <div class="text-center">
+                            <div class="w-8 h-8 mx-auto rounded bg-primary gold-glow"></div>
+                            <p class="font-label-caps text-[10px] text-primary mt-3">Pending</p>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="w-8 h-8 mx-auto rounded {% if order.status == 'CONFIRMED' or order.status == 'SHIPPED' or order.status == 'DELIVERED' %}bg-primary gold-glow{% else %}bg-surface-container-highest{% endif %}"></div>
+                            <p class="font-label-caps text-[10px] mt-3 {% if order.status == 'CONFIRMED' or order.status == 'SHIPPED' or order.status == 'DELIVERED' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                                Confirmed
+                            </p>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="w-8 h-8 mx-auto rounded {% if order.status == 'SHIPPED' or order.status == 'DELIVERED' %}bg-primary gold-glow{% else %}bg-surface-container-highest{% endif %}"></div>
+                            <p class="font-label-caps text-[10px] mt-3 {% if order.status == 'SHIPPED' or order.status == 'DELIVERED' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                                Shipped
+                            </p>
+                        </div>
+
+                        <div class="text-center">
+                            <div class="w-8 h-8 mx-auto rounded {% if order.status == 'DELIVERED' %}bg-primary gold-glow{% else %}bg-surface-container-highest{% endif %}"></div>
+                            <p class="font-label-caps text-[10px] mt-3 {% if order.status == 'DELIVERED' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                                Delivered
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-12 gap-6">
+
+            <div class="col-span-12 lg:col-span-8 space-y-6">
+
+                {% for item in order.items.all %}
+                    <div class="product-card carbon-glass rounded overflow-hidden">
+                        <div class="relative aspect-video overflow-hidden">
+
+                            {% if item.variant and item.variant.images.first %}
+                                <img src="{{ item.variant.images.first.image.url }}"
+                                     alt="{{ item.product_name }}"
+                                     class="product-img w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center bg-[#110e07]">
+                                    <span class="material-symbols-outlined text-primary text-8xl">
+                                        directions_car
+                                    </span>
+                                </div>
+                            {% endif %}
+
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+
+                            <div class="absolute top-6 left-6 flex flex-wrap gap-3">
+                                <span class="bg-primary text-[#241a00] font-label-caps text-xs px-4 py-1 rounded">
+                                    WHEELVERSE
+                                </span>
+
+                                <span class="bg-surface/90 text-primary border border-primary/30 font-label-caps text-xs px-4 py-1 rounded">
+                                    STATUS: {{ order.status }}
+                                </span>
+                            </div>
+
+                            <div class="absolute bottom-6 left-7 right-7">
+                                <h3 class="font-display-lg text-3xl text-white uppercase leading-tight">
+                                    {{ item.product_name }}
+                                </h3>
+
+                                <p class="font-label-caps text-primary tracking-widest mt-2">
+                                    {{ item.variant_color|default:"Collector Edition" }}
+                                    {% if item.variant_size %}
+                                        • {{ item.variant_size }}
+                                    {% endif %}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 md:grid-cols-4 border-t border-outline-variant/20">
+                            <div class="p-5 border-r border-outline-variant/20 text-center">
+                                <p class="font-label-caps text-[10px] text-on-surface-variant">QTY</p>
+                                <p class="font-headline-md text-primary text-xl">{{ item.quantity }}</p>
+                            </div>
+
+                            <div class="p-5 border-r border-outline-variant/20 text-center">
+                                <p class="font-label-caps text-[10px] text-on-surface-variant">UNIT PRICE</p>
+                                <p class="font-headline-md text-primary text-xl">₹{{ item.price }}</p>
+                            </div>
+
+                            <div class="p-5 border-r border-outline-variant/20 text-center">
+                                <p class="font-label-caps text-[10px] text-on-surface-variant">TOTAL</p>
+                                <p class="font-headline-md text-primary text-xl">₹{{ item.item_total }}</p>
+                            </div>
+
+                            <div class="p-5 text-center">
+                                <p class="font-label-caps text-[10px] text-on-surface-variant">ITEM STATUS</p>
+                                <p class="font-headline-md text-primary text-xl">{{ order.status }}</p>
+                            </div>
+                        </div>
+
+                        <div class="danger-zone p-5">
+                            <div class="flex items-center gap-3 mb-4">
+                                <span class="material-symbols-outlined text-error">report</span>
+                                <h4 class="font-label-caps text-xs text-error">DANGER ZONE</h4>
+                            </div>
+
+                            {% if order.status == "PENDING" or order.status == "CONFIRMED" %}
+                                <button class="w-full py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
+                                    CANCEL ORDER
+                                </button>
+                                <p class="text-[10px] text-error/60 text-center mt-3">
+                                    Available until package leaves the primary vault.
+                                </p>
+                            {% elif order.status == "DELIVERED" %}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <button class="py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
+                                        RETURN ORDER
+                                    </button>
+
+                                    <button class="py-3 bg-primary text-[#241a00] font-label-caps text-xs rounded hover:scale-[1.02] transition">
+                                        WRITE REVIEW
+                                    </button>
+                                </div>
+                            {% else %}
+                                <p class="text-error/70 text-sm">
+                                    Order action is not available for this status.
+                                </p>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+
+            </div>
+
+            <aside class="col-span-12 lg:col-span-4 space-y-6">
+
+                <div class="carbon-glass p-7">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-primary">location_on</span>
+                        <h4 class="font-label-caps text-xs text-on-surface">DELIVERY ADDRESS</h4>
+                    </div>
+
+                    {% if address %}
+                        <div class="border-l-2 border-primary pl-6 py-2">
+                            <p class="font-headline-md text-on-surface text-2xl mb-2">
+                                {{ address.full_name }}
+                            </p>
+                            <p class="text-on-surface-variant leading-relaxed">
+                                {{ address.address }}<br>
+                                {{ address.city }}, {{ address.state }}<br>
+                                {{ address.postal_code }}<br>
+                                Phone: {{ address.phone }}
+                            </p>
+                        </div>
+                    {% else %}
+                        <p class="text-on-surface-variant">No delivery address found.</p>
+                    {% endif %}
+                </div>
+
+                <div class="carbon-glass p-7">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-primary">inventory_2</span>
+                        <h4 class="font-label-caps text-xs text-on-surface">SHIPPING DETAILS</h4>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="flex justify-between border-b border-outline-variant/20 pb-4">
+                            <span class="text-on-surface-variant">Courier</span>
+                            <span class="text-primary font-label-caps text-xs">WHEELVERSE EXPRESS</span>
+                        </div>
+
+                        <div class="flex justify-between">
+                            <span class="text-on-surface-variant">Tracking ID</span>
+                            <span class="text-on-surface text-sm">
+                                WLV-TRACK-{{ order.id }}{{ order.user.id }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="carbon-glass p-7 border-t-2 border-[#00D1FF]">
+                    <div class="flex items-center gap-3 mb-6">
+                        <span class="material-symbols-outlined text-[#00D1FF]">receipt_long</span>
+                        <h4 class="font-label-caps text-xs text-on-surface">PAYMENT SUMMARY</h4>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <div class="flex justify-between text-on-surface-variant">
+                            <span>Subtotal</span>
+                            <span>₹{{ order.subtotal }}</span>
+                        </div>
+
+                        <div class="flex justify-between text-on-surface-variant">
+                            <span>Shipping Fee</span>
+                            <span>₹{{ order.shipping_charge }}</span>
+                        </div>
+
+                        <div class="flex justify-between text-on-surface-variant">
+                            <span>Discount</span>
+                            <span>- ₹{{ order.discount }}</span>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-outline-variant/20 flex justify-between items-center">
+                        <span class="font-label-caps text-xs">TOTAL PAID</span>
+                        <span class="font-display-lg text-3xl text-primary">
+                            ₹{{ order.total_amount }}
+                        </span>
+                    </div>
+                </div>
+
+            </aside>
+
+        </section>
+
+    </div>
+</main>
+
+</body>
+</html>

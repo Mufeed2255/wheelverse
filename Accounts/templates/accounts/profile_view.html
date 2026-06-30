@@ -74,31 +74,32 @@
                         "margin-desktop": "80px",
                         "gutter": "24px"
                     },
-                    "fontFamily": {
-                        "display-lg-mobile": ["Orbitron"],
-                        "body-md": ["Poppins"],
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
                         "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
                         "display-lg": ["Orbitron"],
-                        "body-lg": ["Poppins"],
-                        "label-caps": ["Orbitron"]
+                        "body-md": ["Poppins"]
                     }
                 },
             },
         }
     </script>
     <style>
-        body {
-            background-color: #0c0a06;
-            color: #eae1d4;
-            overflow-x: hidden;
+        body{
+            background:#080705;
+            color:#eae1d4;
         }
-        .glass-panel {
-            background: rgba(22, 19, 11, 0.4);
-            border: 1px solid rgba(242, 202, 80, 0.08);
+
+        .glass-card{
+            background:rgba(26,26,26,.75);
+            border:1px solid rgba(242,202,80,.18);
+            backdrop-filter:blur(18px);
         }
-        .hud-input-wrap {
-            border: 1px solid rgba(242, 202, 80, 0.15);
-            background: rgba(0, 0, 0, 0.2);
+
+        .gold-glow{
+            box-shadow:0 0 25px rgba(242,202,80,.45);
         }
     </style>
 </head>
@@ -113,7 +114,22 @@
     
 
     <!-- Main Section Layout -->
-    <main class="ml-72 pt-20 flex-1 relative z-10 bg-[#0c0a06]">
+    <main class="page-content">
+        <style>
+        .page-content {
+            margin-left: 360px;
+            padding-top: 130px;
+            min-height: 100vh;
+            background: #080705;
+        }
+
+        @media(max-width: 900px) {
+            .page-content {
+                margin-left: 0;
+                padding-top: 120px;
+            }
+        }
+        </style>
         <div class="max-w-[1200px] mx-auto px-12 py-10">
             
             <!-- Dashboard Header -->

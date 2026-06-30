@@ -11,7 +11,10 @@ from django.db.models import Min
 
 def update_product_stock(product):
     from django.db.models import Sum
-    total = product.variants.filter(is_deleted=False).aggregate(
+    total = product.variants.filter(
+        is_deleted=False,
+        is_active=True         
+    ).aggregate(
         total=Sum('stock')
     )['total'] or 0
     product.total_stock = total
@@ -531,6 +534,8 @@ def toggle_variant_status(request, variant_id):
     variant = get_object_or_404(ProductVariant, id=variant_id)    
     variant.is_active = not variant.is_active
     variant.save()
+    
+    update_product_stock(variant.product) 
     
     return JsonResponse({
         'status': 'success',

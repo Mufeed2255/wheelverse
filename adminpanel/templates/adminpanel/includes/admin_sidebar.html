@@ -1,167 +1,182 @@
+<style>
+.user-sidebar {
+    position: fixed;
+    top: 96px;
+    left: 0;
+    bottom: 0;
+    width: 360px;
+    background: #110f0a;
+    border-right: 1px solid #2d2617;
+    z-index: 900;
+    overflow-y: auto;
+    font-family: 'Orbitron', sans-serif;
+}
+
+.user-side-profile {
+    text-align: center;
+    padding: 52px 30px 38px;
+}
+
+.user-avatar {
+    width: 100px;
+    height: 100px;
+    margin: 0 auto;
+    border: 2px solid #f2ca50;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 26px rgba(242,202,80,.45);
+    background: #1f1b13;
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-avatar-fallback {
+    width: 100%;
+    height: 100%;
+    color: #f2ca50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    font-weight: 800;
+}
+
+.user-side-name {
+    color: #f2ca50;
+    font-size: 28px;
+    margin-top: 26px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.user-side-rank {
+    color: #d0c5af;
+    font-size: 13px;
+    margin-top: 10px;
+    letter-spacing: 1px;
+}
+
+.user-menu {
+    padding: 22px 30px;
+}
+
+.user-menu a {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    color: #d0c5af;
+    text-decoration: none;
+    font-size: 18px;
+    letter-spacing: 1px;
+    padding: 22px 24px;
+    margin-bottom: 10px;
+    border-left: 3px solid transparent;
+    transition: .25s;
+}
+
+.user-menu a:hover,
+.user-menu a.active {
+    background: #231f17;
+    color: #f2ca50;
+    border-left-color: #f2ca50;
+}
+
+.user-menu .material-symbols-outlined {
+    font-size: 26px;
+}
+
+.user-sidebar-bottom {
+    margin-top: 70px;
+    padding: 24px 30px;
+    border-top: 1px solid #2d2617;
+}
+
+.user-sidebar-bottom a {
+    color: #ffb4ab;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 15px;
+}
+
+@media(max-width: 900px) {
+    .user-sidebar {
+        display: none;
+    }
+}
+</style>
+
 {% with url_name=request.resolver_match.url_name %}
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<aside class="wv-sidebar">
-    <div class="wv-logo">
-        <h1>WHEEL<span>VERSE</span></h1>
-        <p>ADMIN Dashboard</p>
+<aside class="user-sidebar">
+    <div class="user-side-profile">
+        <div class="user-avatar">
+            {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}">
+            {% elif request.user.profile_pic %}
+                <img src="{{ request.user.profile_pic.url }}" alt="{{ request.user.username }}">
+            {% else %}
+                <div class="user-avatar-fallback">
+                    {{ request.user.username|slice:":1"|upper }}
+                </div>
+            {% endif %}
+        </div>
+
+        <h2 class="user-side-name">
+            {{ request.user.username|default:"MUFEED" }}
+        </h2>
+
+        <p class="user-side-rank">
+            ✪ ELITE COLLECTOR
+        </p>
     </div>
 
-    <div class="wv-menu custom-scrollbar">
-        <a href="{% url 'admin_dashboard' %}" class="wv-item {% if url_name == 'admin_dashboard' %}active{% endif %}">
-            <span class="material-symbols-outlined">dashboard</span>Dashboard
+    <nav class="user-menu">
+        <a href="{% url 'profile_view' %}" class="{% if url_name == 'profile_view' or url_name == 'edit_profile_view' %}active{% endif %}">
+            <span class="material-symbols-outlined">account_circle</span>
+            Profile Info
         </a>
-        
-        <a href="{% url 'admin_products' %}" class="wv-item {% if url_name == 'admin_products' %}active{% endif %}">
-            <span class="material-symbols-outlined">inventory_2</span>Products
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
-            <span class="material-symbols-outlined">shopping_cart</span>Orders
-        </a>
-        
-        <a href="{% url 'admin_users' %}" class="wv-item {% if url_name == 'admin_users' or url_name == 'view_user' %}active{% endif %}">
-            <span class="material-symbols-outlined">groups</span>Customers
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_analytics' %}active{% endif %}">
-            <span class="material-symbols-outlined">monitoring</span>Analytics
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_coupons' %}active{% endif %}">
-            <span class="material-symbols-outlined">sell</span>Coupons
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_banners' %}active{% endif %}">
-            <span class="material-symbols-outlined">photo</span>Banner
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_offers' %}active{% endif %}">
-            <span class="material-symbols-outlined">local_offer</span>Offers
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_settings' %}active{% endif %}">
-            <span class="material-symbols-outlined">settings</span>Settings
-        </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_returns' %}active{% endif %}">
-            <span class="material-symbols-outlined">assignment_return</span>Returns
-        </a>
-        
-        <a href="{% url 'admin_category' %}" class="wv-item {% if url_name == 'admin_category' %}active{% endif %}">
-            <span class="material-symbols-outlined">category</span>Category
-        </a>
-    </div>
 
-    <div class="wv-logout">
-        <a href="{% url 'admin_logout' %}">
+        <a href="{% url 'my_orders' %}" class="{% if url_name == 'my_orders' or url_name == 'order_detail' %}active{% endif %}">
+            <span class="material-symbols-outlined">inventory_2</span>
+            My Garage Orders
+        </a>
+
+        <a href="{% url 'wishlist' %}" class="{% if url_name == 'wishlist' %}active{% endif %}">
+            <span class="material-symbols-outlined">favorite</span>
+            Wishlist Vault
+        </a>
+
+        <a href="#">
+            <span class="material-symbols-outlined">account_balance_wallet</span>
+            Wallet
+        </a>
+
+        <a href="#">
+            <span class="material-symbols-outlined">confirmation_number</span>
+            Coupons
+        </a>
+
+        <a href="{% url 'address_list' %}" class="{% if url_name == 'address_list' %}active{% endif %}">
+            <span class="material-symbols-outlined">location_on</span>
+            Saved Addresses
+        </a>
+
+        <a href="#">
+            <span class="material-symbols-outlined">garage_home</span>
+            Garage Showcase
+        </a>
+    </nav>
+
+    <div class="user-sidebar-bottom">
+        <a href="{% url 'logout' %}">
             <span class="material-symbols-outlined">logout</span>
-            <span>ADMIN LOGOUT</span>
+            Logout
         </a>
     </div>
 </aside>
-
-<style>
-    .wv-sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 240px;
-        height: 100vh;
-        background: #070707;
-        border-right: 1px solid rgba(242,202,80,.08);
-        display: flex;
-        flex-direction: column;
-        z-index: 100;
-        font-family: 'Poppins', sans-serif;
-        box-sizing: border-box;
-    }
-    .wv-logo {
-        padding: 25px 20px;
-        border-bottom: 1px solid rgba(242,202,80,.08);
-    }
-    .wv-logo h1 {
-        color: #ffffff;
-        font-size: 24px;
-        font-weight: 700;
-        letter-spacing: 1px;
-        margin: 0;
-        font-family: 'Orbitron', sans-serif;
-    }
-    .wv-logo span {
-        color: #d4af37;
-    }
-    .wv-logo p {
-        color: #9b7d21;
-        font-size: 11px;
-        margin-top: 5px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        font-family: 'Orbitron', sans-serif;
-    }
-    .wv-menu {
-        padding: 20px 10px;
-        flex: 1;
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-    }
-    .wv-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        color: #b8b8b8;
-        text-decoration: none;
-        padding: 12px 18px;
-        margin-bottom: 6px;
-        border-radius: 4px;
-        transition: .3s;
-        font-size: 14px;
-    }
-    .wv-item:hover {
-        background: #1a1a1a;
-        color: #fff;
-    }
-    .wv-item.active {
-        background: #d4af37;
-        color: #111;
-        font-weight: 600;
-    }
-    .wv-logout {
-        padding: 15px;
-        border-top: 1px solid rgba(242,202,80,.05);
-        margin-top: auto;
-    }
-    .wv-logout a {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-        background: #2d2416;
-        border: 1px solid rgba(212,175,55,.2);
-        color: #f0c75e;
-        text-decoration: none;
-        padding: 12px;
-        border-radius: 4px;
-        font-size: 12px;
-        font-weight: bold;
-        letter-spacing: 1px;
-        transition: all 0.3s ease;
-    }
-    .wv-logout a:hover {
-        background: #93000a;
-        border-color: #ffb4ab;
-        color: #ffdad6;
-    }
-    .custom-scrollbar::-webkit-scrollbar {
-        width: 0px;
-        background: transparent;
-    }
-    .custom-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    .material-symbols-outlined {
-        font-size: 20px;
-    }
-</style>
 {% endwith %}

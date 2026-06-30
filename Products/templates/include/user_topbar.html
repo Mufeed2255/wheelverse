@@ -142,76 +142,33 @@
         }
     }
 </style>
+<header class="fixed top-0 left-0 right-0 z-50 h-24 bg-[#110f0a] border-b border-[#3d321b]">
+    <div class="h-full flex items-center justify-between px-20">
 
-
-<header class="fixed top-0 left-0 right-0 h-20 bg-[#16130b]/95 backdrop-blur-xl border-b border-[#f2ca50]/15 z-[9999]">
-
-    <div class="w-full h-full px-8 lg:px-16 flex items-center justify-between">
-
-
-        <!-- Logo -->
-        <a href="{% url 'landing_page' %}" class="wv-topbar-logo">
-
-            <span class="wv-logo-wheel">Wheel</span>
-            <span class="wv-logo-verse">Verse</span>
-
+        <a href="{% url 'landing_page' %}" class="font-orbitron text-5xl font-bold tracking-tight">
+            <span class="text-[#f2ca50]">Wheel</span><span class="text-white">Verse</span>
         </a>
 
-        <!-- Navigation -->
-
-        <nav class="wv-topbar-nav">
-
-            <a href="{% url 'landing_page' %}"
-               class="{% if request.resolver_match.url_name == 'landing_page' %}active{% endif %}">
-                Home
-            </a>
-
-            <a href="{% url 'collections' %}"
-               class="{% if request.resolver_match.url_name == 'collections' %}active{% endif %}">
-                Collections
-            </a>
-
-            <a href="{% url 'cart' %}"
-               class="{% if request.resolver_match.url_name == 'cart' %}active{% endif %}">
-                Cart
-            </a>
-
-            <a href="{% url 'wishlist' %}"
-               class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">
-                Wishlist
-            </a>
-
+        <nav class="hidden lg:flex items-center gap-14 font-orbitron text-lg text-[#d0c5af]">
+            <a href="{% url 'landing_page' %}" class="hover:text-[#f2ca50] transition">Home</a>
+            <a href="{% url 'collections' %}" class="hover:text-[#f2ca50] transition">Collections</a>
+            <a href="{% url 'cart' %}" class="hover:text-[#f2ca50] transition">Cart</a>
+            <a href="{% url 'wishlist' %}" class="hover:text-[#f2ca50] transition">Wishlist</a>
         </nav>
 
-        <!-- Right Side -->
-
-        <div class="wv-topbar-right">
-
-            <a href="{% url 'cart' %}" class="wv-topbar-icon">
-
-                <span class="material-symbols-outlined">
+        <div class="flex items-center gap-8">
+            <a href="{% url 'cart' %}">
+                <span class="material-symbols-outlined text-[#d0c5af] text-4xl hover:text-[#f2ca50] transition">
                     shopping_cart
                 </span>
-
-                {% if cart_count %}
-                    <span class="wv-cart-count">
-                        {{ cart_count }}
-                    </span>
-                {% endif %}
-
             </a>
 
-            <a href="{% url 'profile_view' %}" class="wv-topbar-icon">
-
-                <span class="material-symbols-outlined">
+            <a href="{% url 'profile_view' %}">
+                <span class="material-symbols-outlined text-[#d0c5af] text-4xl hover:text-[#f2ca50] transition">
                     account_circle
                 </span>
-
             </a>
-
         </div>
 
-
     </div>
-
 </header>

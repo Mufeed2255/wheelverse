@@ -9,6 +9,7 @@ urlpatterns = [
     path("confirm-payment/<int:order_id>/", views.confirm_payment, name="confirm_payment"),
     path("success/<int:order_id>/", views.order_success, name="order_success"),
     path("failed/", views.order_failed, name="order_failed"),
+    path("failed/<int:order_id>/", views.order_failed, name="order_failed_with_order"),
     path("my-orders/", views.my_orders, name="my_orders"),
     path("detail/<int:order_id>/", views.order_detail, name="order_detail"),
 ]

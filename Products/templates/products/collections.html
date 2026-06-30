@@ -409,7 +409,7 @@
                     <!-- Product image → links to detail page -->
                     <a href="{% url 'product_detail' product_id=product.id %}" class="block">
                         <div class="aspect-[16/10] bg-black/50 overflow-hidden relative">
-                            {% with first_variant=product.variants.first %}
+                            {% with first_variant=product.active_variants.0 %}
                                 {% if first_variant %}
                                     {% with first_image=first_variant.images.first %}
                                         {% if first_image %}
@@ -481,7 +481,7 @@
 
                             
                             <!-- Price + wishlist -->
-                            {% with first_variant=product.variants.first %}
+                            {% with first_variant=product.active_variants.0 %}
                             <div class="flex gap-3">
 
                                 <a href="{% url 'product_detail' product_id=product.id %}"

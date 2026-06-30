@@ -11,9 +11,13 @@ from django.db import transaction
 from Accounts.models import Address
 from Products.models import Cart, ProductVariant
 from .models import Order, OrderItem, OrderAddress
+from django.db.models import Sum
+from adminpanel.models import Product as AdminProduct
 
+    
+from django.core.paginator import Paginator
+from django.db.models import Q
 
-from .models import Order
 
 
 
@@ -148,7 +152,6 @@ def checkout(request):
     return render(request, "orders/checkout.html", context)
 
 
-
 @login_required
 @transaction.atomic
 def place_order(request):
@@ -213,7 +216,6 @@ def place_order(request):
     grand_total = subtotal - discount + shipping
 
     address_str = selected_address.address_line_1
-
     if selected_address.address_line_2:
         address_str += f", {selected_address.address_line_2}"
 
@@ -238,6 +240,8 @@ def place_order(request):
         postal_code=postal_code,
     )
 
+    updated_product_ids = set()
+
     for item in cart_items:
         variant = ProductVariant.objects.select_for_update().get(
             id=item.variant.id
@@ -259,10 +263,22 @@ def place_order(request):
         variant.stock -= item.quantity
         variant.save()
 
+        updated_product_ids.add(variant.product.id)  
     cart_items.delete()
 
-    return redirect("payment", order_id=order.id)
+    def sync_stock():
+        for pid in updated_product_ids:
+            product = AdminProduct.objects.get(id=pid)
+            total_stock = product.variants.filter(is_deleted=False).aggregate(
+                total=Sum("stock")
+            )["total"] or 0
 
+            product.total_stock = total_stock
+            product.save(update_fields=["total_stock"])
+
+    transaction.on_commit(sync_stock)
+
+    return redirect("payment", order_id=order.id)
 
 @login_required
 def payment_view(request, order_id):
@@ -298,12 +314,22 @@ def confirm_payment(request, order_id):
         user=request.user
     )
 
+    if order.status == "CONFIRMED":
+        messages.info(request, "This order is already confirmed.")
+        return redirect("order_success", order_id=order.id)
+
+    payment_method = request.POST.get("payment_method", "COD")
+
+    if payment_method != "COD":
+        messages.error(request, "Payment failed. Currently only Cash on Delivery is available.")
+        return redirect("order_failed_with_order", order_id=order.id)
+
+    order.payment_method = "COD"
     order.status = "CONFIRMED"
     order.save()
 
     messages.success(request, "Order placed successfully.")
     return redirect("order_success", order_id=order.id)
-
 
 @login_required
 def order_success(request, order_id):
@@ -321,18 +347,114 @@ def order_success(request, order_id):
         "order": order
     })
     
+    
+@login_required
+def order_failed(request, order_id=None):
+    order = None
+    if order_id:
+        order = Order.objects.filter(
+            id=order_id,
+            user=request.user
+        ).first()
+    return render(request, "orders/order_failed.html", {
+        "order": order
+    })
+    
+
+
+
 @login_required
 def my_orders(request):
-    orders = Order.objects.filter(user=request.user).order_by("-ordered_at")
-    return render(request, "orders/my_orders.html", {"orders": orders})
+    status_filter = request.GET.get("status", "all")
+    search_query = request.GET.get("search", "").strip()
+
+    orders = Order.objects.filter(
+        user=request.user
+    ).prefetch_related(
+        "items",
+        "items__variant",
+        "items__variant__images"
+    ).order_by("-ordered_at")
+
+    if status_filter != "all":
+        orders = orders.filter(status=status_filter)
+
+    if search_query:
+        orders = orders.filter(
+            Q(order_id__icontains=search_query) |
+            Q(items__product_name__icontains=search_query)
+        ).distinct()
+
+    paginator = Paginator(orders, 5)
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    counts = {
+        "all": Order.objects.filter(user=request.user).count(),
+        "pending": Order.objects.filter(user=request.user, status="PENDING").count(),
+        "confirmed": Order.objects.filter(user=request.user, status="CONFIRMED").count(),
+        "shipped": Order.objects.filter(user=request.user, status="SHIPPED").count(),
+        "delivered": Order.objects.filter(user=request.user, status="DELIVERED").count(),
+    }
+
+    return render(request, "orders/my_orders.html", {
+        "page_obj": page_obj,
+        "orders": page_obj.object_list,
+        "status_filter": status_filter,
+        "search_query": search_query,
+        "counts": counts,
+    })
 
 
 @login_required
 def order_detail(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
-    return render(request, "orders/order_detail.html", {"order": order})
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            "items",
+            "items__variant",
+            "items__variant__images"
+        ),
+        id=order_id,
+        user=request.user
+    )
+
+    address = OrderAddress.objects.filter(order=order).first()
+
+    first_item = order.items.first()
+
+    status_steps = [
+        "PENDING",
+        "CONFIRMED",
+        "SHIPPED",
+        "DELIVERED",
+    ]
+
+    try:
+        current_step = status_steps.index(order.status)
+    except ValueError:
+        current_step = 0
+
+    progress_percent = {
+        "PENDING": 15,
+        "CONFIRMED": 35,
+        "SHIPPED": 70,
+        "DELIVERED": 100,
+        "CANCELLED": 0,
+        "RETURN_REQUESTED": 100,
+        "RETURNED": 100,
+    }.get(order.status, 15)
+
+    return render(request, "orders/order_detail.html", {
+        "order": order,
+        "address": address,
+        "first_item": first_item,
+        "current_step": current_step,
+        "progress_percent": progress_percent,
+    })
 
 
 @login_required
 def order_failed(request):
     return render(request, "orders/order_failed.html")
+
+
