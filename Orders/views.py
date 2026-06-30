@@ -18,6 +18,18 @@ from adminpanel.models import Product as AdminProduct
 from django.core.paginator import Paginator
 from django.db.models import Q
 
+from django.http import HttpResponse
+from reportlab.lib.pagesizes import A4
+from reportlab.lib import colors
+from reportlab.lib.units import mm
+from reportlab.platypus import (
+    SimpleDocTemplate,
+    Table,
+    TableStyle,
+    Paragraph,
+    Spacer
+)
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 
 
@@ -453,8 +465,226 @@ def order_detail(request, order_id):
     })
 
 
+
+
 @login_required
-def order_failed(request):
-    return render(request, "orders/order_failed.html")
+@transaction.atomic
+def cancel_order_item(request, item_id):
+    order_item = get_object_or_404(
+        OrderItem.objects.select_related(
+            "order",
+            "variant",
+            "variant__product"
+        ).prefetch_related(
+            "variant__images"
+        ),
+        id=item_id,
+        order__user=request.user
+    )
 
+    order = order_item.order
 
+    if order.status in ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REQUESTED"]:
+        messages.error(request, "This item cannot be cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    if order_item.is_cancelled:
+        messages.info(request, "This item is already cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    if request.method == "POST":
+        reason = request.POST.get("cancel_reason", "").strip()
+        comments = request.POST.get("comments", "").strip()
+
+        if not reason:
+            messages.error(request, "Please select a cancellation reason.")
+            return redirect("cancel_order_item", item_id=order_item.id)
+
+        final_reason = f"{reason}\n\n{comments}" if comments else reason
+
+        order_item.is_cancelled = True
+        order_item.cancel_reason = final_reason
+        order_item.save(update_fields=["is_cancelled", "cancel_reason"])
+
+        if order_item.variant:
+            order_item.variant.stock += order_item.quantity
+            order_item.variant.save(update_fields=["stock"])
+
+        active_items = order.items.filter(is_cancelled=False)
+
+        if active_items.exists():
+            order.subtotal = sum(item.item_total for item in active_items)
+            order.total_amount = order.subtotal - order.discount + order.shipping_charge
+            order.save(update_fields=["subtotal", "total_amount", "updated_at"])
+        else:
+            order.status = "CANCELLED"
+            order.cancel_reason = final_reason
+            order.save(update_fields=["status", "cancel_reason", "updated_at"])
+
+        messages.success(request, "Item cancelled successfully.")
+        return redirect("order_detail", order_id=order.id)
+
+    return render(request, "orders/cancel_item.html", {
+        "order": order,
+        "item": order_item,
+    })
+    
+@login_required
+def download_invoice(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related("items"),
+        id=order_id,
+        user=request.user
+    )
+
+    address = OrderAddress.objects.filter(order=order).first()
+
+    response = HttpResponse(content_type="application/pdf")
+    response["Content-Disposition"] = f'attachment; filename="invoice_{order.order_id}.pdf"'
+
+    doc = SimpleDocTemplate(
+        response,
+        pagesize=A4,
+        rightMargin=18 * mm,
+        leftMargin=18 * mm,
+        topMargin=18 * mm,
+        bottomMargin=18 * mm,
+    )
+
+    styles = getSampleStyleSheet()
+
+    title_style = ParagraphStyle(
+        "InvoiceTitle",
+        parent=styles["Title"],
+        fontSize=24,
+        textColor=colors.HexColor("#d4af37"),
+        spaceAfter=14,
+    )
+
+    heading_style = ParagraphStyle(
+        "Heading",
+        parent=styles["Heading2"],
+        fontSize=13,
+        textColor=colors.HexColor("#111111"),
+        spaceAfter=8,
+    )
+
+    normal_style = ParagraphStyle(
+        "NormalCustom",
+        parent=styles["Normal"],
+        fontSize=10,
+        leading=14,
+    )
+
+    story = []
+
+    story.append(Paragraph("WHEELVERSE INVOICE", title_style))
+    story.append(Paragraph("Enter the Universe of Wheels", normal_style))
+    story.append(Spacer(1, 12))
+
+    invoice_info = [
+        ["Invoice No", f"INV-{order.order_id}"],
+        ["Order ID", order.order_id],
+        ["Order Date", order.ordered_at.strftime("%d %b %Y")],
+        ["Payment Method", order.payment_method],
+        ["Order Status", order.status],
+    ]
+
+    table = Table(invoice_info, colWidths=[45 * mm, 110 * mm])
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f2ca50")),
+        ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#241a00")),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("PADDING", (0, 0), (-1, -1), 8),
+    ]))
+    story.append(table)
+    story.append(Spacer(1, 16))
+
+    story.append(Paragraph("Billing / Delivery Address", heading_style))
+
+    if address:
+        address_text = f"""
+        <b>{address.full_name}</b><br/>
+        {address.address}<br/>
+        {address.city}, {address.state} - {address.postal_code}<br/>
+        Phone: {address.phone}<br/>
+        Email: {address.email}
+        """
+    else:
+        address_text = "Address not available."
+
+    story.append(Paragraph(address_text, normal_style))
+    story.append(Spacer(1, 16))
+
+    story.append(Paragraph("Order Items", heading_style))
+
+    item_data = [
+        ["Product", "Variant", "Qty", "Price", "Total"]
+    ]
+
+    for item in order.items.all():
+        variant_text = ""
+
+        if item.variant_color:
+            variant_text += item.variant_color
+
+        if item.variant_size:
+            variant_text += f" / {item.variant_size}"
+
+        item_data.append([
+            item.product_name,
+            variant_text or "-",
+            str(item.quantity),
+            f"Rs. {item.price}",
+            f"Rs. {item.item_total}",
+        ])
+
+    item_table = Table(
+        item_data,
+        colWidths=[65 * mm, 35 * mm, 18 * mm, 28 * mm, 30 * mm]
+    )
+
+    item_table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#111111")),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#f2ca50")),
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 9),
+        ("ALIGN", (2, 1), (-1, -1), "CENTER"),
+        ("PADDING", (0, 0), (-1, -1), 7),
+    ]))
+
+    story.append(item_table)
+    story.append(Spacer(1, 16))
+
+    summary_data = [
+        ["Subtotal", f"Rs. {order.subtotal}"],
+        ["Discount", f"- Rs. {order.discount}"],
+        ["Shipping Charge", f"Rs. {order.shipping_charge}"],
+        ["Total Amount", f"Rs. {order.total_amount}"],
+    ]
+
+    summary_table = Table(summary_data, colWidths=[120 * mm, 55 * mm])
+    summary_table.setStyle(TableStyle([
+        ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2ca50")),
+        ("TEXTCOLOR", (0, -1), (-1, -1), colors.HexColor("#241a00")),
+        ("FONTNAME", (0, -1), (-1, -1), "Helvetica-Bold"),
+        ("ALIGN", (1, 0), (1, -1), "RIGHT"),
+        ("PADDING", (0, 0), (-1, -1), 8),
+    ]))
+
+    story.append(summary_table)
+    story.append(Spacer(1, 20))
+
+    story.append(Paragraph(
+        "Thank you for shopping with WheelVerse. This is a computer-generated invoice.",
+        normal_style
+    ))
+
+    doc.build(story)
+
+    return response
