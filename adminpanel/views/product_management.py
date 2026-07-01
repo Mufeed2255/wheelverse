@@ -31,7 +31,7 @@ def category_list(request):
         'total_assets': total_assets,
         'active_categories_count': active_categories_count
     }
-    return render(request, 'adminpanel/admin_login/admin_category.html', context)
+    return render(request, 'adminpanel/admin_products/admin_category.html', context)
 
 
 def add_category(request):
@@ -43,7 +43,7 @@ def add_category(request):
             if Category.objects.filter(name__iexact=name).exists():
                 messages.error(request, f'"{name}" is already existing. Please choose a different name.')
                 
-                return render(request, 'adminpanel/admin_login/add_category.html', {
+                return render(request, 'adminpanel/admin_products/add_category.html', {
                     'description': description,
                 })
             
@@ -51,7 +51,7 @@ def add_category(request):
             
             return redirect('admin_category')
             
-    return render(request, 'adminpanel/admin_login/add_category.html')
+    return render(request, 'adminpanel/admin_products/add_category.html')
 
 # 3. EDIT CATEGORY VIEW
 def edit_category(request, category_id):
@@ -63,7 +63,7 @@ def edit_category(request, category_id):
         category.save()
         return redirect('admin_category')
         
-    return render(request, 'adminpanel/admin_login/edit_category.html', {'category': category})
+    return render(request, 'adminpanel/admin_products/edit_category.html', {'category': category})
 
 def delete_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
@@ -126,7 +126,7 @@ def product_management(request):
         'current_rarity': rarity_filter, 
         'current_sort': sort_by,                                     
     }
-    return render(request, 'adminpanel/admin_login/admin_products.html', context)
+    return render(request, 'adminpanel/admin_products/admin_products.html', context)
 
 
 def delete_product(request, product_id):
@@ -164,53 +164,53 @@ def add_product(request):
 
         if not name:
             messages.error(request, "Product name is required.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if len(name) < 3:
             messages.error(request, "Product name must contain at least 3 characters.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if len(name) > 50:
             messages.error(request, "Product name cannot exceed 20 characters.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if not re.match(name_pattern, name):
             messages.error(request, "Invalid product name format.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if Product.objects.filter(name__iexact=name, is_deleted=False).exists():
             messages.error(request, "This product already exists.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if not category_id:
             messages.error(request, "Please select a category.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         category = Category.objects.filter(id=category_id, is_active=True).first()
 
         if not category:
             messages.error(request, "Selected category is invalid.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if not rarity:
             messages.error(request, "Please select rarity.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if rarity not in allowed_rarities:
             messages.error(request, "Invalid rarity selected.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if not description:
             messages.error(request, "Description is required.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if len(description) < 20:
             messages.error(request, "Description must contain at least 20 characters.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         if len(description) > 2000:
             messages.error(request, "Description cannot exceed 2000 characters.")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
         try:
             Product.objects.create(
@@ -227,9 +227,9 @@ def add_product(request):
 
         except Exception as e:
             messages.error(request, f"Error creating product: {str(e)}")
-            return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+            return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
-    return render(request, 'adminpanel/admin_login/add_product.html', {'categories': categories})
+    return render(request, 'adminpanel/admin_products/add_product.html', {'categories': categories})
 
 
 def edit_product(request, product_id):
@@ -252,28 +252,28 @@ def edit_product(request, product_id):
 
         if not name:
             messages.error(request, "Product name is required.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if len(name) < 3:
             messages.error(request, "Product name must contain at least 3 characters.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if len(name) > 50:
             messages.error(request, "Product name cannot exceed 50 characters.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if not re.match(name_pattern, name):
             messages.error(request, "Invalid product name format.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
@@ -284,14 +284,14 @@ def edit_product(request, product_id):
         ).exclude(id=product.id).exists():
 
             messages.error(request, "This product already exists.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if not category_id:
             messages.error(request, "Please select a category.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
@@ -303,35 +303,35 @@ def edit_product(request, product_id):
 
         if not category:
             messages.error(request, "Selected category is invalid.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if rarity not in allowed_rarities:
             messages.error(request, "Invalid rarity selected.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if not description:
             messages.error(request, "Description is required.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if len(description) < 20:
             messages.error(request, "Description must contain at least 20 characters.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
 
         if len(description) > 2000:
             messages.error(request, "Description cannot exceed 2000 characters.")
-            return render(request, 'adminpanel/admin_login/edit_product.html', {
+            return render(request, 'adminpanel/admin_products/edit_product.html', {
                 'product': product,
                 'categories': categories
             })
@@ -358,7 +358,7 @@ def edit_product(request, product_id):
 
     return render(
         request,
-        'adminpanel/admin_login/edit_product.html',
+        'adminpanel/admin_products/edit_product.html',
         context
     )
 
@@ -372,7 +372,7 @@ def manage_variants(request, product_id):
     )
     first_variant = variants.first()
     
-    return render(request, 'adminpanel/admin_login/manage_variants.html', {
+    return render(request, 'adminpanel/admin_products/manage_variants.html', {
         'product': product,
         'variants': variants,
         "first_variant": first_variant,
@@ -407,7 +407,7 @@ def add_variant(request, product_id):
             messages.error(request, "Quantity cannot be negative.")
             return render(
                 request,
-                "adminpanel/admin_login/add_variant.html",
+                "adminpanel/admin_products/add_variant.html",
                 {"product": product}
             )
 
@@ -415,7 +415,7 @@ def add_variant(request, product_id):
             messages.error(request, "Color must contain only alphabets.")
             return render(
                 request,
-                "adminpanel/admin_login/add_variant.html",
+                "adminpanel/admin_products/add_variant.html",
                 {"product": product}
             )
                
@@ -444,7 +444,7 @@ def add_variant(request, product_id):
         messages.success(request, "Variant added successfully.")
         return redirect("manage_variants", product_id=product.id)
 
-    return render(request, "adminpanel/admin_login/add_variant.html", {
+    return render(request, "adminpanel/admin_products/add_variant.html", {
         "product": product
     })
     
@@ -524,7 +524,7 @@ def edit_variant(request, variant_id):
         messages.success(request, "Variant updated successfully.")
         return redirect("manage_variants", product_id=product.id)
 
-    return render(request, "adminpanel/admin_login/edit_variant.html", {
+    return render(request, "adminpanel/admin_products/edit_variant.html", {
         "variant": variant,
         "product": product
     })

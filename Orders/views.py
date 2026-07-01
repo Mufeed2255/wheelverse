@@ -17,6 +17,7 @@ from adminpanel.models import Product as AdminProduct
     
 from django.core.paginator import Paginator
 from django.db.models import Q
+from adminpanel.models import Product
 
 from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
@@ -466,6 +467,90 @@ def order_detail(request, order_id):
 
 
 
+@login_required
+@transaction.atomic
+def cancel_order(request, order_id):
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            "items",
+            "items__variant",
+            "items__variant__product",
+            "items__variant__images",
+        ),
+        id=order_id,
+        user=request.user,
+    )
+
+    if order.status in ["CANCELLED", "DELIVERED", "RETURNED", "RETURN_REQUESTED"]:
+        messages.error(request, "This order cannot be cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    first_item = order.items.first()
+
+    if request.method == "POST":
+
+        reason = request.POST.get("cancel_reason", "").strip()
+        comments = request.POST.get("comments", "").strip()
+
+        if not reason:
+            messages.error(request, "Please select a cancellation reason.")
+            return redirect("cancel_order", order_id=order.id)
+
+        final_reason = (
+            f"{reason}\n\n{comments}"
+            if comments else reason
+        )
+
+        order.status = "CANCELLED"
+        order.cancel_reason = final_reason
+        order.save(update_fields=["status", "cancel_reason", "updated_at"])
+
+        updated_products = set()
+
+        for item in order.items.select_related("variant", "variant__product"):
+
+            if not item.is_cancelled:
+
+                item.is_cancelled = True
+                item.cancel_reason = final_reason
+                item.save(update_fields=["is_cancelled", "cancel_reason"])
+
+                if item.variant:
+                    item.variant.stock += item.quantity
+                    item.variant.save(update_fields=["stock"])
+
+                    updated_products.add(item.variant.product.id)
+
+        def update_total_stock(product_ids):
+
+            for pid in product_ids:
+                product = Product.objects.get(id=pid)
+
+                total_stock = (
+                    product.variants.filter(
+                        is_active=True,
+                        is_deleted=False
+                    ).aggregate(total=Sum("stock"))["total"] or 0
+                )
+
+                product.total_stock = total_stock
+                product.save(update_fields=["total_stock"])
+
+        transaction.on_commit(
+            lambda: update_total_stock(updated_products)
+        )
+
+        messages.success(request, "Entire order cancelled successfully.")
+        return redirect("order_detail", order_id=order.id)
+
+    return render(
+        request,
+        "orders/cancel_order.html",
+        {
+            "order": order,
+            "first_item": first_item,
+        },
+    )
 
 @login_required
 @transaction.atomic
@@ -506,9 +591,12 @@ def cancel_order_item(request, item_id):
         order_item.cancel_reason = final_reason
         order_item.save(update_fields=["is_cancelled", "cancel_reason"])
 
+        product_id_to_sync = None
+
         if order_item.variant:
             order_item.variant.stock += order_item.quantity
             order_item.variant.save(update_fields=["stock"])
+            product_id_to_sync = order_item.variant.product.id  
 
         active_items = order.items.filter(is_cancelled=False)
 
@@ -521,6 +609,20 @@ def cancel_order_item(request, item_id):
             order.cancel_reason = final_reason
             order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
+        if product_id_to_sync:
+            def sync_stock(pid=product_id_to_sync):
+                from django.db.models import Sum
+                from adminpanel.models import Product as AdminProduct
+                p = AdminProduct.objects.get(id=pid)
+                total = p.variants.filter(
+                    is_deleted=False,
+                    is_active=True
+                ).aggregate(total=Sum('stock'))['total'] or 0
+                p.total_stock = total
+                p.save(update_fields=['total_stock'])
+
+            transaction.on_commit(sync_stock)
+
         messages.success(request, "Item cancelled successfully.")
         return redirect("order_detail", order_id=order.id)
 
@@ -528,6 +630,7 @@ def cancel_order_item(request, item_id):
         "order": order,
         "item": order_item,
     })
+    
     
 @login_required
 def download_invoice(request, order_id):

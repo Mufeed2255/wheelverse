@@ -339,6 +339,38 @@
                         </div>
                     </div>
                 {% endfor %}
+                {% if order.status == "PENDING" or order.status == "CONFIRMED" %}
+                <div class="carbon-glass p-6 border border-red-500/30 bg-red-900/10 rounded-xl">
+
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined text-red-400">
+                            warning
+                        </span>
+
+                        <h3 class="font-display-lg text-lg text-red-300 uppercase">
+                            Cancel Entire Order
+                        </h3>
+                    </div>
+
+                    <p class="text-sm text-on-surface-variant mb-6">
+                        This will cancel every product in this order and restore all product
+                        stock. This action cannot be undone.
+                    </p>
+
+                    <a href="{% url 'cancel_order' order.id %}"
+                    class="w-full flex items-center justify-center gap-2 py-4 rounded-lg
+                            bg-red-600 hover:bg-red-700
+                            text-white font-display-lg tracking-wider transition">
+
+                        <span class="material-symbols-outlined">
+                            cancel
+                        </span>
+
+                        CANCEL ENTIRE ORDER
+                    </a>
+
+                </div>
+                {% endif %}
 
             </div>
 

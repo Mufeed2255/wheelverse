@@ -17,5 +17,6 @@ urlpatterns = [
     path("detail/<int:order_id>/", views.order_detail, name="order_detail"),
     path("invoice/<int:order_id>/", views.download_invoice, name="download_invoice"),
     
+    path("cancel/<int:order_id>/", views.cancel_order, name="cancel_order"),
     path("cancel-item/<int:item_id>/",views.cancel_order_item,name="cancel_order_item" ),
 ]
