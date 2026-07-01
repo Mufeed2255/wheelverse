@@ -2,7 +2,13 @@ from django.urls import path
 from .views import admin_login
 from .views import user_management
 from .views import product_management
-from .views.order_management import admin_orders
+from .views.order_management import (
+    admin_orders,
+    admin_order_detail,
+    admin_update_order_status,
+    admin_cancel_order,
+)
+
 
 urlpatterns = [
     path('admin-login/', admin_login.admin_login, name='admin_login'),
@@ -33,5 +39,8 @@ urlpatterns = [
     path('variants/<int:variant_id>/delete/', product_management.delete_variant, name='delete_variant'),
     
     path("orders/", admin_orders, name="admin_orders"),
+    path("orders/<int:order_id>/", admin_order_detail, name="admin_order_detail"),
+    path("orders/<int:order_id>/update-status/", admin_update_order_status, name="admin_update_order_status"),
+    path("orders/<int:order_id>/cancel/", admin_cancel_order, name="admin_cancel_order"),
     
 ]

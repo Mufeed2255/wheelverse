@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse Admin - Order Details</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #080806;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .font-orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(22, 20, 14, 0.92);
+            border: 1px solid rgba(242, 202, 80, 0.18);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .status-pill {
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(242,202,80,.14);
+            color: #f2ca50;
+            border: 1px solid rgba(242,202,80,.35);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .field-label {
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            color: #d0c5af;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .gold-title {
+            font-family: Orbitron, sans-serif;
+            color: #f2ca50;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .modal-bg {
+            background: rgba(0,0,0,.72);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+{% include 'adminpanel/includes/admin_sidebar.html' %}
+
+<main class="ml-[270px] w-[calc(100%-270px)] min-h-screen bg-[#0d0b07] overflow-x-hidden">
+
+    {% include 'adminpanel/includes/admin_topbar.html' %}
+
+    <div class="px-10 py-9">
+        <div class="max-w-[1480px] mx-auto w-full">
+
+            {% include 'adminpanel/includes/messages.html' %}
+
+            <!-- Header -->
+            <div class="flex justify-between items-end mb-7">
+                <div>
+                    <h1 class="font-orbitron text-3xl font-bold tracking-wide">
+                        Order Details – {{ order.order_id }}
+                    </h1>
+
+                    <div class="flex flex-wrap items-center gap-4 mt-3 text-xs">
+                        <span class="text-[#d0c5af] flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            {{ order.ordered_at|date:"F d, Y" }}
+                        </span>
+
+                        <span class="text-[#f2ca50] flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">payments</span>
+                            Payment: {{ order.get_payment_method_display }}
+                        </span>
+
+                        <span class="status-pill">
+                            Status: {{ order.status }}
+                        </span>
+                    </div>
+                </div>
+
+                <a href="{% url 'admin_orders' %}"
+                   class="border border-[#d0c5af]/50 px-6 py-2 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Back to Orders
+                </a>
+            </div>
+
+            <!-- Summary + Address -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7">
+
+                <!-- Summary -->
+                <section class="lg:col-span-2 glass-panel p-7 relative overflow-hidden">
+                    <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5">
+                        receipt_long
+                    </span>
+
+                    <h3 class="gold-title border-l-2 border-[#f2ca50] pl-4 mb-6">
+                        Order Summary
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <p class="field-label">Customer</p>
+                            <p class="font-semibold mt-1">
+                                {% if order.shipping_address %}
+                                    {{ order.shipping_address.full_name }}
+                                {% else %}
+                                    {{ order.user.username }}
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Email Address</p>
+                            <p class="mt-1">
+                                {% if order.shipping_address %}
+                                    {{ order.shipping_address.email }}
+                                {% else %}
+                                    {{ order.user.email }}
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Order Date</p>
+                            <p class="mt-1">{{ order.ordered_at|date:"F d, Y" }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Payment Method</p>
+                            <p class="mt-1">{{ order.get_payment_method_display }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Total Amount</p>
+                            <p class="text-[#f2ca50] font-bold text-xl mt-1">₹{{ order.total_amount }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Order ID</p>
+                            <p class="mt-1">{{ order.order_id }}</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Address -->
+                <section class="glass-panel p-7 border-l-4 border-[#f2ca50]">
+                    <h3 class="gold-title mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined">location_on</span>
+                        Delivery Address
+                    </h3>
+
+                    {% if order.shipping_address %}
+                        <p class="font-bold text-lg">{{ order.shipping_address.full_name }}</p>
+
+                        <p class="text-[#d0c5af] mt-3 leading-7">
+                            {{ order.shipping_address.address }}<br>
+                            {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
+                            {{ order.shipping_address.postal_code }}<br>
+                            Phone: {{ order.shipping_address.phone }}
+                        </p>
+                    {% else %}
+                        <p class="text-[#d0c5af]">Address not available</p>
+                    {% endif %}
+
+                    <div class="border-t border-[#f2ca50]/20 mt-5 pt-4">
+                        <p class="field-label">Shipping Mode</p>
+                        <p class="mt-1">Standard Delivery</p>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Products -->
+            <section class="glass-panel mb-7 overflow-hidden">
+                <div class="px-7 py-5 border-b border-[#f2ca50]/20 flex justify-between items-center">
+                    <h3 class="font-orbitron text-sm uppercase tracking-widest">Products</h3>
+                    <span class="text-xs text-[#d0c5af]">{{ items|length }} Items</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-[#1b1810]">
+                            <tr>
+                                <th class="px-7 py-4 field-label">Product</th>
+                                <th class="px-7 py-4 field-label">Quantity</th>
+                                <th class="px-7 py-4 field-label text-right">Price</th>
+                                <th class="px-7 py-4 field-label text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+
+                        <tbody class="divide-y divide-[#f2ca50]/10">
+                            {% for item in items %}
+                                <tr class="hover:bg-[#f2ca50]/5 transition">
+                                    <td class="px-7 py-5">
+                                        <div class="flex items-center gap-4">
+                                            <div class="w-16 h-16 border border-[#f2ca50]/20 bg-[#111] overflow-hidden">
+                                                {% if item.variant and item.variant.image %}
+                                                    <img src="{{ item.variant.image.url }}" class="w-full h-full object-cover">
+                                                {% elif item.variant and item.variant.images.first %}
+                                                    <img src="{{ item.variant.images.first.image.url }}" class="w-full h-full object-cover">
+                                                {% else %}
+                                                    <div class="w-full h-full flex items-center justify-center text-[#f2ca50]/50">
+                                                        <span class="material-symbols-outlined">directions_car</span>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+
+                                            <div>
+                                                <p class="font-orbitron text-sm uppercase">{{ item.product_name }}</p>
+                                                <p class="text-[11px] text-[#d0c5af] uppercase">
+                                                    {{ item.variant_size|default:"No Size" }} / {{ item.variant_color|default:"No Color" }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <td class="px-7 py-5">{{ item.quantity|stringformat:"02d" }}</td>
+
+                                    <td class="px-7 py-5 text-right">₹{{ item.price }}</td>
+
+                                    <td class="px-7 py-5 text-right text-[#f2ca50] font-bold">
+                                        ₹{{ item.item_total }}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center py-10 text-[#d0c5af]">
+                                        No order items found.
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Bottom Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                <!-- Delivery Status -->
+                <section class="glass-panel p-7">
+                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
+                        Delivery Status
+                    </h3>
+
+                    <div class="relative pl-8 space-y-9">
+                        <div class="absolute left-3 top-2 bottom-2 w-[2px] bg-[#f2ca50]/20"></div>
+
+                        {% for step in timeline %}
+                            <div class="relative {% if not step.completed %}opacity-40{% endif %}">
+                                <div class="absolute -left-8 top-0 w-6 h-6 rounded-full flex items-center justify-center
+                                    {% if step.completed %}
+                                        bg-[#f2ca50] text-black
+                                    {% else %}
+                                        bg-[#1f1b13] border border-[#f2ca50]/30 text-[#d0c5af]
+                                    {% endif %}
+                                ">
+                                    {% if step.completed %}
+                                        <span class="material-symbols-outlined text-sm">check</span>
+                                    {% else %}
+                                        <span class="material-symbols-outlined text-sm">radio_button_unchecked</span>
+                                    {% endif %}
+                                </div>
+
+                                <p class="font-orbitron text-sm uppercase">{{ step.label }}</p>
+                                <p class="text-sm text-[#d0c5af] mt-1">
+                                    {% if step.key == "PENDING" %}
+                                        Order placed on {{ order.ordered_at|date:"F d, Y h:i A" }}
+                                    {% elif step.key == "CONFIRMED" %}
+                                        Order confirmation stage
+                                    {% elif step.key == "SHIPPED" %}
+                                        Order shipped
+                                    {% elif step.key == "DELIVERED" %}
+                                        Order delivered
+                                    {% endif %}
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <!-- Payment Details -->
+                <section class="glass-panel p-7">
+                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
+                        Payment Details
+                    </h3>
+
+                    <div class="bg-[#1b1810]/80 border border-[#f2ca50]/15 p-6">
+                        <div class="flex justify-between items-center mb-5">
+                            <p class="gold-title text-xs">Payment Information</p>
+                            <span class="material-symbols-outlined text-[#f2ca50]">verified_user</span>
+                        </div>
+
+                        <div class="space-y-4 text-sm">
+                            <div class="flex justify-between">
+                                <span class="field-label">Method</span>
+                                <span>{{ order.get_payment_method_display }}</span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="field-label">Status</span>
+                                <span class="text-[#f2ca50] font-bold">COD / Pending</span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="field-label">Subtotal</span>
+                                <span>₹{{ order.subtotal }}</span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="field-label">Shipping</span>
+                                <span>₹{{ order.shipping_charge }}</span>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <span class="field-label">Discount</span>
+                                <span>₹{{ order.discount }}</span>
+                            </div>
+
+                            <div class="flex justify-between border-t border-[#f2ca50]/20 pt-4">
+                                <span class="field-label">Total</span>
+                                <span class="text-[#f2ca50] font-bold text-lg">₹{{ order.total_amount }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 border border-[#f2ca50]/10 bg-[#15120c] p-4 flex items-center gap-3">
+                        <span class="material-symbols-outlined text-[#d0c5af]">lock</span>
+                        <p class="text-[10px] text-[#d0c5af]">
+                            All transactions are protected through WheelVerse secure checkout protocol.
+                        </p>
+                    </div>
+                </section>
+
+            </div>
+
+            <!-- Actions -->
+            <div class="border-t border-[#f2ca50]/20 pt-7 flex justify-end gap-5">
+                <button onclick="openStatusModal()"
+                        class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
+                    Change Delivery Status
+                </button>
+
+                {% if order.status != "CANCELLED" and order.status != "DELIVERED" and order.status != "RETURNED" %}
+                    <button onclick="openCancelModal()"
+                            class="bg-[#93000a] text-white px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-sm">cancel</span>
+                        Cancel Order
+                    </button>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+<!-- Status Modal -->
+<div id="statusModal" class="hidden fixed inset-0 z-[100] modal-bg items-center justify-center">
+    <div class="glass-panel w-[420px] p-7">
+        <h3 class="font-orbitron text-xl text-[#f2ca50] mb-5">Change Delivery Status</h3>
+
+        <form method="POST" action="{% url 'admin_update_order_status' order.id %}">
+            {% csrf_token %}
+
+            <label class="field-label block mb-2">Select Status</label>
+
+            <select name="status" class="w-full bg-[#1f1b13] border border-[#f2ca50]/30 text-white px-4 py-3 mb-6">
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeStatusModal()"
+                        class="border border-[#f2ca50]/30 px-5 py-2 text-[#d0c5af]">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="bg-[#f2ca50] text-black px-5 py-2 font-bold">
+                    Update
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cancel Modal -->
+<div id="cancelModal" class="hidden fixed inset-0 z-[100] modal-bg items-center justify-center">
+    <div class="glass-panel w-[460px] p-7">
+        <h3 class="font-orbitron text-xl text-red-400 mb-5">Cancel Order</h3>
+
+        <form method="POST" action="{% url 'admin_cancel_order' order.id %}">
+            {% csrf_token %}
+
+            <label class="field-label block mb-2">Cancel Reason</label>
+
+            <textarea name="cancel_reason"
+                      rows="4"
+                      required
+                      class="w-full bg-[#1f1b13] border border-red-400/30 text-white px-4 py-3 mb-6"
+                      placeholder="Enter cancellation reason"></textarea>
+
+            <div class="flex justify-end gap-3">
+                <button type="button" onclick="closeCancelModal()"
+                        class="border border-[#f2ca50]/30 px-5 py-2 text-[#d0c5af]">
+                    Back
+                </button>
+
+                <button type="submit"
+                        class="bg-[#93000a] text-white px-5 py-2 font-bold">
+                    Confirm Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openStatusModal() {
+        const modal = document.getElementById("statusModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function closeStatusModal() {
+        const modal = document.getElementById("statusModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    function openCancelModal() {
+        const modal = document.getElementById("cancelModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+    }
+
+    function closeCancelModal() {
+        const modal = document.getElementById("cancelModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+</script>
+
+</body>
+</html>

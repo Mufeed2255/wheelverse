@@ -471,24 +471,20 @@ def order_detail(request, order_id):
 @transaction.atomic
 def cancel_order(request, order_id):
     order = get_object_or_404(
-        Order.objects.prefetch_related(
+        Order.objects.select_related("user").prefetch_related(
             "items",
             "items__variant",
-            "items__variant__product",
-            "items__variant__images",
+            "items__variant__product"
         ),
         id=order_id,
-        user=request.user,
+        user=request.user
     )
 
-    if order.status in ["CANCELLED", "DELIVERED", "RETURNED", "RETURN_REQUESTED"]:
+    if order.status in ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REQUESTED"]:
         messages.error(request, "This order cannot be cancelled.")
         return redirect("order_detail", order_id=order.id)
 
-    first_item = order.items.first()
-
     if request.method == "POST":
-
         reason = request.POST.get("cancel_reason", "").strip()
         comments = request.POST.get("comments", "").strip()
 
@@ -496,62 +492,47 @@ def cancel_order(request, order_id):
             messages.error(request, "Please select a cancellation reason.")
             return redirect("cancel_order", order_id=order.id)
 
-        final_reason = (
-            f"{reason}\n\n{comments}"
-            if comments else reason
-        )
+        final_reason = f"{reason}\n\n{comments}" if comments else reason
+
+        product_ids_to_sync = set()
+
+        for item in order.items.filter(is_cancelled=False):
+            if item.variant:
+                item.variant.stock += item.quantity
+                item.variant.save(update_fields=["stock"])
+                product_ids_to_sync.add(item.variant.product.id)
+
+            item.is_cancelled = True
+            item.cancel_reason = final_reason
+            item.save(update_fields=["is_cancelled", "cancel_reason"])
 
         order.status = "CANCELLED"
         order.cancel_reason = final_reason
         order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
-        updated_products = set()
+        def sync_stock(pids=product_ids_to_sync):
+            from django.db.models import Sum
+            from adminpanel.models import Product as AdminProduct
+            for pid in pids:
+                p = AdminProduct.objects.get(id=pid)
+                total = p.variants.filter(
+                    is_deleted=False,
+                    is_active=True
+                ).aggregate(total=Sum('stock'))['total'] or 0
+                p.total_stock = total
+                p.save(update_fields=['total_stock'])
 
-        for item in order.items.select_related("variant", "variant__product"):
+        transaction.on_commit(sync_stock)
 
-            if not item.is_cancelled:
-
-                item.is_cancelled = True
-                item.cancel_reason = final_reason
-                item.save(update_fields=["is_cancelled", "cancel_reason"])
-
-                if item.variant:
-                    item.variant.stock += item.quantity
-                    item.variant.save(update_fields=["stock"])
-
-                    updated_products.add(item.variant.product.id)
-
-        def update_total_stock(product_ids):
-
-            for pid in product_ids:
-                product = Product.objects.get(id=pid)
-
-                total_stock = (
-                    product.variants.filter(
-                        is_active=True,
-                        is_deleted=False
-                    ).aggregate(total=Sum("stock"))["total"] or 0
-                )
-
-                product.total_stock = total_stock
-                product.save(update_fields=["total_stock"])
-
-        transaction.on_commit(
-            lambda: update_total_stock(updated_products)
-        )
-
-        messages.success(request, "Entire order cancelled successfully.")
+        messages.success(request, "Order cancelled successfully.")
         return redirect("order_detail", order_id=order.id)
 
-    return render(
-        request,
-        "orders/cancel_order.html",
-        {
-            "order": order,
-            "first_item": first_item,
-        },
-    )
-
+    return render(request, "orders/cancel_order.html", {
+        "order": order,
+        "first_item": order.items.filter(is_cancelled=False).first(),
+    })
+    
+    
 @login_required
 @transaction.atomic
 def cancel_order_item(request, item_id):
@@ -596,7 +577,7 @@ def cancel_order_item(request, item_id):
         if order_item.variant:
             order_item.variant.stock += order_item.quantity
             order_item.variant.save(update_fields=["stock"])
-            product_id_to_sync = order_item.variant.product.id  
+            product_id_to_sync = order_item.variant.product.id  # ✅ capture ID
 
         active_items = order.items.filter(is_cancelled=False)
 
@@ -609,6 +590,7 @@ def cancel_order_item(request, item_id):
             order.cancel_reason = final_reason
             order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
+        # ✅ Sync product's total_stock AFTER the atomic transaction commits
         if product_id_to_sync:
             def sync_stock(pid=product_id_to_sync):
                 from django.db.models import Sum

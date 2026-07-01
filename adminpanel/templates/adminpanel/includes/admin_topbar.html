@@ -1,109 +1,104 @@
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
-
-.user-topbar {
+.admin-header {
+    background: #111007;
+    border-bottom: 1px solid #342b16;
+    height: 70px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px 0 280px; 
     position: fixed;
     top: 0;
     left: 0;
-    right: 0;
-    height: 96px;
-    background: #110f0a;
-    border-bottom: 1px solid #3d321b;
-    z-index: 1000;
-    display: flex;
-    align-items: center;
-    padding: 0 80px;
+    width: 100%;
+    z-index: 10;
 }
 
-.user-logo {
+.header-title {
     font-family: 'Orbitron', sans-serif;
-    font-size: 48px;
-    font-weight: 800;
-    text-decoration: none;
-    letter-spacing: -2px;
-}
-
-.user-logo .gold { color: #f2ca50; }
-.user-logo .white { color: #fff; }
-
-.user-nav {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
-    gap: 52px;
-}
-
-.user-nav a {
-    font-family: 'Orbitron', sans-serif;
-    color: #d0c5af;
-    text-decoration: none;
-    font-size: 18px;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
     letter-spacing: 1px;
-    transition: .25s;
 }
 
-.user-nav a:hover,
-.user-nav a.active {
-    color: #f2ca50;
+.header-title span {
+    color: #f1c82c;
 }
 
-.user-actions {
-    margin-left: 70px;
+.header-right {
     display: flex;
     align-items: center;
-    gap: 28px;
+    gap: 20px;
 }
 
-.user-actions a {
-    color: #d0c5af;
-    text-decoration: none;
+.feed-status {
+    background: rgba(50, 233, 109, 0.08);
+    border: 1px solid rgba(50, 233, 109, 0.25);
+    color: #32e96d;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    padding: 6px 14px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    letter-spacing: 1px;
 }
 
-.user-actions .material-symbols-outlined {
-    font-size: 40px;
+.admin-profile-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 2px solid #f1c82c;
+    overflow: hidden;
+    background: #211d16;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-@media(max-width: 900px) {
-    .user-topbar {
-        padding: 0 24px;
-    }
+.admin-profile-circle img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
 
-    .user-logo {
-        font-size: 34px;
-    }
+.admin-avatar-initials {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: #f1c82c;
+    background: #211d16;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
 
-    .user-nav {
-        display: none;
-    }
-
-    .user-actions {
-        margin-left: auto;
+@media(max-width: 1050px) {
+    .admin-header {
+        padding: 0 20px;
     }
 }
 </style>
 
-{% with url_name=request.resolver_match.url_name %}
-<header class="user-topbar">
-    <a href="{% url 'landing_page' %}" class="user-logo">
-        <span class="gold">Wheel</span><span class="white">Verse</span>
-    </a>
-
-    <nav class="user-nav">
-        <a href="{% url 'landing_page' %}" class="{% if url_name == 'landing_page' %}active{% endif %}">Home</a>
-        <a href="{% url 'collections' %}" class="{% if url_name == 'collections' %}active{% endif %}">Collections</a>
-        <a href="{% url 'cart' %}" class="{% if url_name == 'cart' %}active{% endif %}">Cart</a>
-        <a href="{% url 'wishlist' %}" class="{% if url_name == 'wishlist' %}active{% endif %}">Wishlist</a>
-    </nav>
-
-    <div class="user-actions">
-        <a href="{% url 'cart' %}">
-            <span class="material-symbols-outlined">shopping_cart</span>
-        </a>
-
-        <a href="{% url 'profile_view' %}">
-            <span class="material-symbols-outlined">account_circle</span>
-        </a>
+<header class="admin-header">
+    <div class="header-title">WHEELVERSE <span>ADMIN</span></div>
+    <div class="header-right">
+        <div class="feed-status">
+            <span class="material-symbols-outlined" style="font-size: 14px;">sensors</span> REAL-TIME FEED ACTIVE
+        </div>
+        
+        <div class="admin-profile-circle">
+            {% if request.user.profile_picture %}
+                <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}">
+            {% elif request.user.profile_pic %}
+                <img src="{{ request.user.profile_pic.url }}" alt="{{ request.user.username }}">
+            {% else %}
+                <div class="admin-avatar-initials">{{ request.user.username|slice:":2"|upper }}</div>
+            {% endif %}
+        </div>
     </div>
 </header>
-{% endwith %}

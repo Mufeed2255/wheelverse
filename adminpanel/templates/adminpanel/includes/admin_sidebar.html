@@ -15,7 +15,7 @@
             <span class="material-symbols-outlined">inventory_2</span>Products
         </a>
         
-        <a href="#" class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
+        <a href={% url 'admin_orders' %} class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
             <span class="material-symbols-outlined">shopping_cart</span>Orders
         </a>
         

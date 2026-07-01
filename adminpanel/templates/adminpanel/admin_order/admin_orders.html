@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse Admin | Orders</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            background: #080806;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .font-orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(22, 19, 11, 0.92);
+            border: 1px solid rgba(242, 202, 80, 0.18);
+            box-shadow: 0 20px 60px rgba(0,0,0,.35);
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 18px;
+            border-radius: 6px;
+            color: #d0c5af;
+            font-size: 13px;
+            font-weight: 600;
+            transition: .25s;
+        }
+
+        .sidebar-link:hover,
+        .sidebar-link.active {
+            background: #f2ca50;
+            color: #221900;
+        }
+
+        .status-badge {
+            padding: 6px 13px;
+            border-radius: 999px;
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+
+        .status-delivered { color:#22c55e; border:1px solid #22c55e; background:rgba(34,197,94,.13); }
+        .status-cancelled { color:#ef4444; border:1px solid #ef4444; background:rgba(239,68,68,.13); }
+        .status-shipped { color:#60a5fa; border:1px solid #3b82f6; background:rgba(59,130,246,.13); }
+        .status-processing,
+        .status-pending,
+        .status-confirmed { color:#f2ca50; border:1px solid #f2ca50; background:rgba(242,202,80,.13); }
+        .status-returned,
+        .status-return_requested { color:#c084fc; border:1px solid #a855f7; background:rgba(168,85,247,.13); }
+
+        input, select {
+            background: #1f1b13 !important;
+            border: 1px solid rgba(242,202,80,.18) !important;
+            color: #eae1d4 !important;
+            outline: none;
+        }
+
+        input:focus, select:focus {
+            border-color: #f2ca50 !important;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="min-h-screen flex">
+
+    {% include 'adminpanel/includes/admin_sidebar.html' %}
+     {% include 'adminpanel/includes/admin_topbar.html' %}
+    
+
+    <!-- Main -->
+    <main class="ml-[250px] w-full min-h-screen bg-[#0d0b07] px-10 py-15">
+
+        <!-- Header -->
+       
+
+        <!-- Filters -->
+        <form method="GET" class="glass-panel rounded-md p-5 mb-7 grid grid-cols-1 md:grid-cols-5 gap-5 items-end">
+            {% include 'adminpanel/includes/messages.html' %}
+            <div>
+                <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">SEARCH</label>
+                <input type="text" name="search" value="{{ search }}"
+                       placeholder="Order ID, customer, email"
+                       class="w-full px-4 py-3 text-sm">
+            </div>
+
+            <div>
+                <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">ORDER STATUS</label>
+                <select name="status" class="w-full px-4 py-3 text-sm">
+                    <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
+                    <option value="PENDING" {% if current_status == 'PENDING' %}selected{% endif %}>Pending</option>
+                    <option value="CONFIRMED" {% if current_status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+                    <option value="PROCESSING" {% if current_status == 'PROCESSING' %}selected{% endif %}>Processing</option>
+                    <option value="SHIPPED" {% if current_status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
+                    <option value="DELIVERED" {% if current_status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
+                    <option value="CANCELLED" {% if current_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    <option value="RETURNED" {% if current_status == 'RETURNED' %}selected{% endif %}>Returned</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">PAYMENT METHOD</label>
+                <select name="payment_method" class="w-full px-4 py-3 text-sm">
+                    <option value="all" {% if current_payment_method == 'all' %}selected{% endif %}>All Methods</option>
+                    <option value="COD" {% if current_payment_method == 'COD' %}selected{% endif %}>COD</option>
+                    <option value="RAZORPAY" {% if current_payment_method == 'RAZORPAY' %}selected{% endif %}>Razorpay</option>
+                    <option value="WALLET" {% if current_payment_method == 'WALLET' %}selected{% endif %}>Wallet</option>
+                    <option value="UPI" {% if current_payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                    <option value="CARD" {% if current_payment_method == 'CARD' %}selected{% endif %}>Card</option>
+                </select>
+            </div>
+
+            <button class="bg-[#f2ca50] text-black py-3 font-orbitron text-xs font-bold hover:brightness-110">
+                APPLY FILTERS
+            </button>
+
+            <a href="{% url 'admin_orders' %}"
+               class="border border-[#f2ca50]/30 text-center py-3 font-orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">
+                RESET
+            </a>
+        </form>
+
+        <!-- Table -->
+        <section class="glass-panel rounded-md overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-[#1b1810] border-b border-[#f2ca50]/20">
+                    <tr>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">ORDER ID</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">CUSTOMER</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">AMOUNT</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">DATE</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">STATUS</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px]">PAYMENT MODE</th>
+                        <th class="px-5 py-5 text-[#f2ca50] font-orbitron text-[10px] text-right">ACTION</th>
+                    </tr>
+                    </thead>
+
+                    <tbody class="divide-y divide-[#f2ca50]/10">
+                    {% for order in page_obj %}
+                    <tr class="hover:bg-[#f2ca50]/5 transition">
+                        <td class="px-5 py-5 font-orbitron text-sm">
+                            {% if order.order_id %}{{ order.order_id }}{% else %}#WLV-{{ order.id }}{% endif %}
+                        </td>
+
+                        <td class="px-5 py-5">
+                            <p class="font-bold text-sm">
+                                {% if order.shipping_address %}
+                                    {{ order.shipping_address.full_name }}
+                                {% else %}
+                                    {{ order.user.username }}
+                                {% endif %}
+                            </p>
+                            <p class="text-xs text-[#d0c5af]/70">
+                            
+                                {% if order.shipping_address %}
+                                    {{ order.shipping_address.email }}
+                                {% else %}
+                                    {{ order.user.email }}
+                                {% endif %}
+                            </p>
+                        </td>
+
+                        <td class="px-5 py-5 text-[#f2ca50] font-orbitron text-sm">
+                            ₹{% if order.total_amount %}{{ order.total_amount }}{% else %}{{ order.total }}{% endif %}
+                        </td>
+
+                        <td class="px-5 py-5 text-sm text-[#d0c5af]">
+                            {{ order.ordered_at|date:"Y-m-d" }}
+                        </td>
+
+                        <td class="px-5 py-5">
+                            <span class="status-badge status-{{ order.status|lower }}">
+                                {{ order.status }}
+                            </span>
+                        </td>
+
+                        <td class="px-5 py-5 text-sm text-[#d0c5af]">
+                            {{ order.payment_method }}
+                        </td>
+
+                        <td class="px-5 py-5 text-right">
+                            <a href="{% url 'admin_order_detail' order.id %}"
+                               class="text-[#f2ca50] font-orbitron text-xs font-bold hover:text-white">
+                                VIEW
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="px-5 py-12 text-center text-[#d0c5af]">
+                            No orders found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div class="flex justify-between items-center px-5 py-4 bg-[#19150e] text-xs text-[#d0c5af]">
+                <p>
+                    Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ total_orders }} transactions
+                </p>
+
+                <div class="flex gap-2">
+                    {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}"
+                       class="w-8 h-8 flex items-center justify-center border border-[#f2ca50]/20 hover:text-[#f2ca50]">
+                        ‹
+                    </a>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="w-8 h-8 flex items-center justify-center bg-[#f2ca50] text-black font-bold">
+                            {{ num }}
+                        </span>
+                        {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                        <a href="?page={{ num }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}"
+                           class="w-8 h-8 flex items-center justify-center border border-[#f2ca50]/20 hover:text-[#f2ca50]">
+                            {{ num }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}"
+                       class="w-8 h-8 flex items-center justify-center border border-[#f2ca50]/20 hover:text-[#f2ca50]">
+                        ›
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+</body>
+</html>
