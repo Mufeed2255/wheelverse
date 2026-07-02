@@ -1,0 +1,308 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Return Order | WheelVerse</title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .font-orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .page-bg {
+            min-height: 100vh;
+            background:
+                linear-gradient(rgba(8,7,5,.72), rgba(8,7,5,.92)),
+                radial-gradient(circle at center, rgba(242,202,80,.08), transparent 45%);
+        }
+
+        .glass {
+            background: rgba(10, 10, 10, .72);
+            border: 1px solid rgba(242,202,80,.18);
+            backdrop-filter: blur(18px);
+        }
+
+        .input-box {
+            background: #231f17;
+            border: 1px solid #4d4635;
+            color: #eae1d4;
+        }
+
+        .input-box:focus {
+            border-color: #f2ca50;
+            box-shadow: 0 0 14px rgba(242,202,80,.25);
+            outline: none;
+        }
+
+        .gold-btn {
+            background: linear-gradient(135deg, #f2ca50, #d4af37);
+            color: #241a00;
+            box-shadow: 0 0 25px rgba(242,202,80,.35);
+        }
+
+        .upload-box {
+            border: 2px dashed rgba(242,202,80,.35);
+            background: rgba(17,14,7,.65);
+        }
+
+        .product-img {
+            transition: .6s ease;
+        }
+
+        .product-card:hover .product-img {
+            transform: scale(1.06);
+        }
+    </style>
+</head>
+
+<body class="page-bg">
+
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="max-w-6xl mx-auto px-8 pt-36 pb-20">
+
+    <section class="text-center mb-12">
+        <h1 class="font-orbitron text-5xl md:text-7xl font-bold tracking-widest text-[#eae1d4]">
+            {% if mode == "order" %}
+                RETURN ENTIRE ORDER
+            {% else %}
+                RETURN ITEM
+            {% endif %}
+        </h1>
+
+        <p class="text-[#d0c5af] mt-5 text-lg max-w-2xl mx-auto">
+            Please provide a clear reason, detailed description, and image proof for your return request.
+        </p>
+    </section>
+
+    {% if mode == "order" %}
+    <form method="POST"
+          action="{% url 'return_order' order.id %}"
+          enctype="multipart/form-data"
+          class="glass rounded-xl p-8 md:p-12">
+    {% else %}
+    <form method="POST"
+          action="{% url 'return_order_item' item.id %}"
+          enctype="multipart/form-data"
+          class="glass rounded-xl p-8 md:p-12">
+    {% endif %}
+
+        {% csrf_token %}
+
+        <section class="glass rounded-lg p-6 mb-10">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-center">
+
+                <div class="relative h-56 rounded overflow-hidden border border-[#f2ca50]/25 product-card">
+                    {% if item.variant and item.variant.images.first %}
+                        <img src="{{ item.variant.images.first.image.url }}"
+                             class="product-img w-full h-full object-cover"
+                             alt="{{ item.product_name }}">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center bg-[#110e07]">
+                            <span class="material-symbols-outlined text-[#f2ca50] text-7xl">
+                                directions_car
+                            </span>
+                        </div>
+                    {% endif %}
+
+                    <span class="absolute top-3 left-3 bg-[#f2ca50] text-[#241a00] font-orbitron text-xs px-3 py-1 rounded">
+                        PREMIUM EDITION
+                    </span>
+                </div>
+
+                <div class="md:col-span-2">
+                    <h2 class="font-orbitron text-3xl md:text-4xl text-[#eae1d4] uppercase">
+                        {{ item.product_name }}
+                    </h2>
+
+                    <p class="text-[#d0c5af] mt-3">
+                        ORDER ID: #{{ order.order_id }}
+                    </p>
+
+                    <div class="border-t border-[#4d4635]/60 mt-6 pt-6 flex gap-10 flex-wrap">
+                        <div>
+                            <p class="font-orbitron text-xs text-[#99907c]">DELIVERED ON</p>
+                            <p class="text-[#eae1d4]">{{ order.updated_at|date:"F d, Y" }}</p>
+                        </div>
+
+                        <div>
+                            <p class="font-orbitron text-xs text-[#99907c]">PRICE</p>
+                            <p class="text-[#f2ca50]">₹{{ item.item_total }}</p>
+                        </div>
+
+                        <div>
+                            <p class="font-orbitron text-xs text-[#99907c]">QTY</p>
+                            <p class="text-[#f2ca50]">{{ item.quantity }}</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-10">
+
+            <div class="space-y-8">
+                <div>
+                    <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                        RETURN REASON <span class="text-red-300">*</span>
+                    </label>
+
+                    <select name="return_reason"
+                            required
+                            class="input-box w-full mt-4 p-4 rounded">
+                        <option value="" selected disabled>Select reason for return...</option>
+                        <option value="Damaged Product">Damaged Product</option>
+                        <option value="Wrong Product Received">Wrong Product Received</option>
+                        <option value="Product Quality Issue">Product Quality Issue</option>
+                        <option value="Missing Parts">Missing Parts</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                        DETAILED DESCRIPTION <span class="text-red-300">*</span>
+                    </label>
+
+                    <textarea name="comments"
+                              rows="6"
+                              required
+                              minlength="15"
+                              class="input-box w-full mt-4 p-4 rounded resize-none"
+                              placeholder="Explain the issue clearly. Minimum 15 characters required."></textarea>
+
+                    <p class="text-[#99907c] text-xs mt-2">
+                        Example: Product arrived damaged on front side, package was torn, and wheel part is loose.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                    UPLOAD PROOF IMAGES <span class="text-red-300">*</span>
+                </label>
+
+                <label for="returnImages"
+                       class="upload-box mt-4 h-[260px] rounded-lg flex flex-col items-center justify-center cursor-pointer hover:bg-[#f2ca50]/5 transition">
+
+                    <span class="material-symbols-outlined text-[#f2ca50] text-5xl mb-4">
+                        upload_file
+                    </span>
+
+                    <p class="text-[#eae1d4]">Click to Upload Return Proof</p>
+                    <p class="text-[#99907c] text-sm mt-2">
+                        At least 1 image required. Maximum 5 images.
+                    </p>
+                    <p class="text-[#99907c] text-xs mt-1">
+                        JPG / PNG / WEBP only. Max 5MB each.
+                    </p>
+                </label>
+
+                <input type="file"
+                       id="returnImages"
+                       name="return_images"
+                       multiple
+                       required
+                       accept="image/jpeg,image/png,image/webp"
+                       class="hidden">
+
+                <div id="previewBox" class="grid grid-cols-5 gap-3 mt-4"></div>
+
+                <p id="imageError" class="text-red-300 text-xs mt-3 hidden"></p>
+            </div>
+
+        </section>
+
+        <div class="border-t border-[#4d4635]/50 mt-12 pt-8 flex flex-col md:flex-row justify-center gap-6">
+            <button type="submit"
+                    class="gold-btn font-orbitron tracking-[0.2em] px-16 py-4 rounded hover:scale-[1.02] transition">
+                CONFIRM RETURN
+            </button>
+
+            <a href="{% url 'order_detail' order.id %}"
+               class="border border-[#99907c] text-[#eae1d4] font-orbitron tracking-[0.2em] px-16 py-4 rounded text-center hover:border-[#f2ca50] hover:text-[#f2ca50] transition">
+                GO BACK
+            </a>
+        </div>
+
+    </form>
+
+</main>
+
+<script>
+    const input = document.getElementById("returnImages");
+    const previewBox = document.getElementById("previewBox");
+    const imageError = document.getElementById("imageError");
+
+    input.addEventListener("change", function () {
+        previewBox.innerHTML = "";
+        imageError.classList.add("hidden");
+        imageError.textContent = "";
+
+        const files = Array.from(this.files);
+
+        if (files.length === 0) {
+            imageError.textContent = "Please upload at least one image.";
+            imageError.classList.remove("hidden");
+            return;
+        }
+
+        if (files.length > 5) {
+            imageError.textContent = "Maximum 5 images allowed.";
+            imageError.classList.remove("hidden");
+            this.value = "";
+            return;
+        }
+
+        const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+        const maxSize = 5 * 1024 * 1024;
+
+        for (const file of files) {
+            if (!allowedTypes.includes(file.type)) {
+                imageError.textContent = "Only JPG, PNG, and WEBP images are allowed.";
+                imageError.classList.remove("hidden");
+                this.value = "";
+                return;
+            }
+
+            if (file.size > maxSize) {
+                imageError.textContent = "Each image must be less than 5MB.";
+                imageError.classList.remove("hidden");
+                this.value = "";
+                return;
+            }
+        }
+
+        files.forEach(file => {
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const img = document.createElement("img");
+                img.src = e.target.result;
+                img.className = "w-full h-20 object-cover rounded border border-[#f2ca50]/30";
+                previewBox.appendChild(img);
+            };
+
+            reader.readAsDataURL(file);
+        });
+    });
+</script>
+
+</body>
+</html>

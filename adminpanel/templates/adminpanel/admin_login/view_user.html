@@ -335,8 +335,11 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
                             <td>₹ {{ order.total_amount }}</td>
                             <td>{{ order.payment_method }}</td>
                             <td>
-                                <span style="color: {% if order.status == 'Delivered' %}#32e96d{% else %}#f1c82c{% endif %}">
-                                    ● {{ order.status }}
+                                <span style="color: {% if order.status == "RETURNED" %}
+                                    <p class="font-headline-md text-blue-400 text-xl">RETURNED</p>
+                                {% else %}
+                                    <p class="font-headline-md text-primary text-xl">{{ order.status }}</p>
+                                {% endif %}">
                                 </span>
                             </td>
                         </tr>

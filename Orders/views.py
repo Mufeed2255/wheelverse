@@ -1,6 +1,7 @@
 import re
 from decimal import Decimal
 
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.contrib import messages
@@ -10,16 +11,14 @@ from django.db import transaction
 
 from Accounts.models import Address
 from Products.models import Cart, ProductVariant
-from .models import Order, OrderItem, OrderAddress
+from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnRequestImage
 from django.db.models import Sum
 from adminpanel.models import Product as AdminProduct
 
     
 from django.core.paginator import Paginator
 from django.db.models import Q
-from adminpanel.models import Product
 
-from django.http import HttpResponse
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -31,7 +30,6 @@ from reportlab.platypus import (
     Spacer
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
 
 
 def validate_checkout_address(data):
@@ -408,6 +406,7 @@ def my_orders(request):
         "confirmed": Order.objects.filter(user=request.user, status="CONFIRMED").count(),
         "shipped": Order.objects.filter(user=request.user, status="SHIPPED").count(),
         "delivered": Order.objects.filter(user=request.user, status="DELIVERED").count(),
+        "returned": Order.objects.filter(user=request.user, status="RETURNED").count(),
     }
 
     return render(request, "orders/my_orders.html", {
@@ -577,7 +576,7 @@ def cancel_order_item(request, item_id):
         if order_item.variant:
             order_item.variant.stock += order_item.quantity
             order_item.variant.save(update_fields=["stock"])
-            product_id_to_sync = order_item.variant.product.id  # ✅ capture ID
+            product_id_to_sync = order_item.variant.product.id  
 
         active_items = order.items.filter(is_cancelled=False)
 
@@ -590,7 +589,6 @@ def cancel_order_item(request, item_id):
             order.cancel_reason = final_reason
             order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
-        # ✅ Sync product's total_stock AFTER the atomic transaction commits
         if product_id_to_sync:
             def sync_stock(pid=product_id_to_sync):
                 from django.db.models import Sum
@@ -612,6 +610,247 @@ def cancel_order_item(request, item_id):
         "order": order,
         "item": order_item,
     })
+    
+@login_required
+@transaction.atomic
+def return_order_item(request, item_id):
+
+    order_item = get_object_or_404(
+        OrderItem.objects.select_related(
+            "order",
+            "variant",
+            "variant__product"
+        ).prefetch_related(
+            "variant__images"
+        ),
+        id=item_id,
+        order__user=request.user
+    )
+
+    order = order_item.order
+
+    if order.status != "DELIVERED":
+        messages.error(request, "Only delivered items can be returned.")
+        return redirect("order_detail", order.id)
+
+    if order_item.is_cancelled:
+        messages.error(request, "Cancelled item cannot be returned.")
+        return redirect("order_detail", order.id)
+
+    if order_item.is_return_requested:
+        messages.info(request, "Return request already submitted.")
+        return redirect("order_detail", order.id)
+
+    if request.method == "POST":
+
+        reason = request.POST.get("return_reason", "").strip()
+        comments = request.POST.get("comments", "").strip()
+        images = request.FILES.getlist("return_images")
+
+        valid_reasons = [
+            "Damaged Product",
+            "Wrong Product Received",
+            "Product Quality Issue",
+            "Missing Parts",
+            "Other",
+        ]
+
+        if reason not in valid_reasons:
+            messages.error(request, "Please select a valid return reason.")
+            return redirect("return_order_item", item_id=item_id)
+
+        if not comments or len(comments) < 15:
+            messages.error(request, "Please enter a detailed description with at least 15 characters.")
+            return redirect("return_order_item", item_id=item_id)
+
+        if not images:
+            messages.error(request, "Please upload at least one return proof image.")
+            return redirect("return_order_item", item_id=item_id)
+
+        if len(images) > 5:
+            messages.error(request, "Maximum 5 images allowed.")
+            return redirect("return_order_item", item_id=item_id)
+
+        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+        max_size = 5 * 1024 * 1024
+
+        for image in images:
+            if image.content_type not in allowed_types:
+                messages.error(request, "Only JPG, PNG, and WEBP images are allowed.")
+                return redirect("return_order_item", item_id=item_id)
+
+            if image.size > max_size:
+                messages.error(request, "Each image must be less than 5MB.")
+                return redirect("return_order_item", item_id=item_id)
+
+        final_reason = f"{reason}\n\nDescription: {comments}"
+
+        request_obj = ReturnRequest.objects.create(
+            order=order,
+            order_item=order_item,
+            user=request.user,
+            reason=final_reason,
+            refund_amount=order_item.item_total,
+        )
+
+        for image in images:
+            ReturnRequestImage.objects.create(
+                return_request=request_obj,
+                image=image
+            )
+
+        order_item.is_return_requested = True
+        order_item.return_reason = final_reason
+        order_item.save(update_fields=[
+            "is_return_requested",
+            "return_reason"
+        ])
+
+        remaining = order.items.filter(
+            is_cancelled=False,
+            is_return_requested=False
+        )
+
+        if not remaining.exists():
+            order.status = "RETURN_REQUESTED"
+            order.return_reason = final_reason
+            order.save(update_fields=[
+                "status",
+                "return_reason",
+                "updated_at"
+            ])
+
+        messages.success(request, "Return request submitted successfully.")
+        return redirect("order_detail", order.id)
+
+    return render(
+        request,
+        "orders/return_order.html",
+        {
+            "mode": "item",
+            "order": order,
+            "item": order_item,
+        }
+    )
+
+
+@login_required
+@transaction.atomic
+def return_order(request, order_id):
+
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            "items",
+            "items__variant",
+            "items__variant__images",
+            "items__variant__product",
+        ),
+        id=order_id,
+        user=request.user
+    )
+
+    if order.status != "DELIVERED":
+        messages.error(request, "Only delivered orders can be returned.")
+        return redirect("order_detail", order.id)
+
+    available_items = order.items.filter(
+        is_cancelled=False,
+        is_return_requested=False
+    )
+
+    if not available_items.exists():
+        messages.info(request, "Return request already submitted.")
+        return redirect("order_detail", order.id)
+
+    first_item = available_items.first()
+
+    if request.method == "POST":
+
+        reason = request.POST.get("return_reason", "").strip()
+        comments = request.POST.get("comments", "").strip()
+        images = request.FILES.getlist("return_images")
+
+        valid_reasons = [
+            "Damaged Product",
+            "Wrong Product Received",
+            "Product Quality Issue",
+            "Missing Parts",
+            "Other",
+        ]
+
+        if reason not in valid_reasons:
+            messages.error(request, "Please select a valid return reason.")
+            return redirect("return_order", order.id)
+
+        if not comments or len(comments) < 15:
+            messages.error(request, "Please enter a detailed description with at least 15 characters.")
+            return redirect("return_order", order.id)
+
+        if not images:
+            messages.error(request, "Please upload at least one return proof image.")
+            return redirect("return_order", order.id)
+
+        if len(images) > 5:
+            messages.error(request, "Maximum 5 images allowed.")
+            return redirect("return_order", order.id)
+
+        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+        max_size = 5 * 1024 * 1024
+
+        for image in images:
+            if image.content_type not in allowed_types:
+                messages.error(request, "Only JPG, PNG, and WEBP images are allowed.")
+                return redirect("return_order", order.id)
+
+            if image.size > max_size:
+                messages.error(request, "Each image must be less than 5MB.")
+                return redirect("return_order", order.id)
+
+        final_reason = f"{reason}\n\nDescription: {comments}"
+
+        for item in available_items:
+
+            request_obj = ReturnRequest.objects.create(
+                order=order,
+                order_item=item,
+                user=request.user,
+                reason=final_reason,
+                refund_amount=item.item_total,
+            )
+
+            for image in images:
+                ReturnRequestImage.objects.create(
+                    return_request=request_obj,
+                    image=image
+                )
+
+            item.is_return_requested = True
+            item.return_reason = final_reason
+            item.save(update_fields=[
+                "is_return_requested",
+                "return_reason"
+            ])
+
+        order.status = "RETURN_REQUESTED"
+        order.return_reason = final_reason
+        order.save(update_fields=[
+            "status",
+            "return_reason",
+            "updated_at"
+        ])
+
+        messages.success(request, "Return request submitted for the complete order.")
+        return redirect("order_detail", order.id)
+
+    return render(
+        request,
+        "orders/return_order.html",
+        {
+            "mode": "order",
+            "order": order,
+            "item": first_item,
+        }
+    )
     
     
 @login_required
@@ -773,3 +1012,4 @@ def download_invoice(request, order_id):
     doc.build(story)
 
     return response
+

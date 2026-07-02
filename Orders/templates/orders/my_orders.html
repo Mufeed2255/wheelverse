@@ -209,7 +209,14 @@
                         DELIVERED
                         <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.delivered }}</span>
                     </a>
+
+                    <a href="?status=RETURNED{% if search_query %}&search={{ search_query }}{% endif %}"
+                        class="filter-btn {% if status_filter == 'RETURNED' %}filter-active{% else %}filter-normal{% endif %}">
+                        RETURNED
+                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.returned }}</span>
+                    </a>
                 </div>
+                
 
                 <form method="GET" class="search-box flex items-center rounded px-4 py-2 w-full xl:w-[280px]">
                     <span class="material-symbols-outlined text-on-surface-variant text-lg mr-2">search</span>

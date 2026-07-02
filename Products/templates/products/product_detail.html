@@ -85,6 +85,34 @@
             background: rgba(242,202,80,.1);
         }
     </style>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#f2ca50",
+                        background: "#16130b",
+                        surface: "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af"
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+    
 </head>
 
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">

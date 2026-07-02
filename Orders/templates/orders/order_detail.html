@@ -32,9 +32,11 @@
                         "error-container": "#93000a"
                     },
                     fontFamily: {
-                        "display-lg": ["Orbitron"],
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
                         "headline-md": ["Orbitron"],
                         "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
                         "body-md": ["Poppins"]
                     }
                 }
@@ -137,6 +139,8 @@
                         <span class="material-symbols-outlined text-primary text-5xl">
                             {% if order.status == "DELIVERED" %}
                                 verified
+                            {% elif order.status == "RETURNED" %}
+                                assignment_return
                             {% elif order.status == "CANCELLED" %}
                                 cancel
                             {% else %}
@@ -147,7 +151,14 @@
 
                     <div>
                         <div class="flex flex-wrap items-center gap-3 mb-2">
-                            <span class="font-label-caps text-xs bg-primary text-[#241a00] px-3 py-1 rounded">
+                            <span class="font-label-caps text-xs px-3 py-1 rounded
+                            {% if order.status == 'RETURNED' %}
+                                bg-blue-500 text-white
+                            {% elif order.status == 'CANCELLED' %}
+                                bg-red-600 text-white
+                            {% else %}
+                                bg-primary text-[#241a00]
+                            {% endif %}">
                                 {{ order.status }}
                             </span>
 
@@ -159,6 +170,8 @@
                         <h2 class="font-headline-md text-2xl md:text-3xl text-on-surface uppercase">
                             {% if order.status == "DELIVERED" %}
                                 DELIVERED ON {{ order.updated_at|date:"F d, Y" }}
+                            {% elif order.status == "RETURNED" %}
+                                ORDER RETURNED
                             {% elif order.status == "CANCELLED" %}
                                 ORDER CANCELLED
                             {% else %}
@@ -202,8 +215,8 @@
                         </div>
 
                         <div class="text-center">
-                            <div class="w-8 h-8 mx-auto rounded {% if order.status == 'DELIVERED' %}bg-primary gold-glow{% else %}bg-surface-container-highest{% endif %}"></div>
-                            <p class="font-label-caps text-[10px] mt-3 {% if order.status == 'DELIVERED' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                            <div class="w-8 h-8 mx-auto rounded {% if order.status == 'DELIVERED' or order.status == 'RETURNED' %}bg-primary gold-glow{% else %}bg-surface-container-highest{% endif %}"></div>
+                            <p class="font-label-caps text-[10px] mt-3 {% if order.status == 'DELIVERED' or order.status == 'RETURNED' %}text-primary{% else %}text-on-surface-variant{% endif %}">
                                 Delivered
                             </p>
                         </div>
@@ -308,23 +321,40 @@
                                     </p>
                                 {% endif %}
 
+                            {% elif item.is_return_requested %}
+                                <p class="text-primary font-label-caps text-xs text-center">
+                                    RETURN REQUEST SUBMITTED
+                                </p>
+
+                                {% if item.return_reason %}
+                                    <p class="text-on-surface-variant text-xs text-center mt-2">
+                                        Reason: {{ item.return_reason }}
+                                    </p>
+                                {% endif %}
+
                             {% elif order.status == "PENDING" %}
                                 <a href="{% url 'cancel_order_item' item.id %}"
-                                   class="block text-center w-full py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
+                                class="block text-center w-full py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
                                     CANCEL THIS ITEM
                                 </a>
 
                             {% elif order.status == "CONFIRMED" %}
                                 <a href="{% url 'cancel_order_item' item.id %}"
-                                   class="block text-center w-full py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
+                                class="block text-center w-full py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
                                     CANCEL THIS ITEM
                                 </a>
 
+                            {% elif order.status == "RETURNED" %}
+                                <p class="text-blue-400 font-label-caps text-xs text-center">
+                                    THIS ITEM HAS BEEN RETURNED
+                                </p>
+
                             {% elif order.status == "DELIVERED" %}
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <button class="py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
-                                        RETURN ORDER
-                                    </button>
+                                    <a href="{% url 'return_order_item' item.id %}"
+                                    class="block text-center py-3 bg-primary-container text-white font-label-caps text-xs rounded hover:bg-error-container transition">
+                                        RETURN THIS ITEM
+                                    </a>
 
                                     <button class="py-3 bg-primary text-[#241a00] font-label-caps text-xs rounded hover:scale-[1.02] transition">
                                         WRITE REVIEW
@@ -341,11 +371,8 @@
                 {% endfor %}
                 {% if order.status == "PENDING" or order.status == "CONFIRMED" %}
                 <div class="carbon-glass p-6 border border-red-500/30 bg-red-900/10 rounded-xl">
-
                     <div class="flex items-center gap-3 mb-3">
-                        <span class="material-symbols-outlined text-red-400">
-                            warning
-                        </span>
+                        <span class="material-symbols-outlined text-red-400">warning</span>
 
                         <h3 class="font-display-lg text-lg text-red-300 uppercase">
                             Cancel Entire Order
@@ -353,22 +380,36 @@
                     </div>
 
                     <p class="text-sm text-on-surface-variant mb-6">
-                        This will cancel every product in this order and restore all product
-                        stock. This action cannot be undone.
+                        This will cancel every product in this order and restore all product stock.
+                        This action cannot be undone.
                     </p>
 
                     <a href="{% url 'cancel_order' order.id %}"
-                    class="w-full flex items-center justify-center gap-2 py-4 rounded-lg
-                            bg-red-600 hover:bg-red-700
-                            text-white font-display-lg tracking-wider transition">
-
-                        <span class="material-symbols-outlined">
-                            cancel
-                        </span>
-
+                    class="w-full flex items-center justify-center gap-2 py-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-display-lg tracking-wider transition">
+                        <span class="material-symbols-outlined">cancel</span>
                         CANCEL ENTIRE ORDER
                     </a>
+                </div>
+                {% endif %}
 
+                {% if order.status == "DELIVERED" %}
+                <div class="carbon-glass p-6 border border-red-500/30 bg-red-900/10 rounded-xl">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="material-symbols-outlined text-red-400">assignment_return</span>
+
+                        <h3 class="font-display-lg text-lg text-red-300 uppercase">
+                            Return Entire Order
+                        </h3>
+                    </div>
+
+                    <p class="text-sm text-on-surface-variant mb-6">
+                        This will submit a return request for every eligible item in this order.
+                    </p>
+
+                    <a href="{% url 'return_order' order.id %}"
+                    class="block text-center py-4 bg-red-700 text-white font-label-caps text-xs rounded hover:bg-red-800 transition">
+                        RETURN ENTIRE ORDER
+                    </a>
                 </div>
                 {% endif %}
 

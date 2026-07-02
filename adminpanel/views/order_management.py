@@ -3,11 +3,12 @@ import csv
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
-from django.db.models import Q
+from django.db.models import Q,Count
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
-from Orders.models import Order
+from Orders.models import Order,ReturnRequest
+from django.utils import timezone
 
 
 @staff_member_required(login_url="admin_login")
@@ -140,3 +141,159 @@ def admin_cancel_order(request, order_id):
         messages.success(request, "Order cancelled successfully.")
 
     return redirect("admin_order_detail", order_id=order.id)
+
+
+
+
+@staff_member_required(login_url="admin_login")
+def admin_returns(request):
+    returns = (
+        ReturnRequest.objects
+        .select_related(
+            "order",
+            "order_item",
+            "order_item__variant",
+            "order_item__variant__product",
+            "user",
+        )
+        .prefetch_related("order_item__variant__images")
+    )
+
+    search = request.GET.get("search", "").strip()
+    status = request.GET.get("status", "all").strip()
+
+    if search:
+        returns = returns.filter(
+            Q(order__order_id__icontains=search) |
+            Q(user__username__icontains=search) |
+            Q(user__email__icontains=search) |
+            Q(order_item__product_name__icontains=search)
+        )
+
+    if status != "all":
+        returns = returns.filter(status=status)
+
+    total_returns = ReturnRequest.objects.count()
+    pending_returns = ReturnRequest.objects.filter(status="REQUESTED").count()
+    approved_returns = ReturnRequest.objects.filter(status="APPROVED").count()
+    refunded_returns = ReturnRequest.objects.filter(status="REFUNDED").count()
+    rejected_returns = ReturnRequest.objects.filter(status="REJECTED").count()
+    refunded_returns = ReturnRequest.objects.filter(status="REFUNDED").count()
+
+    paginator = Paginator(returns, 6)
+    page_obj = paginator.get_page(request.GET.get("page"))
+
+    return render(request, "adminpanel/admin_returns/admin_returns.html", {
+        "page_obj": page_obj,
+        "search": search,
+        "current_status": status,
+
+        "total_returns": total_returns,
+        "pending_returns": pending_returns,
+        "approved_returns": approved_returns,
+        "rejected_returns": rejected_returns,
+        "refunded_returns": refunded_returns,
+
+        "status_choices": ReturnRequest.STATUS_CHOICES,
+    })
+
+
+@staff_member_required(login_url="admin_login")
+def approve_return(request, return_id):
+    return_request = get_object_or_404(ReturnRequest, id=return_id)
+
+    return_request.status = "APPROVED"
+    return_request.save(update_fields=["status", "updated_at"])
+
+    order = return_request.order
+    order.status = "RETURN_APPROVED"
+    order.save(update_fields=["status", "updated_at"])
+
+    messages.success(request, "Return request approved successfully.")
+    return redirect("admin_returns")
+
+
+@staff_member_required(login_url="admin_login")
+def reject_return(request, return_id):
+    return_request = get_object_or_404(ReturnRequest, id=return_id)
+
+    if request.method == "POST":
+        admin_note = request.POST.get("admin_note", "").strip()
+
+        return_request.status = "REJECTED"
+        return_request.admin_note = admin_note
+        return_request.save(update_fields=["status", "admin_note", "updated_at"])
+
+        order = return_request.order
+        order.status = "RETURN_REJECTED"
+        order.save(update_fields=["status", "updated_at"])
+
+        messages.success(request, "Return request rejected successfully.")
+
+    return redirect("admin_returns")
+
+
+@staff_member_required(login_url="admin_login")
+def process_refund(request, return_id):
+    return_request = get_object_or_404(ReturnRequest, id=return_id)
+
+    return_request.status = "REFUNDED"
+    return_request.refunded_at = timezone.now()
+    return_request.save(update_fields=["status", "refunded_at", "updated_at"])
+
+    order = return_request.order
+    order.status = "RETURNED"
+    order.save(update_fields=["status", "updated_at"])
+
+    messages.success(request, "Refund processed successfully.")
+    return redirect("admin_returns")
+
+@staff_member_required(login_url="admin_login")
+def return_action_page(request, return_id):
+    return_request = get_object_or_404(
+        ReturnRequest.objects.select_related(
+            "order",
+            "order_item",
+            "order_item__variant",
+            "order_item__variant__product",
+            "user",
+        ).prefetch_related("order_item__variant__images"),
+        id=return_id
+    )
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+
+        if return_request.status != "REQUESTED":
+            messages.error(request, "This return request is already processed.")
+            return redirect("admin_returns")
+
+        if action == "approve":
+            return_request.status = "APPROVED"
+            return_request.save(update_fields=["status", "updated_at"])
+
+            return_request.order.status = "RETURN_APPROVED"
+            return_request.order.save(update_fields=["status", "updated_at"])
+
+            messages.success(request, "Return request approved successfully.")
+            return redirect("admin_returns")
+
+        if action == "reject":
+            return_request.status = "REJECTED"
+            return_request.admin_note = "Rejected by admin."
+            return_request.save(update_fields=["status", "admin_note", "updated_at"])
+
+            return_request.order.status = "RETURN_REJECTED"
+            return_request.order.save(update_fields=["status", "updated_at"])
+
+            messages.success(request, "Return request rejected successfully.")
+            return redirect("admin_returns")
+
+        messages.error(request, "Invalid action.")
+        return redirect("return_action_page", return_id=return_request.id)
+
+    return render(request, "adminpanel/admin_returns/return_action.html", {
+        "return_request": return_request,
+        "item": return_request.order_item,
+        "variant": return_request.order_item.variant,
+    })
