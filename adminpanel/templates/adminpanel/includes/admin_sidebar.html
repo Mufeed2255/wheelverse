@@ -14,9 +14,17 @@
         <a href="{% url 'admin_products' %}" class="wv-item {% if url_name == 'admin_products' %}active{% endif %}">
             <span class="material-symbols-outlined">inventory_2</span>Products
         </a>
+
+        <a href="{% url 'admin_category' %}" class="wv-item {% if url_name == 'admin_category' %}active{% endif %}">
+            <span class="material-symbols-outlined">category</span>Category
+        </a>
         
         <a href={% url 'admin_orders' %} class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
             <span class="material-symbols-outlined">shopping_cart</span>Orders
+        </a>
+
+        <a href="{% url "admin_returns" %}" class="wv-item {% if url_name == 'admin_returns' %}active{% endif %}">
+            <span class="material-symbols-outlined">assignment_return</span>Returns
         </a>
         
         <a href="{% url 'admin_users' %}" class="wv-item {% if url_name == 'admin_users' or url_name == 'view_user' %}active{% endif %}">
@@ -43,13 +51,6 @@
             <span class="material-symbols-outlined">settings</span>Settings
         </a>
         
-        <a href="{% url "admin_returns" %}" class="wv-item {% if url_name == 'admin_returns' %}active{% endif %}">
-            <span class="material-symbols-outlined">assignment_return</span>Returns
-        </a>
-        
-        <a href="{% url 'admin_category' %}" class="wv-item {% if url_name == 'admin_category' %}active{% endif %}">
-            <span class="material-symbols-outlined">category</span>Category
-        </a>
     </div>
 
     <div class="wv-logout">

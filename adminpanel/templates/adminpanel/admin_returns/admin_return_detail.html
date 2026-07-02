@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse Admin - Return Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            background: #080806;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .font-orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(22, 20, 14, 0.92);
+            border: 1px solid rgba(242, 202, 80, 0.18);
+            box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
+        }
+
+        .status-pill {
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            text-transform: uppercase;
+            font-weight: 700;
+            border: 1px solid rgba(242,202,80,.35);
+        }
+
+        .status-requested {
+            background: rgba(242,202,80,.14);
+            color: #f2ca50;
+        }
+
+        .status-approved {
+            background: rgba(59,130,246,.14);
+            color: #60a5fa;
+            border-color: rgba(96,165,250,.45);
+        }
+
+        .status-rejected {
+            background: rgba(239,68,68,.14);
+            color: #f87171;
+            border-color: rgba(248,113,113,.45);
+        }
+
+        .status-refunded {
+            background: rgba(34,197,94,.14);
+            color: #4ade80;
+            border-color: rgba(74,222,128,.45);
+        }
+
+        .field-label {
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            color: #d0c5af;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+        }
+
+        .gold-title {
+            font-family: Orbitron, sans-serif;
+            color: #f2ca50;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+        }
+
+        .modal-bg {
+            background: rgba(0,0,0,.72);
+            backdrop-filter: blur(8px);
+        }
+    </style>
+</head>
+
+<body class="overflow-x-hidden">
+
+{% include 'adminpanel/includes/admin_sidebar.html' %}
+
+<main class="ml-[270px] w-[calc(100%-270px)] min-h-screen bg-[#0d0b07] overflow-x-hidden">
+
+    {% include 'adminpanel/includes/admin_topbar.html' %}
+
+    <div class="px-10 pt-32 pb-10">
+        <div class="max-w-[1480px] mx-auto w-full">
+
+            {% include 'adminpanel/includes/messages.html' %}
+
+            <div class="flex justify-between items-end mb-7">
+                <div>
+                    <h1 class="font-orbitron text-3xl font-bold tracking-wide">
+                        Return Detail – #RET-{{ return_request.id }}
+                    </h1>
+
+                    <div class="flex flex-wrap items-center gap-4 mt-3 text-xs">
+                        <span class="text-[#d0c5af] flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">calendar_today</span>
+                            Requested: {{ return_request.requested_at|date:"F d, Y" }}
+                        </span>
+
+                        <span class="text-[#f2ca50] flex items-center gap-1">
+                            <span class="material-symbols-outlined text-sm">receipt_long</span>
+                            Order: {{ order.order_id }}
+                        </span>
+
+                        <span class="status-pill status-{{ return_request.status|lower }}">
+                            {{ return_request.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+
+                <a href="{% url 'admin_returns' %}"
+                   class="border border-[#d0c5af]/50 px-6 py-2 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center gap-2">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Back to Returns
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7">
+
+                <section class="lg:col-span-2 glass-panel p-7 relative overflow-hidden">
+                    <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5">
+                        assignment_return
+                    </span>
+
+                    <h3 class="gold-title border-l-2 border-[#f2ca50] pl-4 mb-6">
+                        Return Summary
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <p class="field-label">Customer</p>
+                            <p class="font-semibold mt-1">{{ return_request.user.username }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Email Address</p>
+                            <p class="mt-1">{{ return_request.user.email }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Return Status</p>
+                            <p class="mt-1 text-[#f2ca50] font-bold">
+                                {{ return_request.get_status_display }}
+                            </p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Order ID</p>
+                            <p class="mt-1">{{ order.order_id }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Payment Method</p>
+                            <p class="mt-1">{{ order.get_payment_method_display }}</p>
+                        </div>
+
+                        <div>
+                            <p class="field-label">Refund Amount</p>
+                            <p class="text-[#f2ca50] font-bold text-xl mt-1">
+                                ₹{{ return_request.refund_amount }}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-panel p-7 border-l-4 border-[#f2ca50]">
+                    <h3 class="gold-title mb-6 flex items-center gap-2">
+                        <span class="material-symbols-outlined">location_on</span>
+                        Customer Address
+                    </h3>
+
+                    {% if order.shipping_address %}
+                        <p class="font-bold text-lg">{{ order.shipping_address.full_name }}</p>
+
+                        <p class="text-[#d0c5af] mt-3 leading-7">
+                            {{ order.shipping_address.address }}<br>
+                            {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
+                            {{ order.shipping_address.postal_code }}<br>
+                            Phone: {{ order.shipping_address.phone }}
+                        </p>
+                    {% else %}
+                        <p class="font-bold text-lg">{{ order.full_name }}</p>
+                        <p class="text-[#d0c5af] mt-3 leading-7">
+                            {{ order.address_line }}<br>
+                            {{ order.city }}, {{ order.state }}<br>
+                            {{ order.pincode }}<br>
+                            Phone: {{ order.phone }}
+                        </p>
+                    {% endif %}
+                </section>
+
+            </div>
+
+            <section class="glass-panel mb-7 overflow-hidden">
+                <div class="px-7 py-5 border-b border-[#f2ca50]/20 flex justify-between items-center">
+                    <h3 class="font-orbitron text-sm uppercase tracking-widest">Returned Product</h3>
+                    <span class="text-xs text-[#d0c5af]">1 Item</span>
+                </div>
+
+                <div class="p-7">
+                    <div class="grid grid-cols-1 lg:grid-cols-[130px_1fr_180px] gap-6 items-center">
+                        <div class="w-32 h-32 border border-[#f2ca50]/20 bg-[#111] overflow-hidden">
+                            {% if variant and variant.image %}
+                                <img src="{{ variant.image.url }}" class="w-full h-full object-cover">
+                            {% elif variant and variant.images.first %}
+                                <img src="{{ variant.images.first.image.url }}" class="w-full h-full object-cover">
+                            {% else %}
+                                <div class="w-full h-full flex items-center justify-center text-[#f2ca50]/50">
+                                    <span class="material-symbols-outlined text-5xl">directions_car</span>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div>
+                            <p class="font-orbitron text-xl uppercase">{{ item.product_name }}</p>
+
+                            <p class="text-sm text-[#d0c5af] uppercase mt-2">
+                                {{ item.variant_size|default:"No Size" }}
+                                /
+                                {{ item.variant_color|default:"No Color" }}
+                            </p>
+
+                            <div class="grid grid-cols-3 gap-4 mt-6 max-w-[500px]">
+                                <div>
+                                    <p class="field-label">Quantity</p>
+                                    <p class="text-[#f2ca50] mt-1">{{ item.quantity }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="field-label">Unit Price</p>
+                                    <p class="text-[#f2ca50] mt-1">₹{{ item.price }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="field-label">Subtotal</p>
+                                    <p class="text-[#f2ca50] mt-1">
+                                        {% if item.item_total %}
+                                            ₹{{ item.item_total }}
+                                        {% else %}
+                                            ₹{{ item.subtotal }}
+                                        {% endif %}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="text-right">
+                            <p class="field-label">Refund Amount</p>
+                            <p class="text-[#f2ca50] text-3xl font-bold mt-2">
+                                ₹{{ return_request.refund_amount }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+                <section class="glass-panel rounded-2xl p-8 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-8">
+                        <span class="material-symbols-outlined text-[#f2ca50]">history</span>
+
+                        <h3 class="font-orbitron text-xl font-semibold">
+                            Return History
+                        </h3>
+                    </div>
+
+                    <div class="relative ml-3 pt-3">
+                        <div class="absolute left-[11px] top-8 bottom-3 w-[2px] bg-yellow-500/30"></div>
+
+                        {% for step in timeline %}
+                            <div class="relative flex justify-between items-start mb-10 {% if not step.completed %}opacity-40{% endif %}">
+                                <div class="flex gap-5">
+                                    <div class="relative z-10 w-6 h-6 rounded-full border-[3px]
+                                        {% if step.completed %}
+                                            border-yellow-500
+                                        {% else %}
+                                            border-[#4d4635]
+                                        {% endif %}
+                                        bg-[#0d0b07] flex items-center justify-center">
+
+                                        <div class="w-2.5 h-2.5 rounded-full
+                                            {% if step.completed %}
+                                                bg-yellow-500
+                                            {% else %}
+                                                bg-[#4d4635]
+                                            {% endif %}">
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h4 class="font-medium text-2xl">{{ step.label }}</h4>
+
+                                        <p class="text-[#d0c5af] mt-1">
+                                            {% if step.key == "REQUESTED" %}
+                                                Return request submitted by {{ return_request.user.username }}
+
+                                            {% elif step.key == "APPROVED" %}
+                                                Return request approved by admin.
+
+                                            {% elif step.key == "PICKED_UP" %}
+                                                Product collected successfully by pickup partner.
+
+                                            {% elif step.key == "REJECTED" %}
+                                                Return rejected by admin.
+
+                                            {% elif step.key == "REFUNDED" %}
+                                                Refund transferred successfully.
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <span class="text-[#d0c5af]">
+                                    {% if step.date %}
+                                        {{ step.date|date:"M d, Y" }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </section>
+
+                <section class="glass-panel p-7">
+                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
+                        Return Reason
+                    </h3>
+
+                    <div class="bg-[#1b1810]/80 border border-[#f2ca50]/15 p-6">
+                        <p class="text-[#d0c5af] leading-7 whitespace-pre-line">
+                            {{ return_request.reason }}
+                        </p>
+                    </div>
+
+                    {% if return_request.status == "REQUESTED" %}
+
+                    <a href="{% url 'mark_return_picked_up' return_request.id %}"
+                    class="bg-blue-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
+                        Mark as Picked Up
+                    </a>
+
+                    {% elif return_request.status == "REQUESTED" %}
+                        <a href="{% url 'return_action_page' return_request.id %}"
+                        class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs uppercase">
+                            Approve / Reject
+                        </a>
+
+                    {% elif return_request.status == "APPROVED" %}
+                        <a href="{% url 'mark_return_picked_up' return_request.id %}"
+                        class="bg-blue-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
+                            Mark as Picked Up
+                        </a>
+
+                    {% elif return_request.status == "PICKED_UP" %}
+                        <a href="{% url 'process_refund' return_request.id %}"
+                        class="bg-green-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
+                            Process Refund
+                        </a>
+
+                    {% else %}
+                        <button disabled
+                                class="border border-[#d0c5af]/30 text-[#d0c5af] px-8 py-3 font-orbitron text-xs uppercase">
+                            Return Closed
+                        </button>
+                    {% endif %}
+
+                    <div class="mt-6">
+                        <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-4">
+                            Return Proof Images
+                        </h3>
+
+                        {% if return_request.images.all %}
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                {% for proof in return_request.images.all %}
+                                    {% if proof.image %}
+                                        <a href="{{ proof.image.url }}" target="_blank"
+                                        class="block h-32 border border-[#f2ca50]/20 overflow-hidden bg-[#111] rounded">
+                                            <img src="{{ proof.image.url }}"
+                                                alt="Return proof image"
+                                                class="w-full h-full object-cover hover:scale-105 transition">
+                                        </a>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <p class="text-[#d0c5af] text-sm">No return proof images uploaded.</p>
+                        {% endif %}
+                    </div>
+
+                    </div>
+                    
+                </section>
+
+            </div>
+
+            <div class="border-t border-[#f2ca50]/20 pt-7 flex justify-end gap-5">
+                {% if return_request.status == "REQUESTED" %}
+                    <a href="{% url 'return_action_page' return_request.id %}"
+                       class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
+                        Approve / Reject
+                    </a>
+                {% elif return_request.status == "APPROVED" %}
+                    <a href="{% url 'process_refund' return_request.id %}"
+                       class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
+                        Process Refund
+                    </a>
+                {% else %}
+                    <button disabled
+                            class="border border-[#d0c5af]/30 text-[#d0c5af] px-8 py-3 font-orbitron text-xs font-bold uppercase">
+                        Return Closed
+                    </button>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+</main>
+
+</body>
+</html>

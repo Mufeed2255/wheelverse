@@ -149,6 +149,7 @@ class Order(models.Model):
         ("SHIPPED", "Shipped"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
+        ("PICKED_UP", "Picked Up"),
         ("RETURN_REQUESTED", "Return Requested"),
         ("RETURN_APPROVED", "Return Approved"),
         ("RETURN_REJECTED", "Return Rejected"),
@@ -256,8 +257,89 @@ class OrderItem(models.Model):
     quantity = models.PositiveIntegerField(default=1)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2)
 
+    is_cancelled = models.BooleanField(default=False)
+    is_return_requested = models.BooleanField(default=False)
+    return_requested_quantity = models.PositiveIntegerField(default=0)
+    return_reason = models.TextField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
+
+    @property
+    def item_total(self):
+        return self.subtotal
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
+    
+class ReturnRequest(models.Model):
+    STATUS_CHOICES = (
+        ("REQUESTED", "Requested"),
+        ("APPROVED", "Approved"),
+        ("PICKED_UP", "Picked Up"),
+        ("REJECTED", "Rejected"),
+        ("REFUNDED", "Refunded"),
+    )
 
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="admin_return_requests"
+    )
+
+    order_item = models.ForeignKey(
+        OrderItem,
+        on_delete=models.CASCADE,
+        related_name="admin_return_requests"
+    )
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="admin_return_requests"
+    )
+
+    return_quantity = models.PositiveIntegerField(default=1)
+    reason = models.TextField()
+
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="REQUESTED"
+    )
+
+    admin_note = models.TextField(blank=True, null=True)
+    refund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+
+    picked_up_at = models.DateTimeField(blank=True, null=True)
+    refunded_at = models.DateTimeField(blank=True, null=True)
+
+    requested_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-requested_at"]
+
+    def __str__(self):
+        return f"{self.order.order_id} - {self.status}"
+    
+    
+class ReturnRequestImage(models.Model):
+    return_request = models.ForeignKey(
+        ReturnRequest,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+
+    image = models.ImageField(
+        upload_to="return_requests/",
+        blank=True,
+        null=True
+    )
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at"]
+
+    def __str__(self):
+        return f"Image for {self.return_request.order.order_id}"

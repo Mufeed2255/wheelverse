@@ -11,7 +11,9 @@ from .views.order_management import (
     return_action_page,
     approve_return,     
     reject_return,      
-    process_refund,     
+    process_refund,  
+    admin_return_detail,
+    mark_return_picked_up,   
 )
 
 
@@ -49,11 +51,14 @@ urlpatterns = [
     path("orders/<int:order_id>/cancel/", admin_cancel_order, name="admin_cancel_order"),
     
     path("admin-returns/", admin_returns, name="admin_returns"),
+    path("admin-returns/<int:return_id>/detail/",admin_return_detail,name="admin_return_detail"),
     path("admin-returns/<int:return_id>/action/",return_action_page,name="return_action_page"),
 
     path("admin-returns/<int:return_id>/approve/", approve_return, name="approve_return"),
     path("admin-returns/<int:return_id>/reject/", reject_return, name="reject_return"),
     path("admin-returns/<int:return_id>/refund/", process_refund, name="process_refund"),
+    path("returns/<int:return_id>/picked-up/",mark_return_picked_up,name="mark_return_picked_up",
+),
 
 ]
     

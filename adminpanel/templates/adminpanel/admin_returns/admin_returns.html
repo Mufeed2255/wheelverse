@@ -157,9 +157,6 @@
                             </div>
                         {% endif %}
 
-                        <div class="absolute bottom-2 left-2 text-[10px] text-gold font-orbitron">
-                            ASSET: UNIT-{{ item.id }}
-                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
@@ -203,19 +200,16 @@
                     </div>
 
                     <div class="flex flex-col gap-3">
+                        <a href="{% url 'admin_return_detail' ret.id %}"
+                        class="text-center border border-gold/40 text-gold px-4 py-3 text-xs font-orbitron hover:bg-gold hover:text-black transition">
+                            VIEW DETAILS
+                        </a>
+
                         {% if ret.status == "REQUESTED" %}
                             <a href="{% url 'return_action_page' ret.id %}"
                             class="text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">
                                 APPROVE / REJECT
                             </a>
-
-                            <form method="post" action="{% url 'reject_return' ret.id %}">
-                                {% csrf_token %}
-                                <input type="hidden" name="admin_note" value="Rejected by admin">
-                                <button class="w-full border border-red-300/40 text-red-200 px-4 py-3 text-xs font-orbitron">
-                                    REJECT
-                                </button>
-                            </form>
                         {% elif ret.status == "APPROVED" %}
                             <a href="{% url 'process_refund' ret.id %}"
                             class="text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">

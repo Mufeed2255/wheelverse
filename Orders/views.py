@@ -15,7 +15,7 @@ from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnReques
 from django.db.models import Sum
 from adminpanel.models import Product as AdminProduct
 
-    
+from django.db import models
 from django.core.paginator import Paginator
 from django.db.models import Q
 
@@ -237,7 +237,7 @@ def place_order(request):
         shipping_charge=shipping,
         total_amount=grand_total,
         payment_method=payment_method,
-        status="PENDING",
+        status="CONFIRMED",
     )
 
     OrderAddress.objects.create(
@@ -611,10 +611,57 @@ def cancel_order_item(request, item_id):
         "item": order_item,
     })
     
+from decimal import Decimal
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.db.models import Sum
+from django.shortcuts import get_object_or_404, redirect, render
+
+
+VALID_RETURN_REASONS = [
+    "Damaged Product",
+    "Wrong Product Received",
+    "Product Quality Issue",
+    "Missing Parts",
+    "Other",
+]
+
+
+def get_item_returned_qty(order_item):
+    total = order_item.return_requests.exclude(
+        status="REJECTED"
+    ).aggregate(
+        total=Sum("return_quantity")
+    )["total"]
+
+    return total or 0
+
+
+def validate_return_images(images):
+    if not images:
+        return "Please upload at least one return proof image."
+
+    if len(images) > 5:
+        return "Maximum 5 images allowed."
+
+    allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+    max_size = 5 * 1024 * 1024
+
+    for image in images:
+        if image.content_type not in allowed_types:
+            return "Only JPG, PNG, and WEBP images are allowed."
+
+        if image.size > max_size:
+            return "Each image must be less than 5MB."
+
+    return None
+
+
 @login_required
 @transaction.atomic
 def return_order_item(request, item_id):
-
     order_item = get_object_or_404(
         OrderItem.objects.select_related(
             "order",
@@ -637,25 +684,24 @@ def return_order_item(request, item_id):
         messages.error(request, "Cancelled item cannot be returned.")
         return redirect("order_detail", order.id)
 
-    if order_item.is_return_requested:
-        messages.info(request, "Return request already submitted.")
+    already_requested_qty = get_item_returned_qty(order_item)
+    available_qty = order_item.quantity - already_requested_qty
+
+    if available_qty <= 0:
+        messages.info(request, "Return request already submitted for full quantity.")
         return redirect("order_detail", order.id)
 
     if request.method == "POST":
-
         reason = request.POST.get("return_reason", "").strip()
         comments = request.POST.get("comments", "").strip()
         images = request.FILES.getlist("return_images")
 
-        valid_reasons = [
-            "Damaged Product",
-            "Wrong Product Received",
-            "Product Quality Issue",
-            "Missing Parts",
-            "Other",
-        ]
+        try:
+            return_quantity = int(request.POST.get("return_quantity", 0))
+        except ValueError:
+            return_quantity = 0
 
-        if reason not in valid_reasons:
+        if reason not in VALID_RETURN_REASONS:
             messages.error(request, "Please select a valid return reason.")
             return redirect("return_order_item", item_id=item_id)
 
@@ -663,34 +709,31 @@ def return_order_item(request, item_id):
             messages.error(request, "Please enter a detailed description with at least 15 characters.")
             return redirect("return_order_item", item_id=item_id)
 
-        if not images:
-            messages.error(request, "Please upload at least one return proof image.")
+        if return_quantity < 1:
+            messages.error(request, "Please enter a valid return quantity.")
             return redirect("return_order_item", item_id=item_id)
 
-        if len(images) > 5:
-            messages.error(request, "Maximum 5 images allowed.")
+        if return_quantity > available_qty:
+            messages.error(request, f"You can return only {available_qty} quantity.")
             return redirect("return_order_item", item_id=item_id)
 
-        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
-        max_size = 5 * 1024 * 1024
-
-        for image in images:
-            if image.content_type not in allowed_types:
-                messages.error(request, "Only JPG, PNG, and WEBP images are allowed.")
-                return redirect("return_order_item", item_id=item_id)
-
-            if image.size > max_size:
-                messages.error(request, "Each image must be less than 5MB.")
-                return redirect("return_order_item", item_id=item_id)
+        image_error = validate_return_images(images)
+        if image_error:
+            messages.error(request, image_error)
+            return redirect("return_order_item", item_id=item_id)
 
         final_reason = f"{reason}\n\nDescription: {comments}"
+
+        unit_price = order_item.item_total / order_item.quantity
+        refund_amount = unit_price * return_quantity
 
         request_obj = ReturnRequest.objects.create(
             order=order,
             order_item=order_item,
             user=request.user,
+            return_quantity=return_quantity,
             reason=final_reason,
-            refund_amount=order_item.item_total,
+            refund_amount=refund_amount,
         )
 
         for image in images:
@@ -699,45 +742,44 @@ def return_order_item(request, item_id):
                 image=image
             )
 
-        order_item.is_return_requested = True
+        order_item.return_requested_quantity = already_requested_qty + return_quantity
+
+        if order_item.return_requested_quantity >= order_item.quantity:
+            order_item.is_return_requested = True
+
         order_item.return_reason = final_reason
         order_item.save(update_fields=[
+            "return_requested_quantity",
             "is_return_requested",
             "return_reason"
         ])
 
-        remaining = order.items.filter(
-            is_cancelled=False,
-            is_return_requested=False
+        available_after = order.items.filter(
+            is_cancelled=False
+        ).exclude(
+            return_requested_quantity__gte=models.F("quantity")
         )
 
-        if not remaining.exists():
+        if not available_after.exists():
             order.status = "RETURN_REQUESTED"
             order.return_reason = final_reason
-            order.save(update_fields=[
-                "status",
-                "return_reason",
-                "updated_at"
-            ])
+            order.save(update_fields=["status", "return_reason", "updated_at"])
 
         messages.success(request, "Return request submitted successfully.")
         return redirect("order_detail", order.id)
 
-    return render(
-        request,
-        "orders/return_order.html",
-        {
-            "mode": "item",
-            "order": order,
-            "item": order_item,
-        }
-    )
+    return render(request, "orders/return_order.html", {
+        "mode": "item",
+        "order": order,
+        "item": order_item,
+        "available_qty": available_qty,
+        "already_requested_qty": already_requested_qty,
+    })
 
 
 @login_required
 @transaction.atomic
 def return_order(request, order_id):
-
     order = get_object_or_404(
         Order.objects.prefetch_related(
             "items",
@@ -753,32 +795,27 @@ def return_order(request, order_id):
         messages.error(request, "Only delivered orders can be returned.")
         return redirect("order_detail", order.id)
 
-    available_items = order.items.filter(
-        is_cancelled=False,
-        is_return_requested=False
-    )
+    available_items = []
 
-    if not available_items.exists():
-        messages.info(request, "Return request already submitted.")
+    for item in order.items.filter(is_cancelled=False):
+        already_requested_qty = get_item_returned_qty(item)
+        available_qty = item.quantity - already_requested_qty
+
+        if available_qty > 0:
+            item.already_requested_qty = already_requested_qty
+            item.available_qty = available_qty
+            available_items.append(item)
+
+    if not available_items:
+        messages.info(request, "Return request already submitted for all items.")
         return redirect("order_detail", order.id)
 
-    first_item = available_items.first()
-
     if request.method == "POST":
-
         reason = request.POST.get("return_reason", "").strip()
         comments = request.POST.get("comments", "").strip()
         images = request.FILES.getlist("return_images")
 
-        valid_reasons = [
-            "Damaged Product",
-            "Wrong Product Received",
-            "Product Quality Issue",
-            "Missing Parts",
-            "Other",
-        ]
-
-        if reason not in valid_reasons:
+        if reason not in VALID_RETURN_REASONS:
             messages.error(request, "Please select a valid return reason.")
             return redirect("return_order", order.id)
 
@@ -786,36 +823,40 @@ def return_order(request, order_id):
             messages.error(request, "Please enter a detailed description with at least 15 characters.")
             return redirect("return_order", order.id)
 
-        if not images:
-            messages.error(request, "Please upload at least one return proof image.")
+        image_error = validate_return_images(images)
+        if image_error:
+            messages.error(request, image_error)
             return redirect("return_order", order.id)
-
-        if len(images) > 5:
-            messages.error(request, "Maximum 5 images allowed.")
-            return redirect("return_order", order.id)
-
-        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
-        max_size = 5 * 1024 * 1024
-
-        for image in images:
-            if image.content_type not in allowed_types:
-                messages.error(request, "Only JPG, PNG, and WEBP images are allowed.")
-                return redirect("return_order", order.id)
-
-            if image.size > max_size:
-                messages.error(request, "Each image must be less than 5MB.")
-                return redirect("return_order", order.id)
 
         final_reason = f"{reason}\n\nDescription: {comments}"
 
+        selected_any = False
+
         for item in available_items:
+            try:
+                return_quantity = int(request.POST.get(f"return_quantity_{item.id}", 0))
+            except ValueError:
+                return_quantity = 0
+
+            if return_quantity <= 0:
+                continue
+
+            if return_quantity > item.available_qty:
+                messages.error(request, f"{item.product_name}: You can return only {item.available_qty} quantity.")
+                return redirect("return_order", order.id)
+
+            selected_any = True
+
+            unit_price = item.item_total / item.quantity
+            refund_amount = unit_price * return_quantity
 
             request_obj = ReturnRequest.objects.create(
                 order=order,
                 order_item=item,
                 user=request.user,
+                return_quantity=return_quantity,
                 reason=final_reason,
-                refund_amount=item.item_total,
+                refund_amount=refund_amount,
             )
 
             for image in images:
@@ -824,33 +865,44 @@ def return_order(request, order_id):
                     image=image
                 )
 
-            item.is_return_requested = True
+            item.return_requested_quantity = item.already_requested_qty + return_quantity
+
+            if item.return_requested_quantity >= item.quantity:
+                item.is_return_requested = True
+
             item.return_reason = final_reason
             item.save(update_fields=[
+                "return_requested_quantity",
                 "is_return_requested",
                 "return_reason"
             ])
 
-        order.status = "RETURN_REQUESTED"
-        order.return_reason = final_reason
-        order.save(update_fields=[
-            "status",
-            "return_reason",
-            "updated_at"
-        ])
+        if not selected_any:
+            messages.error(request, "Please select at least one item quantity to return.")
+            return redirect("return_order", order.id)
 
-        messages.success(request, "Return request submitted for the complete order.")
+        all_items_returned = True
+
+        for item in order.items.filter(is_cancelled=False):
+            already_requested_qty = get_item_returned_qty(item)
+            if already_requested_qty < item.quantity:
+                all_items_returned = False
+                break
+
+        if all_items_returned:
+            order.status = "RETURN_REQUESTED"
+            order.return_reason = final_reason
+            order.save(update_fields=["status", "return_reason", "updated_at"])
+
+        messages.success(request, "Return request submitted successfully.")
         return redirect("order_detail", order.id)
 
-    return render(
-        request,
-        "orders/return_order.html",
-        {
-            "mode": "order",
-            "order": order,
-            "item": first_item,
-        }
-    )
+    return render(request, "orders/return_order.html", {
+        "mode": "order",
+        "order": order,
+        "items": available_items,
+        "item": available_items[0],
+    })
     
     
 @login_required

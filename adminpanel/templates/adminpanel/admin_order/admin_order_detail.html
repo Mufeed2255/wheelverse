@@ -259,45 +259,75 @@
             <!-- Bottom Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
-                <!-- Delivery Status -->
-                <section class="glass-panel p-7">
-                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
-                        Delivery Status
-                    </h3>
+                <!-- Order History -->
+               <section class="glass-panel rounded-2xl p-8 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-8">
+                        <span class="material-symbols-outlined text-[#f2ca50]">history</span>
 
-                    <div class="relative pl-8 space-y-9">
-                        <div class="absolute left-3 top-2 bottom-2 w-[2px] bg-[#f2ca50]/20"></div>
+                        <h3 class="font-orbitron text-xl font-semibold">
+                            Order History
+                        </h3>
+                    </div>
 
-                        {% for step in timeline %}
-                            <div class="relative {% if not step.completed %}opacity-40{% endif %}">
-                                <div class="absolute -left-8 top-0 w-6 h-6 rounded-full flex items-center justify-center
-                                    {% if step.completed %}
-                                        bg-[#f2ca50] text-black
-                                    {% else %}
-                                        bg-[#1f1b13] border border-[#f2ca50]/30 text-[#d0c5af]
-                                    {% endif %}
-                                ">
-                                    {% if step.completed %}
-                                        <span class="material-symbols-outlined text-sm">check</span>
-                                    {% else %}
-                                        <span class="material-symbols-outlined text-sm">radio_button_unchecked</span>
-                                    {% endif %}
+                    <div class="relative ml-3 pt-3">
+                        <div class="absolute left-[11px] top-8 bottom-3 w-[2px] bg-yellow-500/30"></div>
+
+                        <div class="relative flex justify-between items-start mb-10">
+                            <div class="flex gap-5">
+                                <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
                                 </div>
 
-                                <p class="font-orbitron text-sm uppercase">{{ step.label }}</p>
-                                <p class="text-sm text-[#d0c5af] mt-1">
-                                    {% if step.key == "PENDING" %}
-                                        Order placed on {{ order.ordered_at|date:"F d, Y h:i A" }}
-                                    {% elif step.key == "CONFIRMED" %}
-                                        Order confirmation stage
-                                    {% elif step.key == "SHIPPED" %}
-                                        Order shipped
-                                    {% elif step.key == "DELIVERED" %}
-                                        Order delivered
-                                    {% endif %}
-                                </p>
+                                <div>
+                                    <h4 class="font-medium text-2xl">Order Placed</h4>
+                                    <p class="text-[#d0c5af] mt-1">
+                                        Placed by {{ order.user.username }}
+                                    </p>
+                                </div>
                             </div>
-                        {% endfor %}
+
+                            <span class="text-[#d0c5af]">
+                                {{ order.ordered_at|date:"M d, Y" }}
+                            </span>
+                        </div>
+
+                        {% if order.status != "PENDING" %}
+                            <div class="relative flex justify-between items-start">
+                                <div class="flex gap-5">
+                                <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center">
+                                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                </div>
+
+                                    <div>
+                                        <h4 class="font-medium text-2xl">Status Updated</h4>
+
+                                        <p class="text-[#d0c5af] mt-1">
+                                            {% if order.status == "CONFIRMED" %}
+                                                Marked as Confirmed
+                                            {% elif order.status == "SHIPPED" %}
+                                                Marked as Shipped
+                                            {% elif order.status == "DELIVERED" %}
+                                                Marked as Delivered
+                                            {% elif order.status == "CANCELLED" %}
+                                                Order Cancelled
+                                            {% elif order.status == "RETURN_REQUESTED" %}
+                                                Return Requested
+                                            {% elif order.status == "RETURN_APPROVED" %}
+                                                Return Approved
+                                            {% elif order.status == "RETURN_REJECTED" %}
+                                                Return Rejected
+                                            {% elif order.status == "RETURNED" %}
+                                                Order Returned
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <span class="text-[#d0c5af]">
+                                    {{ order.updated_at|date:"M d, Y" }}
+                                </span>
+                            </div>
+                        {% endif %}
                     </div>
                 </section>
 
@@ -352,6 +382,32 @@
                             All transactions are protected through WheelVerse secure checkout protocol.
                         </p>
                     </div>
+
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-orbitron text-lg font-bold flex items-center gap-2">
+                            <span class="material-symbols-outlined text-sm">tune</span>
+                            Update Order Status
+                        </h3>
+
+                        <p class="text-sm text-[#d0c5af] flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-green-700"></span>
+                            Currently:
+                            <strong class="text-[#eae1d4]">{{ order.get_status_display }}</strong>
+                        </p>
+                    </div>
+
+                    {% if order.status == "DELIVERED" or order.status == "CANCELLED" or order.status == "RETURNED" %}
+                        <div class="bg-yellow-100 border border-yellow-300 text-yellow-900 px-6 py-4 rounded-xl flex items-center gap-4">
+                            <span class="material-symbols-outlined">lock</span>
+
+                            <p class="font-semibold">
+                                This order is {{ order.get_status_display }}. The status can no longer be changed.
+                            </p>
+                        </div>
+                    {% else %}
+                    
+                    {% endif %}
+
                 </section>
 
             </div>
@@ -387,7 +443,8 @@
 
             <label class="field-label block mb-2">Select Status</label>
 
-            <select name="status" class="w-full bg-[#1f1b13] border border-[#f2ca50]/30 text-white px-4 py-3 mb-6">
+            <select name="status"
+                    class="w-full bg-[#1f1b13] border border-[#f2ca50]/30 text-white px-4 py-3 mb-6">
                 {% for value, label in status_choices %}
                     <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
                         {{ label }}

@@ -8,15 +8,17 @@ from adminpanel.models import ProductVariant
 
 
 class Order(models.Model):
-    STATUS_CHOICES = (
-        ("PENDING", "Pending"),
+    STATUS_CHOICES = [
         ("CONFIRMED", "Confirmed"),
         ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out for Delivery"),
         ("DELIVERED", "Delivered"),
         ("CANCELLED", "Cancelled"),
         ("RETURN_REQUESTED", "Return Requested"),
+        ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_REJECTED", "Return Rejected"),
         ("RETURNED", "Returned"),
-    )
+    ]
 
     PAYMENT_CHOICES = (
         ("COD", "Cash on Delivery"),
@@ -117,7 +119,9 @@ class OrderItem(models.Model):
         null=True,
         blank=True
     )
-
+    
+    return_requested_quantity = models.PositiveIntegerField(default=0)
+    
     product_name = models.CharField(max_length=150)
     variant_color = models.CharField(max_length=80, blank=True, null=True)
     variant_size = models.CharField(max_length=80, blank=True, null=True)
@@ -137,6 +141,8 @@ class OrderItem(models.Model):
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
     
+# models.py
+
 class ReturnRequest(models.Model):
     STATUS_CHOICES = (
         ("REQUESTED", "Requested"),
@@ -148,20 +154,24 @@ class ReturnRequest(models.Model):
     order = models.ForeignKey(
         Order,
         on_delete=models.CASCADE,
-        related_name="return_requests"
+        related_name="order_return_requests"
     )
 
-    order_item = models.OneToOneField(
+    # changed OneToOneField to ForeignKey
+    order_item = models.ForeignKey(
         OrderItem,
         on_delete=models.CASCADE,
-        related_name="return_request"
+        related_name="order_return_requests"
     )
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="return_requests"
+        related_name="order_return_requests"
     )
+
+    return_quantity = models.PositiveIntegerField(default=1)
+    picked_up_at = models.DateTimeField(blank=True, null=True)
 
     reason = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="REQUESTED")
@@ -177,7 +187,7 @@ class ReturnRequest(models.Model):
         ordering = ["-requested_at"]
 
     def __str__(self):
-        return f"{self.order.order_id} - {self.status}"
+        return f"{self.order.order_id} - Qty {self.return_quantity} - {self.status}"
     
     
 class ReturnRequestImage(models.Model):

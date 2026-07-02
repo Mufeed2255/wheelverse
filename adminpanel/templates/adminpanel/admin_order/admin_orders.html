@@ -74,7 +74,13 @@
         input:focus, select:focus {
             border-color: #f2ca50 !important;
         }
+        .status-out_for_delivery {
+            color:#38bdf8;
+            border:1px solid #38bdf8;
+            background:rgba(56,189,248,.13);
+        }
     </style>
+    
 </head>
 
 <body>
@@ -86,29 +92,28 @@
     
 
     <!-- Main -->
-    <main class="ml-[250px] w-full min-h-screen bg-[#0d0b07] px-10 py-15">
-
+    <main class="ml-[250px] w-[calc(100%-250px)] min-h-screen bg-[#0d0b07] px-10 pt-32 pb-10">
         <!-- Header -->
        
 
         <!-- Filters -->
-        <form method="GET" class="glass-panel rounded-md p-5 mb-7 grid grid-cols-1 md:grid-cols-5 gap-5 items-end">
+        <form id="filterForm" method="GET" class="glass-panel rounded-md p-5 mb-7 grid grid-cols-1 md:grid-cols-5 gap-5 items-end">
             {% include 'adminpanel/includes/messages.html' %}
             <div>
                 <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">SEARCH</label>
                 <input type="text" name="search" value="{{ search }}"
                        placeholder="Order ID, customer, email"
-                       class="w-full px-4 py-3 text-sm">
+                       class="w-full px-4 py-3 text-sm"
+                       onkeypress="if(event.key==='Enter'){this.form.submit();}">
             </div>
 
             <div>
                 <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">ORDER STATUS</label>
-                <select name="status" class="w-full px-4 py-3 text-sm">
+                <select name="status" class="w-full px-4 py-3 text-sm auto-submit">
                     <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
-                    <option value="PENDING" {% if current_status == 'PENDING' %}selected{% endif %}>Pending</option>
                     <option value="CONFIRMED" {% if current_status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
-                    <option value="PROCESSING" {% if current_status == 'PROCESSING' %}selected{% endif %}>Processing</option>
                     <option value="SHIPPED" {% if current_status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
+                    <option value="OUT_FOR_DELIVERY" {% if current_status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Out for Delivery</option>
                     <option value="DELIVERED" {% if current_status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
                     <option value="CANCELLED" {% if current_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
                     <option value="RETURNED" {% if current_status == 'RETURNED' %}selected{% endif %}>Returned</option>
@@ -117,19 +122,41 @@
 
             <div>
                 <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">PAYMENT METHOD</label>
-                <select name="payment_method" class="w-full px-4 py-3 text-sm">
+                <select name="payment_method" class="w-full px-4 py-3 text-sm auto-submit">
                     <option value="all" {% if current_payment_method == 'all' %}selected{% endif %}>All Methods</option>
                     <option value="COD" {% if current_payment_method == 'COD' %}selected{% endif %}>COD</option>
                     <option value="RAZORPAY" {% if current_payment_method == 'RAZORPAY' %}selected{% endif %}>Razorpay</option>
                     <option value="WALLET" {% if current_payment_method == 'WALLET' %}selected{% endif %}>Wallet</option>
                     <option value="UPI" {% if current_payment_method == 'UPI' %}selected{% endif %}>UPI</option>
-                    <option value="CARD" {% if current_payment_method == 'CARD' %}selected{% endif %}>Card</option>
                 </select>
             </div>
 
-            <button class="bg-[#f2ca50] text-black py-3 font-orbitron text-xs font-bold hover:brightness-110">
-                APPLY FILTERS
-            </button>
+            <div>
+                <label class="block text-[#f2ca50] font-orbitron text-[10px] mb-2">
+                    SORT BY
+                </label>
+
+                <select name="sort"
+                        class="w-full px-4 py-3 text-sm auto-submit">
+
+                    <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>
+                        Newest First
+                    </option>
+
+                    <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>
+                        Oldest First
+                    </option>
+
+                    <option value="amount_high" {% if current_sort == "amount_high" %}selected{% endif %}>
+                        Highest Amount
+                    </option>
+
+                    <option value="amount_low" {% if current_sort == "amount_low" %}selected{% endif %}>
+                        Lowest Amount
+                    </option>
+
+                </select>
+            </div>
 
             <a href="{% url 'admin_orders' %}"
                class="border border-[#f2ca50]/30 text-center py-3 font-orbitron text-xs text-[#d0c5af] hover:text-[#f2ca50]">
@@ -253,6 +280,17 @@
 
     </main>
 </div>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("filterForm");
+
+    document.querySelectorAll(".auto-submit").forEach(function (element) {
+        element.addEventListener("change", function () {
+            form.submit();
+        });
+    });
+});
+</script>
 
 </body>
 </html>
