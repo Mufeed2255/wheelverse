@@ -52,6 +52,9 @@ SITE_ID = 1
 
 AUTH_USER_MODEL = 'Accounts.CustomUser'
 
+ACCOUNT_ADAPTER = 'Accounts.adapter.WheelVerseAccountAdapter'
+SOCIALACCOUNT_ADAPTER = 'Accounts.adapter.WheelVerseSocialAccountAdapter'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

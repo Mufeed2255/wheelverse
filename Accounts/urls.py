@@ -21,6 +21,9 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     
+    path('google-login/user/', views.google_login_user, name='google_login_user'),
+    path('google-login/admin/', views.google_login_admin, name='google_login_admin'),
+    
     path('forgot-password/', views.forgot_password_view, name='forgot_password'),
     path('forgot-password/resend-otp/', views.resend_otp_view, name='resend_otp'),
     path('verify-otp/', views.verify_otp_view, name='verify_otp'),

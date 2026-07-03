@@ -266,52 +266,85 @@ def resend_signup_otp_view(request):
         return redirect('signup_verify')
 
 
-
 def login_view(request):
-    
+
     if request.user.is_authenticated:
-        return redirect('landing_page')
+        if request.session.get("login_type") == "admin":
+            return redirect("admin_dashboard")
+        return redirect("landing_page")
 
-    if request.method == 'POST':
-        email_or_username = request.POST.get('email', '').strip()
-        password = request.POST.get('password', '').strip()
+    if request.method == "POST":
+        email_or_username = request.POST.get("email", "").strip()
+        password = request.POST.get("password", "").strip()
 
-        
         if not email_or_username:
             messages.error(request, "Please enter your email or username.")
-            return render(request, 'accounts/login.html')
+            return render(request, "accounts/login.html")
 
         if not password:
             messages.error(request, "Please enter your password.")
-            return render(request, 'accounts/login.html')
+            return render(request, "accounts/login.html")
 
-        user_obj = User.objects.filter(email=email_or_username).first()
+        user_obj = User.objects.filter(email__iexact=email_or_username).first()
 
         if not user_obj:
-            user_obj = User.objects.filter(username=email_or_username).first()
+            user_obj = User.objects.filter(username__iexact=email_or_username).first()
 
         if not user_obj:
             messages.error(request, "Wrong username, email, or password.")
-            return render(request, 'accounts/login.html')
+            return render(request, "accounts/login.html")
 
-    # PASSWORD CHECK AND LOGIN
-        
         user = authenticate(request, username=user_obj.username, password=password)
-        
+
         if user is None:
             messages.error(request, "Wrong username, email, or password.")
-            return render(request, 'accounts/login.html')
+            return render(request, "accounts/login.html")
+
+        if user.is_staff or user.is_superuser:
+            messages.error(request, "Admin account cannot login from user login.")
+            return redirect("admin_login")
 
         login(request, user)
-
-        next_url = request.GET.get('next')
-        if next_url:
-            return redirect(next_url)
+        request.session["login_type"] = "user"
 
         messages.success(request, f"Welcome back, {user.username}!")
-        return redirect('landing_page')
+        return redirect("landing_page")
 
-    return render(request, 'accounts/login.html')
+    return render(request, "accounts/login.html")
+
+
+# --- Add these to Accounts/views.py ---
+from django.urls import reverse
+from urllib.parse import urlencode
+
+
+def google_login_user(request):
+    """
+    Entry point for the Google button on the USER login page.
+    Stamps intent, then hands off to allauth's provider login URL.
+    """
+    if request.session.get("login_type") == "admin":
+        messages.error(request, "Log out of the admin session first.")
+        return redirect("admin_dashboard")
+
+    request.session["oauth_flow"] = "user"
+    base = reverse("google_login")  # allauth's built-in provider login url name
+    qs = urlencode({"process": "login"})
+    return redirect(f"{base}?{qs}")
+
+
+def google_login_admin(request):
+    """
+    Entry point for the Google button on the ADMIN login page.
+    """
+    if request.session.get("login_type") == "user":
+        messages.error(request, "Log out of the user session first.")
+        return redirect("landing_page")
+
+    request.session["oauth_flow"] = "admin"
+    base = reverse("google_login")
+    qs = urlencode({"process": "login"})
+    return redirect(f"{base}?{qs}")
 
 
 def logout_view(request):

@@ -1,70 +1,84 @@
-# Accounts/adapter.py
-# Custom allauth adapter to handle Google OAuth with WheelVerse's CustomUser model.
-# Primary job: auto-generate a unique username from Google profile data,
-# since Google doesn't supply a username but Django's AbstractUser requires one.
+"""
+Accounts/adapter.py
 
-import re
-import random
-import string
+Enforces flow separation for Google OAuth login.
 
+WHY THIS FILE, NOT MIDDLEWARE:
+Middleware only runs for requests that hit your own URLconf. The allauth
+OAuth dance (redirect to Google -> Google redirects back to allauth's own
+callback view -> allauth calls django.contrib.auth.login() internally)
+completes and logs the user in *before* your middleware gets a chance to
+inspect anything meaningful on a subsequent request. By the time your
+middleware sees the next request, the wrong account is already logged in.
+
+pre_social_login() is an allauth hook that fires BEFORE the login is
+finalized, so it's the only place that can reject a mismatched account
+before a session is ever created for it.
+"""
+from allauth.account.adapter import DefaultAccountAdapter
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.contrib.auth import get_user_model
-
-
-User = get_user_model()
+from allauth.exceptions import ImmediateHttpResponse
+from django.contrib import messages
+from django.shortcuts import redirect
 
 
 class WheelVerseSocialAccountAdapter(DefaultSocialAccountAdapter):
-    """
-    Custom social account adapter for WheelVerse.
-    Ensures every Google-authenticated user gets a valid, unique username
-    auto-generated from their Google email or display name.
-    """
 
-    def populate_user(self, request, sociallogin, data):
+    def pre_social_login(self, request, sociallogin):
         """
-        Called by allauth to fill in user fields from the social provider's data.
-        We call super() first (fills email, first_name, last_name, etc.),
-        then guarantee a unique username is present.
+        Called after Google auth succeeds, before the session is created.
+
+        request.session['oauth_flow'] tells us which login page the user
+        started from ('user' or 'admin'). It's set by the two trigger
+        views (google_login_user / google_login_admin), right before
+        redirecting to Google.
         """
-        user = super().populate_user(request, sociallogin, data)
+        intended_flow = request.session.get('oauth_flow', 'user')
 
-        # Only auto-generate if username is missing or empty
-        if not getattr(user, 'username', None):
-            email = data.get('email', '') or ''
-            name  = data.get('name', '')  or ''
+        user = sociallogin.user
+        is_admin_account = bool(getattr(user, 'is_staff', False) or
+                                 getattr(user, 'is_superuser', False))
 
-            # Priority: use email prefix, then full name, then fallback
-            if email:
-                base = re.sub(r'[^a-zA-Z0-9]', '', email.split('@')[0])
-            elif name:
-                base = re.sub(r'[^a-zA-Z0-9]', '', name.replace(' ', ''))
-            else:
-                base = 'collector'
+        # Case 1: admin account used on the USER google button -> block.
+        if intended_flow == 'user' and is_admin_account:
+            messages.error(
+                request,
+                "This Google account belongs to an admin. "
+                "Please use the admin login page."
+            )
+            raise ImmediateHttpResponse(redirect('login'))
 
-            # Enforce minimum length of 5 characters
-            if len(base) < 5:
-                base = base + ''.join(random.choices(string.digits, k=5 - len(base)))
+        # Case 2: non-admin account used on the ADMIN google button -> block.
+        if intended_flow == 'admin' and not is_admin_account:
+            messages.error(
+                request,
+                "This Google account is not authorized for admin access."
+            )
+            raise ImmediateHttpResponse(redirect('admin_login'))
 
-            # Cap at 15 characters (leaves room for uniqueness suffix)
-            base = base[:15].lower()
+        # Case 3: an existing session already carries a DIFFERENT login
+        # type. Defense in depth in case someone reuses a tab mid-OAuth.
+        current_login_type = request.session.get('login_type')
+        if current_login_type and current_login_type != intended_flow:
+            messages.error(
+                request,
+                "You already have an active session of a different type. "
+                "Please log out first."
+            )
+            fallback = 'admin_dashboard' if current_login_type == 'admin' else 'landing_page'
+            raise ImmediateHttpResponse(redirect(fallback))
 
-            # Guarantee uniqueness by appending a counter if needed
-            username = base
-            counter  = 1
-            while User.objects.filter(username=username).exists():
-                suffix   = str(counter)
-                username = base[:15 - len(suffix)] + suffix
-                counter += 1
 
-            user.username = username
+class WheelVerseAccountAdapter(DefaultAccountAdapter):
+    """
+    Stamps request.session['login_type'] the moment ANY allauth login
+    completes (Google or allauth's own account login), so downstream
+    middleware always has a reliable flag to check -- closing the gap
+    that caused Bug 1 (Google logins never set login_type before).
+    """
 
-        return user
-
-    def is_auto_signup_allowed(self, request, sociallogin):
-        """Allow automatic signup without showing an intermediate form."""
-        return True
-
-    def get_connect_redirect_url(self, request, socialaccount):
-        """After connecting a social account, redirect to the profile page."""
-        return '/profile/'
+    def login(self, request, user):
+        super().login(request, user)
+        is_admin_account = bool(getattr(user, 'is_staff', False) or
+                                 getattr(user, 'is_superuser', False))
+        request.session['login_type'] = 'admin' if is_admin_account else 'user'

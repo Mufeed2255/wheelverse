@@ -9,8 +9,12 @@ User = get_user_model()
 def admin_login(request):
 
     if request.user.is_authenticated:
+        if request.session.get("login_type") == "user":
+            return redirect("landing_page")
+
         if request.user.is_staff or request.user.is_superuser:
             return redirect("admin_dashboard")
+
         logout(request)
         return redirect("admin_login")
 
@@ -37,6 +41,8 @@ def admin_login(request):
             return render(request, "adminpanel/admin_login/admin_login.html")
 
         login(request, user)
+        request.session["login_type"] = "admin"
+
         messages.success(request, "Welcome to the Admin Dashboard.")
         return redirect("admin_dashboard")
 

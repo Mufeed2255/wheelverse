@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WheelVerse | Admin Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -345,7 +347,7 @@
 
 <div class="login-wrapper">
     <div class="login-card">
-
+        {% include 'adminpanel/includes/messages.html' %}
         <div class="brand">
             <div class="brand-name">
                 <span class="wheel">Wheel</span><span class="verse">Verse</span>
@@ -353,13 +355,6 @@
             <div class="brand-subtitle">Admin Control Center</div>
         </div>
 
-        {% if messages %}
-        <ul class="messages">
-            {% for message in messages %}
-            <li class="{{ message.tags }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
 
         <form method="POST" action="{% url 'admin_login' %}">
             {% csrf_token %}
