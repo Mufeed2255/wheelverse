@@ -15,7 +15,6 @@ from django.utils import timezone
 import csv
 
 
-
 @staff_member_required(login_url="admin_login")
 def admin_orders(request):
     search = request.GET.get("search", "").strip()
@@ -27,6 +26,14 @@ def admin_orders(request):
         Order.objects
         .select_related("user", "shipping_address")
         .prefetch_related("items", "items__variant", "items__variant__images")
+        .annotate(
+            total_items_count=Count("items", distinct=True),
+            cancelled_items_count=Count(
+                "items",
+                filter=Q(items__is_cancelled=True),
+                distinct=True
+            )
+        )
     )
 
     if search:
@@ -35,8 +42,9 @@ def admin_orders(request):
             Q(user__username__icontains=search) |
             Q(user__email__icontains=search) |
             Q(shipping_address__full_name__icontains=search) |
-            Q(shipping_address__email__icontains=search)
-        )
+            Q(shipping_address__email__icontains=search) |
+            Q(items__product_name__icontains=search)
+        ).distinct()
 
     if status != "all":
         orders = orders.filter(status=status)
@@ -58,10 +66,21 @@ def admin_orders(request):
         response["Content-Disposition"] = 'attachment; filename="wheelverse_orders.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(["Order ID", "Customer", "Email", "Amount", "Date", "Status", "Payment Method"])
+        writer.writerow([
+            "Order ID",
+            "Customer",
+            "Email",
+            "Amount",
+            "Date",
+            "Order Status",
+            "Cancelled Items",
+            "Total Items",
+            "Payment Method",
+        ])
 
         for order in orders:
             address = getattr(order, "shipping_address", None)
+
             writer.writerow([
                 order.order_id,
                 address.full_name if address else order.user.username,
@@ -69,6 +88,8 @@ def admin_orders(request):
                 order.total_amount,
                 order.ordered_at.strftime("%Y-%m-%d"),
                 order.status,
+                order.cancelled_items_count,
+                order.total_items_count,
                 order.payment_method,
             ])
 

@@ -18,6 +18,8 @@ from adminpanel.models import Product as AdminProduct
 from django.db import models
 from django.core.paginator import Paginator
 from django.db.models import Q
+from decimal import Decimal
+
 
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
@@ -611,13 +613,7 @@ def cancel_order_item(request, item_id):
         "item": order_item,
     })
     
-from decimal import Decimal
 
-from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from django.db import transaction
-from django.db.models import Sum
-from django.shortcuts import get_object_or_404, redirect, render
 
 
 VALID_RETURN_REASONS = [
@@ -630,13 +626,10 @@ VALID_RETURN_REASONS = [
 
 
 def get_item_returned_qty(order_item):
-    total = order_item.return_requests.exclude(
-        status="REJECTED"
-    ).aggregate(
-        total=Sum("return_quantity")
-    )["total"]
-
-    return total or 0
+    if hasattr(order_item, "return_request"):
+        if order_item.return_request.status != "REJECTED":
+            return order_item.quantity
+    return 0
 
 
 def validate_return_images(images):

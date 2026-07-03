@@ -217,6 +217,13 @@
                             <span class="status-badge status-{{ order.status|lower }}">
                                 {{ order.status }}
                             </span>
+
+                            {% if order.cancelled_items_count > 0 and order.status != "CANCELLED" %}
+                                <span class="status-badge status-cancelled">
+                                    {{ order.cancelled_items_count }} ITEM CANCELLED
+                                </span>
+                            {% endif %}
+                        
                         </td>
 
                         <td class="px-5 py-5 text-sm text-[#d0c5af]">
