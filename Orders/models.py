@@ -7,16 +7,17 @@ from adminpanel.models import Product, ProductVariant
 
 class Order(models.Model):
     STATUS_CHOICES = [
-        ("CONFIRMED", "Confirmed"),
-        ("SHIPPED", "Shipped"),
-        ("OUT_FOR_DELIVERY", "Out for Delivery"),
-        ("DELIVERED", "Delivered"),
-        ("CANCELLED", "Cancelled"),
-        ("RETURN_REQUESTED", "Return Requested"),
-        ("RETURN_APPROVED", "Return Approved"),
-        ("RETURN_REJECTED", "Return Rejected"),
-        ("RETURNED", "Returned"),
-    ]
+    ("PENDING", "Pending"),          
+    ("CONFIRMED", "Confirmed"),
+    ("SHIPPED", "Shipped"),
+    ("OUT_FOR_DELIVERY", "Out for Delivery"),
+    ("DELIVERED", "Delivered"),
+    ("CANCELLED", "Cancelled"),
+    ("RETURN_REQUESTED", "Return Requested"),
+    ("RETURN_APPROVED", "Return Approved"),
+    ("RETURN_REJECTED", "Return Rejected"),
+    ("RETURNED", "Returned"),
+]
 
     PAYMENT_CHOICES = (
         ("COD", "Cash on Delivery"),

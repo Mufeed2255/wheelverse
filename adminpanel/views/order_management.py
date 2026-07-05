@@ -3,7 +3,7 @@ import csv
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
-from django.db.models import Q,Count
+from django.db.models import Q,Count,F
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 
@@ -11,6 +11,11 @@ from Orders.models import Order, ReturnRequest, ReturnRequestImage
 from django.utils import timezone
 from django.contrib import messages
 from django.utils import timezone
+
+
+from django.db import transaction
+from Wallet.utils import credit_wallet
+from Wallet.models import Wallet, WalletTransaction
 
 import csv
 
@@ -338,13 +343,61 @@ def reject_return(request, return_id):
     return redirect("admin_returns")
 
 
+
+
 @staff_member_required(login_url="admin_login")
+@transaction.atomic
 def process_refund(request, return_id):
-    return_request = get_object_or_404(ReturnRequest, id=return_id)
+    return_request = get_object_or_404(
+        ReturnRequest.objects.select_related(
+            "order",
+            "order_item",
+            "user"
+        ),
+        id=return_id
+    )
+
+    if return_request.status == "REFUNDED":
+        messages.info(request, "Refund already processed.")
+        return redirect("admin_return_detail", return_id=return_request.id)
 
     if return_request.status != "PICKED_UP":
         messages.error(request, "Refund can be processed only after product is picked up.")
         return redirect("admin_return_detail", return_id=return_request.id)
+
+    refund_amount = return_request.refund_amount or return_request.order_item.item_total
+
+    wallet, created = Wallet.objects.select_for_update().get_or_create(
+        user=return_request.user
+    )
+
+    pending_txn = WalletTransaction.objects.filter(
+        wallet=wallet,
+        return_request=return_request,
+        purpose="RETURN_REFUND",
+        status="PENDING"
+    ).first()
+
+    if pending_txn:
+        pending_txn.status = "COMPLETED"
+        pending_txn.description = f"Return refund completed for order {return_request.order.order_id}"
+        pending_txn.save(update_fields=["status", "description"])
+    else:
+        pending_txn = WalletTransaction.objects.create(
+            wallet=wallet,
+            order=return_request.order,
+            return_request=return_request,
+            transaction_type="CREDIT",
+            purpose="RETURN_REFUND",
+            amount=refund_amount,
+            status="COMPLETED",
+            description=f"Return refund completed for order {return_request.order.order_id}",
+            reference=f"RETURN_REFUND_{return_request.id}",
+        )
+
+    Wallet.objects.filter(id=wallet.id).update(
+        balance=F("balance") + refund_amount
+    )
 
     return_request.status = "REFUNDED"
     return_request.refunded_at = timezone.now()
@@ -358,8 +411,14 @@ def process_refund(request, return_id):
     order.status = "RETURNED"
     order.save(update_fields=["status", "updated_at"])
 
-    messages.success(request, "Refund processed successfully.")
+    messages.success(
+        request,
+        f"₹{refund_amount} refunded to {return_request.user.username}'s wallet."
+    )
+
     return redirect("admin_return_detail", return_id=return_request.id)
+
+
 
 @staff_member_required(login_url="admin_login")
 def return_action_page(request, return_id):
@@ -498,22 +557,53 @@ def admin_return_detail(request, return_id):
     
 
 
+
+
+
 @staff_member_required(login_url="admin_login")
+@transaction.atomic
 def mark_return_picked_up(request, return_id):
-    return_request = get_object_or_404(ReturnRequest, id=return_id)
+    return_request = get_object_or_404(
+        ReturnRequest.objects.select_related(
+            "order",
+            "order_item",
+            "user"
+        ),
+        id=return_id
+    )
 
     if return_request.status != "APPROVED":
         messages.error(request, "Only approved returns can be picked up.")
         return redirect("admin_return_detail", return_id=return_request.id)
 
+    refund_amount = return_request.refund_amount or return_request.order_item.item_total
+
+    wallet, created = Wallet.objects.get_or_create(user=return_request.user)
+
+    WalletTransaction.objects.get_or_create(
+        reference=f"RETURN_PENDING_{return_request.id}",
+        defaults={
+            "wallet": wallet,
+            "order": return_request.order,
+            "return_request": return_request,
+            "transaction_type": "CREDIT",
+            "purpose": "RETURN_REFUND",
+            "amount": refund_amount,
+            "status": "PENDING",
+            "description": f"Pending return refund for order {return_request.order.order_id}",
+        }
+    )
+
     return_request.status = "PICKED_UP"
     return_request.picked_up_at = timezone.now()
-
     return_request.save(update_fields=[
         "status",
         "picked_up_at",
         "updated_at",
     ])
 
-    messages.success(request, "Return marked as picked up.")
+    messages.success(
+        request,
+        f"Return marked as picked up. ₹{refund_amount} added to user's pending refund."
+    )
     return redirect("admin_return_detail", return_id=return_request.id)

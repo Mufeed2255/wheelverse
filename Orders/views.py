@@ -175,10 +175,7 @@ def place_order(request):
         user=request.user,
         variant__is_active=True,
         variant__is_deleted=False
-    ).select_related(
-        "variant",
-        "variant__product"
-    )
+    ).select_related("variant", "variant__product")
 
     if not cart_items.exists():
         messages.error(request, "Your cart is empty.")
@@ -191,11 +188,7 @@ def place_order(request):
         messages.error(request, "Please select a delivery address.")
         return redirect("checkout")
 
-    selected_address = get_object_or_404(
-        Address,
-        id=selected_address_id,
-        user=request.user
-    )
+    selected_address = get_object_or_404(Address, id=selected_address_id, user=request.user)
 
     phone = selected_address.phone_number
     postal_code = selected_address.pincode
@@ -210,18 +203,15 @@ def place_order(request):
 
     subtotal = Decimal("0.00")
 
+    # Validate stock only — DO NOT deduct here
     for item in cart_items:
-        variant = ProductVariant.objects.select_for_update().get(
-            id=item.variant.id
-        )
-
+        variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
         if item.quantity > variant.stock:
             messages.error(
                 request,
                 f"Only {variant.stock} unit(s) available for {variant.product.name}."
             )
             return redirect("cart")
-
         subtotal += variant.price * item.quantity
 
     discount = Decimal("0.00")
@@ -232,6 +222,7 @@ def place_order(request):
     if selected_address.address_line_2:
         address_str += f", {selected_address.address_line_2}"
 
+    # Order created as PENDING — not confirmed, stock untouched
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
@@ -239,7 +230,7 @@ def place_order(request):
         shipping_charge=shipping,
         total_amount=grand_total,
         payment_method=payment_method,
-        status="CONFIRMED",
+        status="PENDING",
     )
 
     OrderAddress.objects.create(
@@ -253,15 +244,10 @@ def place_order(request):
         postal_code=postal_code,
     )
 
-    updated_product_ids = set()
-
+    # Snapshot items, but stock is NOT reduced yet
     for item in cart_items:
-        variant = ProductVariant.objects.select_for_update().get(
-            id=item.variant.id
-        )
-
+        variant = item.variant
         item_total = variant.price * item.quantity
-
         OrderItem.objects.create(
             order=order,
             variant=variant,
@@ -273,24 +259,7 @@ def place_order(request):
             item_total=item_total,
         )
 
-        variant.stock -= item.quantity
-        variant.save()
-
-        updated_product_ids.add(variant.product.id)  
-    cart_items.delete()
-
-    def sync_stock():
-        for pid in updated_product_ids:
-            product = AdminProduct.objects.get(id=pid)
-            total_stock = product.variants.filter(is_deleted=False).aggregate(
-                total=Sum("stock")
-            )["total"] or 0
-
-            product.total_stock = total_stock
-            product.save(update_fields=["total_stock"])
-
-    transaction.on_commit(sync_stock)
-
+    # Cart is intentionally NOT cleared here — only on confirmed payment
     return redirect("payment", order_id=order.id)
 
 @login_required
@@ -317,12 +286,12 @@ def payment_view(request, order_id):
     return render(request, "orders/payment.html", context)
 
 
-
 @login_required
 @require_POST
+@transaction.atomic
 def confirm_payment(request, order_id):
     order = get_object_or_404(
-        Order,
+        Order.objects.select_for_update(),
         id=order_id,
         user=request.user
     )
@@ -331,15 +300,53 @@ def confirm_payment(request, order_id):
         messages.info(request, "This order is already confirmed.")
         return redirect("order_success", order_id=order.id)
 
+    if order.status != "PENDING":
+        messages.error(request, "This order can no longer be confirmed.")
+        return redirect("order_failed_with_order", order_id=order.id)
+
     payment_method = request.POST.get("payment_method", "COD")
 
     if payment_method != "COD":
         messages.error(request, "Payment failed. Currently only Cash on Delivery is available.")
         return redirect("order_failed_with_order", order_id=order.id)
 
+    order_items = order.items.select_related("variant", "variant__product")
+    updated_product_ids = set()
+
+    # Re-validate + deduct stock now, at the moment payment is actually confirmed
+    for oi in order_items:
+        if not oi.variant:
+            continue
+        variant = ProductVariant.objects.select_for_update().get(id=oi.variant.id)
+        if oi.quantity > variant.stock:
+            messages.error(
+                request,
+                f"Only {variant.stock} unit(s) left for {variant.product_name}. "
+                f"Please update your cart."
+            )
+            return redirect("order_failed_with_order", order_id=order.id)
+
+        variant.stock -= oi.quantity
+        variant.save()
+        updated_product_ids.add(variant.product.id)
+
     order.payment_method = "COD"
     order.status = "CONFIRMED"
     order.save()
+
+    # Clear the cart only now, since payment is truly confirmed
+    Cart.objects.filter(user=request.user).delete()
+
+    def sync_stock():
+        for pid in updated_product_ids:
+            product = AdminProduct.objects.get(id=pid)
+            total_stock = product.variants.filter(is_deleted=False).aggregate(
+                total=Sum("stock")
+            )["total"] or 0
+            product.total_stock = total_stock
+            product.save(update_fields=["total_stock"])
+
+    transaction.on_commit(sync_stock)
 
     messages.success(request, "Order placed successfully.")
     return redirect("order_success", order_id=order.id)

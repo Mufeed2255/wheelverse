@@ -1,0 +1,350 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse | Wallet Vault</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .page-content {
+            margin-left: 360px;
+            padding-top: 120px;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, rgba(242,202,80,.10), transparent 35%),
+                #080705;
+        }
+
+        @media(max-width:900px) {
+            .page-content {
+                margin-left: 0;
+            }
+        }
+
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass {
+            background: rgba(22, 19, 11, .82);
+            border: 1px solid rgba(242, 202, 80, .18);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 0 30px rgba(0,0,0,.45);
+        }
+
+        .gold {
+            color: #f2ca50;
+        }
+
+        .wallet-card {
+            background:
+                linear-gradient(135deg, rgba(242,202,80,.08), transparent 45%),
+                linear-gradient(145deg, rgba(22,19,11,.95), rgba(5,5,5,.95));
+        }
+
+        .txn-credit {
+            border-left: 4px solid #f2ca50;
+        }
+
+        .txn-debit {
+            border-left: 4px solid #ffb4ab;
+        }
+    </style>
+
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0c0a06",
+                        "on-background": "#eae1d4",
+                        "surface": "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-low": "#1f1b13",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline": "#99907c",
+                        "outline-variant": "#4d4635",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "on-primary": "#3c2f00",
+                        "on-primary-fixed": "#241a00",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a"
+                        
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+
+
+
+</head>
+
+<body>
+
+{% include "include/user_sidebar.html" %}
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="page-content">
+    <div class="max-w-[1250px] mx-auto px-10 py-10">
+
+        <section class="mb-10">
+            <p class="orbitron text-xs text-[#d0c5af] tracking-widest mb-3">
+                COLLECTOR FINANCE SYSTEM
+            </p>
+
+            <h1 class="orbitron text-5xl md:text-6xl gold tracking-[0.16em] uppercase drop-shadow">
+                WALLET VAULT
+            </h1>
+
+            <p class="text-[#d0c5af] mt-4 max-w-2xl">
+                Manage your refund credits, wallet payments, and complete transaction history.
+            </p>
+        </section>
+
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-7">
+
+            <div class="lg:col-span-8 space-y-7">
+
+                <div class="glass wallet-card rounded-xl p-9 relative overflow-hidden">
+                    <div class="absolute right-10 top-8 opacity-10">
+                        <span class="material-symbols-outlined text-[180px] gold">
+                            account_balance_wallet
+                        </span>
+                    </div>
+
+                    <div class="relative z-10">
+                        <p class="orbitron text-xs gold tracking-widest mb-3">
+                            AVAILABLE BALANCE
+                        </p>
+
+                        <div class="flex items-end gap-3">
+                            <h2 class="orbitron text-6xl text-white">
+                                ₹{{ wallet.balance }}
+                            </h2>
+                            <span class="gold mb-2">INR</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-9">
+                            <div>
+                                <p class="orbitron text-[10px] text-[#d0c5af]">TOTAL CREDIT</p>
+                                <p class="orbitron text-2xl gold mt-1">₹{{ total_credit }}</p>
+                            </div>
+
+                            <div>
+                                <p class="orbitron text-[10px] text-[#d0c5af]">TOTAL DEBIT</p>
+                                <p class="orbitron text-2xl text-red-300 mt-1">₹{{ total_debit }}</p>
+                            </div>
+
+                            <div>
+                                <p class="orbitron text-[10px] text-[#d0c5af]">PENDING REFUND</p>
+                                <p class="orbitron text-2xl text-blue-300 mt-1">₹{{ pending_refund }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined gold text-3xl">add_card</span>
+                        <p class="orbitron text-xs gold mt-2">ADD MONEY</p>
+                    </button>
+
+                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">payments</span>
+                        <p class="orbitron text-xs text-[#d0c5af] mt-2">WITHDRAW</p>
+                    </button>
+
+                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">send_to_mobile</span>
+                        <p class="orbitron text-xs text-[#d0c5af] mt-2">TRANSFER</p>
+                    </button>
+
+                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">workspace_premium</span>
+                        <p class="orbitron text-xs text-[#d0c5af] mt-2">REWARDS</p>
+                    </button>
+                </div>
+
+                <section>
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="orbitron text-2xl text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined gold">history</span>
+                            VAULT LOGS
+                        </h3>
+
+                        <span class="orbitron text-xs gold">
+                            {{ page_obj.paginator.count }} TRANSACTIONS
+                        </span>
+                    </div>
+
+                    <div class="space-y-4">
+                        {% for txn in transactions %}
+                            <div class="glass rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-5 {% if txn.transaction_type == 'CREDIT' %}txn-credit{% else %}txn-debit{% endif %}">
+                                <div class="flex items-center gap-5">
+                                    <div class="w-12 h-12 rounded bg-[#231f17] flex items-center justify-center">
+                                        {% if txn.transaction_type == "CREDIT" %}
+                                            <span class="material-symbols-outlined gold">south_west</span>
+                                        {% else %}
+                                            <span class="material-symbols-outlined text-red-300">north_east</span>
+                                        {% endif %}
+                                    </div>
+
+                                    <div>
+                                        <div class="flex flex-wrap items-center gap-3">
+                                            <span class="orbitron text-xs gold">
+                                                #{{ txn.transaction_id }}
+                                            </span>
+
+                                            <span class="text-[10px] px-2 py-1 rounded border border-[#f2ca50]/20 orbitron
+                                            {% if txn.status == 'COMPLETED' %}text-green-300 bg-green-500/10
+                                            {% elif txn.status == 'PENDING' %}text-blue-300 bg-blue-500/10
+                                            {% else %}text-red-300 bg-red-500/10{% endif %}">
+                                                {{ txn.status }}
+                                            </span>
+                                        </div>
+
+                                        <h4 class="font-semibold text-white mt-1">
+                                            {{ txn.get_purpose_display }}
+                                        </h4>
+
+                                        <p class="text-xs text-[#d0c5af] mt-1">
+                                            {{ txn.description|default:"Wallet transaction" }}
+                                        </p>
+
+                                        <p class="orbitron text-[10px] text-[#d0c5af]/60 mt-1">
+                                            {{ txn.created_at|date:"M d, Y • h:i A" }}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="text-right">
+                                    {% if txn.transaction_type == "CREDIT" %}
+                                        <p class="orbitron text-2xl gold">+ ₹{{ txn.amount }}</p>
+                                    {% else %}
+                                        <p class="orbitron text-2xl text-red-300">- ₹{{ txn.amount }}</p>
+                                    {% endif %}
+
+                                    {% if txn.order %}
+                                        <a href="{% url 'order_detail' txn.order.id %}"
+                                           class="orbitron text-[10px] text-[#d0c5af] hover:text-[#f2ca50]">
+                                            ORDER {{ txn.order.order_id }}
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="glass rounded-xl p-12 text-center">
+                                <span class="material-symbols-outlined gold text-6xl">
+                                    account_balance_wallet
+                                </span>
+                                <h3 class="orbitron gold mt-4 text-xl">NO WALLET LOGS</h3>
+                                <p class="text-[#d0c5af] mt-2">
+                                    Refunds and wallet payments will appear here.
+                                </p>
+                            </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if page_obj.has_other_pages %}
+                        <div class="flex justify-center items-center gap-3 mt-8">
+                            {% if page_obj.has_previous %}
+                                <a href="?page={{ page_obj.previous_page_number }}"
+                                   class="px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-xs">
+                                    PREV
+                                </a>
+                            {% endif %}
+
+                            <span class="px-5 py-2 bg-[#f2ca50] text-black orbitron text-xs">
+                                {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
+                            </span>
+
+                            {% if page_obj.has_next %}
+                                <a href="?page={{ page_obj.next_page_number }}"
+                                   class="px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-xs">
+                                    NEXT
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                </section>
+            </div>
+
+            <aside class="lg:col-span-4 space-y-7">
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="orbitron text-sm text-white mb-6">REFUND TRACKER</h3>
+
+                    <div class="space-y-6 border-l border-[#f2ca50]/30 pl-6">
+                        <div>
+                            <p class="orbitron text-xs gold">REQUESTED</p>
+                            <p class="text-xs text-[#d0c5af]">User submits return request</p>
+                        </div>
+
+                        <div>
+                            <p class="orbitron text-xs gold">APPROVED</p>
+                            <p class="text-xs text-[#d0c5af]">Admin verifies return request</p>
+                        </div>
+
+                        <div>
+                            <p class="orbitron text-xs gold">REFUNDED</p>
+                            <p class="text-xs text-[#d0c5af]">Amount credited to wallet</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass rounded-xl p-6">
+                    <h3 class="orbitron text-sm text-white mb-5">HOW WALLET WORKS</h3>
+
+                    <ul class="space-y-4 text-sm text-[#d0c5af]">
+                        <li>• Cancelled order refunds are credited to wallet.</li>
+                        <li>• Returned product refunds are credited after admin approval.</li>
+                        <li>• Wallet balance can be used for future payments.</li>
+                    </ul>
+                </div>
+
+                <div class="glass rounded-xl p-6 border border-[#f2ca50]/30">
+                    <h3 class="orbitron text-xl gold">REFER FRIEND</h3>
+                    <p class="text-sm text-[#d0c5af] mt-3">
+                        Invite collectors and earn wallet rewards after referral purchase.
+                    </p>
+
+                    <button disabled class="mt-6 w-full py-3 border border-[#f2ca50]/30 text-[#d0c5af] orbitron text-xs opacity-60">
+                        COMING SOON
+                    </button>
+                </div>
+
+            </aside>
+        </section>
+    </div>
+</main>
+
+</body>
+</html>

@@ -9,7 +9,8 @@ urlpatterns = [
     path('accounts/', include('allauth.urls')),
     path('adminpanel/', include('adminpanel.urls')),
     path("", include("Products.urls")),
-     path('orders/', include('Orders.urls')),
+    path('orders/', include('Orders.urls')),
+    path('wallet/', include('Wallet.urls')),
 
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
