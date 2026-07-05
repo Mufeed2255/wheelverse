@@ -23,4 +23,5 @@ urlpatterns = [
    path("return/<int:order_id>/", views.return_order, name="return_order"),
    path("return-item/<int:item_id>/", views.return_order_item, name="return_order_item"),
    
+   path("review/<int:item_id>/", views.add_product_review, name="add_product_review"),
 ]

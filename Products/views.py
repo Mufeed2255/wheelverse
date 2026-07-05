@@ -1,3 +1,5 @@
+from itertools import product
+
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
@@ -12,7 +14,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from decimal import Decimal
 from django.db.models import Prefetch
-
+from Orders.models import ProductReview
 
 
 def user_collections(request):
@@ -124,20 +126,28 @@ def product_detail(request, product_id):
     from django.db.models import Sum, Min
     from adminpanel.models import Product, ProductVariant
     from Products.models import Cart, Wishlist
+    from Orders.models import ProductReview
 
     product = get_object_or_404(
-        Product.objects.filter(is_deleted=False, is_active=True).annotate(
+        Product.objects.filter(
+            is_deleted=False,
+            is_active=True
+        ).annotate(
             variant_stock=Sum("variants__stock"),
             min_variant_price=Min("variants__price")
         ),
         id=product_id
     )
 
-    variants = ProductVariant.objects.filter(
-        product=product,
-        is_active=True,
-        is_deleted=False
-    ).prefetch_related("images").order_by("id")
+    variants = (
+        ProductVariant.objects.filter(
+            product=product,
+            is_active=True,
+            is_deleted=False
+        )
+        .prefetch_related("images")
+        .order_by("id")
+    )
 
     variants_list = list(variants)
 
@@ -150,13 +160,50 @@ def product_detail(request, product_id):
     cart_count = Cart.objects.filter(user=request.user).count()
     wishlist_count = Wishlist.objects.filter(user=request.user).count()
 
-    return render(request, "products/product_detail.html", {
+    # ---------------- Reviews ---------------- #
+
+    reviews = (
+        ProductReview.objects
+        .filter(
+            product=product,
+            is_active=True
+        )
+        .select_related(
+            "user",
+            "variant"
+        )
+        .prefetch_related("images")
+        .order_by("-created_at")
+    )
+
+    review_count = reviews.count()
+
+    average_rating = 0
+
+    if review_count > 0:
+        average_rating = round(
+            sum(review.rating for review in reviews) / review_count,
+            1
+        )
+
+    context = {
         "product": product,
         "variants": variants_list,
         "first_variant": first_variant,
         "cart_count": cart_count,
         "wishlist_count": wishlist_count,
-    })
+
+        # Reviews
+        "reviews": reviews,
+        "review_count": review_count,
+        "average_rating": average_rating,
+    }
+
+    return render(
+        request,
+        "products/product_detail.html",
+        context
+    )
     
     
 @login_required

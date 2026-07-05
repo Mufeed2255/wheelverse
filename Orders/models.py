@@ -3,9 +3,7 @@ import uuid
 
 from django.db import models
 from django.conf import settings
-
-from adminpanel.models import ProductVariant
-
+from adminpanel.models import Product, ProductVariant
 
 class Order(models.Model):
     STATUS_CHOICES = [
@@ -210,3 +208,31 @@ class ReturnRequestImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.return_request.order.order_id}"
+    
+    
+
+
+
+class ProductReview(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="product_reviews")
+    order_item = models.OneToOneField("OrderItem", on_delete=models.CASCADE, related_name="review")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
+    variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
+
+    rating = models.PositiveSmallIntegerField()
+    review = models.TextField()
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.product.name} - {self.rating} stars"
+
+
+class ProductReviewImage(models.Model):
+    review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name="images")
+    image = models.ImageField(upload_to="product_reviews/")
+    created_at = models.DateTimeField(auto_now_add=True)

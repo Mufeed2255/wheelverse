@@ -337,60 +337,59 @@
                 COLLECTOR REVIEWS
             </h2>
 
-            <span class="orbitron text-xs gold">STATIC REVIEWS</span>
+            <span class="orbitron text-xs gold">
+                {{ review_count }} REVIEWS | AVG {{ average_rating }}/5
+            </span>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {% if reviews %}
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {% for review in reviews %}
+                    <div class="glass rounded-xl p-6">
+                        <div class="flex gap-1 gold mb-4">
+                            {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}
+                                    <span class="material-symbols-outlined">star</span>
+                                {% else %}
+                                    <span class="material-symbols-outlined text-[#4d4635]">star</span>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
 
-            <div class="glass rounded-xl p-6">
-                <div class="flex gap-1 gold mb-4">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                </div>
+                        <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
+                            {{ review.review }}
+                        </p>
 
-                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
-                    Amazing collector piece. The finishing, shine, and packaging feel premium.
-                </p>
+                        {% if review.images.all %}
+                            <div class="grid grid-cols-3 gap-2 mb-4">
+                                {% for img in review.images.all %}
+                                    <img src="{{ img.image.url }}"
+                                        class="h-20 w-full object-cover rounded border border-[#f2ca50]/20">
+                                {% endfor %}
+                            </div>
+                        {% endif %}
 
-                <p class="orbitron text-xs gold">@DRIVE_COLLECTOR</p>
+                        <p class="orbitron text-xs gold">
+                            @{{ review.user.username|upper }}
+                        </p>
+
+                        <p class="text-[10px] text-[#d0c5af]/60 mt-1">
+                            {{ review.created_at|date:"M d, Y" }}
+                        </p>
+                    </div>
+                {% endfor %}
             </div>
-
-            <div class="glass rounded-xl p-6">
-                <div class="flex gap-1 gold mb-4">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                </div>
-
-                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
-                    Best model in my garage. The product looks exactly like a luxury showcase item.
+        {% else %}
+            <div class="glass rounded-xl p-10 text-center">
+                <span class="material-symbols-outlined text-[#f2ca50] text-5xl mb-4">
+                    rate_review
+                </span>
+                <p class="orbitron text-sm gold">NO REVIEWS YET</p>
+                <p class="text-[#d0c5af] text-sm mt-2">
+                    Reviews will appear here after delivered customers submit feedback.
                 </p>
-
-                <p class="orbitron text-xs gold">@HYPERCAR_DEVOTEE</p>
             </div>
-
-            <div class="glass rounded-xl p-6">
-                <div class="flex gap-1 gold mb-4">
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star</span>
-                    <span class="material-symbols-outlined">star_half</span>
-                </div>
-
-                <p class="text-[#d0c5af] text-sm leading-relaxed mb-4">
-                    Delivery was safe and the product quality is very good for collectors.
-                </p>
-
-                <p class="orbitron text-xs gold">@WHEEL_FANATIC</p>
-            </div>
-
-        </div>
+        {% endif %}
     </section>
 
 </main>

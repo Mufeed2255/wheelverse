@@ -356,9 +356,17 @@
                                         RETURN THIS ITEM
                                     </a>
 
-                                    <button class="py-3 bg-primary text-[#241a00] font-label-caps text-xs rounded hover:scale-[1.02] transition">
-                                        WRITE REVIEW
-                                    </button>
+                                    {% if item.review %}
+                                        <a href="{% url 'product_detail' item.variant.product.id %}#reviews"
+                                        class="block text-center py-3 border border-primary/40 text-primary font-label-caps text-xs rounded hover:bg-primary hover:text-[#241a00] transition">
+                                            REVIEW ADDED
+                                        </a>
+                                    {% else %}
+                                        <a href="{% url 'add_product_review' item.id %}"
+                                        class="block text-center py-3 bg-primary text-[#241a00] font-label-caps text-xs rounded hover:scale-[1.02] transition">
+                                            WRITE REVIEW
+                                        </a>
+                                    {% endif %}
                                 </div>
 
                             {% else %}

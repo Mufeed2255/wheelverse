@@ -43,6 +43,7 @@ def admin_login(request):
         login(request, user)
         request.session["login_type"] = "admin"
 
+
         messages.success(request, "Welcome to the Admin Dashboard.")
         return redirect("admin_dashboard")
 

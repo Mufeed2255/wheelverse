@@ -11,7 +11,7 @@ from django.db import transaction
 
 from Accounts.models import Address
 from Products.models import Cart, ProductVariant
-from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnRequestImage
+from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnRequestImage ,ProductReview, ProductReviewImage
 from django.db.models import Sum
 from adminpanel.models import Product as AdminProduct
 
@@ -1058,3 +1058,96 @@ def download_invoice(request, order_id):
 
     return response
 
+
+
+
+
+@login_required
+def add_product_review(request, item_id):
+    item = get_object_or_404(
+        OrderItem.objects.select_related(
+            "order",
+            "variant",
+            "variant__product"
+        ).prefetch_related("variant__images"),
+        id=item_id,
+        order__user=request.user
+    )
+
+    order = item.order
+
+    if order.status != "DELIVERED":
+        messages.error(request, "Review is allowed only after delivery.")
+        return redirect("order_detail", order_id=order.id)
+
+    if item.is_cancelled:
+        messages.error(request, "Cancelled item cannot be reviewed.")
+        return redirect("order_detail", order_id=order.id)
+
+    if ProductReview.objects.filter(order_item=item, user=request.user).exists():
+        messages.info(request, "You already reviewed this product.")
+        return redirect("order_detail", order_id=order.id)
+
+    if request.method == "POST":
+        rating = request.POST.get("rating")
+        review_text = request.POST.get("review", "").strip()
+        images = request.FILES.getlist("review_images")
+
+        if not rating:
+            messages.error(request, "Please select a rating.")
+            return redirect("add_product_review", item_id=item.id)
+
+        rating = int(rating)
+
+        if rating < 1 or rating > 5:
+            messages.error(request, "Invalid rating selected.")
+            return redirect("add_product_review", item_id=item.id)
+
+        if not review_text or len(review_text) < 10:
+            messages.error(request, "Review must contain at least 10 characters.")
+            return redirect("add_product_review", item_id=item.id)
+
+        if len(review_text) > 1000:
+            messages.error(request, "Review cannot exceed 1000 characters.")
+            return redirect("add_product_review", item_id=item.id)
+
+        if len(images) > 5:
+            messages.error(request, "Maximum 5 images allowed.")
+            return redirect("add_product_review", item_id=item.id)
+
+        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+        max_size = 5 * 1024 * 1024
+
+        for image in images:
+            if image.content_type not in allowed_types:
+                messages.error(request, "Only JPG, PNG and WEBP images are allowed.")
+                return redirect("add_product_review", item_id=item.id)
+
+            if image.size > max_size:
+                messages.error(request, "Each image must be less than 5MB.")
+                return redirect("add_product_review", item_id=item.id)
+
+        review = ProductReview.objects.create(
+            user=request.user,
+            order_item=item,
+            product=item.variant.product,
+            variant=item.variant,
+            rating=rating,
+            review=review_text,
+        )
+
+        for image in images:
+            ProductReviewImage.objects.create(
+                review=review,
+                image=image
+            )
+
+        messages.success(request, "Review submitted successfully.")
+        return redirect("product_detail", product_id=item.variant.product.id)
+
+    return render(request, "orders/product_review.html", {
+        "item": item,
+        "order": order,
+        "variant": item.variant,
+        "product": item.variant.product,
+    })
