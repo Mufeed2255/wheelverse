@@ -33,6 +33,11 @@ from reportlab.platypus import (
 )
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+import razorpay
+from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
+from Wallet.models import Wallet, WalletTransaction
+
 
 def validate_checkout_address(data):
     name = data.get("name", "").strip()
@@ -264,26 +269,77 @@ def place_order(request):
 
 @login_required
 def payment_view(request, order_id):
-    order = get_object_or_404(
-        Order,
-        id=order_id,
-        user=request.user
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    address = OrderAddress.objects.filter(order=order).first()
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
+
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
     )
 
-    order_address = OrderAddress.objects.filter(
-        order=order
-    ).first()
+    razorpay_amount = int(order.total_amount * 100)
 
-    context = {
+    if not order.razorpay_order_id:
+        razorpay_order = client.order.create({
+            "amount": razorpay_amount,
+            "currency": "INR",
+            "payment_capture": 1,
+        })
+
+        order.razorpay_order_id = razorpay_order["id"]
+        order.save(update_fields=["razorpay_order_id"])
+
+    return render(request, "orders/payment.html", {
         "order": order,
-        "address": order_address,
+        "address": address,
         "subtotal": order.subtotal,
         "discount": order.discount,
         "shipping": order.shipping_charge,
         "grand_total": order.total_amount,
-    }
+        "wallet": wallet,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "razorpay_amount": razorpay_amount,
+        "razorpay_order_id": order.razorpay_order_id,
+    })
 
-    return render(request, "orders/payment.html", context)
+
+def confirm_order_after_payment(order):
+    if order.status == "CONFIRMED":
+        return True, "Already confirmed."
+
+    if order.status != "PENDING":
+        return False, "Order cannot be confirmed."
+
+    order_items = order.items.select_related("variant", "variant__product")
+    updated_product_ids = set()
+
+    for oi in order_items:
+        variant = ProductVariant.objects.select_for_update().get(id=oi.variant.id)
+
+        if oi.quantity > variant.stock:
+            return False, f"Only {variant.stock} unit(s) left for {oi.product_name}."
+
+        variant.stock -= oi.quantity
+        variant.save(update_fields=["stock"])
+        updated_product_ids.add(variant.product.id)
+
+    order.status = "CONFIRMED"
+    order.save(update_fields=["status", "updated_at"])
+
+    Cart.objects.filter(user=order.user).delete()
+
+    def sync_stock():
+        for pid in updated_product_ids:
+            product = AdminProduct.objects.get(id=pid)
+            total_stock = product.variants.filter(
+                is_deleted=False
+            ).aggregate(total=Sum("stock"))["total"] or 0
+            product.total_stock = total_stock
+            product.save(update_fields=["total_stock"])
+
+    transaction.on_commit(sync_stock)
+
+    return True, "Order confirmed."
 
 
 @login_required
@@ -296,59 +352,109 @@ def confirm_payment(request, order_id):
         user=request.user
     )
 
-    if order.status == "CONFIRMED":
-        messages.info(request, "This order is already confirmed.")
-        return redirect("order_success", order_id=order.id)
+    payment_method = request.POST.get("payment_method")
 
-    if order.status != "PENDING":
-        messages.error(request, "This order can no longer be confirmed.")
-        return redirect("order_failed_with_order", order_id=order.id)
+    if payment_method == "COD":
+        success, msg = confirm_order_after_payment(order)
 
-    payment_method = request.POST.get("payment_method", "COD")
-
-    if payment_method != "COD":
-        messages.error(request, "Payment failed. Currently only Cash on Delivery is available.")
-        return redirect("order_failed_with_order", order_id=order.id)
-
-    order_items = order.items.select_related("variant", "variant__product")
-    updated_product_ids = set()
-
-    # Re-validate + deduct stock now, at the moment payment is actually confirmed
-    for oi in order_items:
-        if not oi.variant:
-            continue
-        variant = ProductVariant.objects.select_for_update().get(id=oi.variant.id)
-        if oi.quantity > variant.stock:
-            messages.error(
-                request,
-                f"Only {variant.stock} unit(s) left for {variant.product_name}. "
-                f"Please update your cart."
-            )
+        if not success:
+            messages.error(request, msg)
             return redirect("order_failed_with_order", order_id=order.id)
 
-        variant.stock -= oi.quantity
-        variant.save()
-        updated_product_ids.add(variant.product.id)
+        order.payment_method = "COD"
+        order.save(update_fields=["payment_method", "updated_at"])
 
-    order.payment_method = "COD"
-    order.status = "CONFIRMED"
-    order.save()
+        messages.success(request, "COD order placed successfully.")
+        return redirect("order_success", order_id=order.id)
 
-    # Clear the cart only now, since payment is truly confirmed
-    Cart.objects.filter(user=request.user).delete()
+    if payment_method == "WALLET":
+        wallet = Wallet.objects.select_for_update().get(user=request.user)
 
-    def sync_stock():
-        for pid in updated_product_ids:
-            product = AdminProduct.objects.get(id=pid)
-            total_stock = product.variants.filter(is_deleted=False).aggregate(
-                total=Sum("stock")
-            )["total"] or 0
-            product.total_stock = total_stock
-            product.save(update_fields=["total_stock"])
+        if wallet.balance < order.total_amount:
+            messages.error(request, "Insufficient wallet balance.")
+            return redirect("payment", order_id=order.id)
 
-    transaction.on_commit(sync_stock)
+        success, msg = confirm_order_after_payment(order)
 
-    messages.success(request, "Order placed successfully.")
+        if not success:
+            messages.error(request, msg)
+            return redirect("order_failed_with_order", order_id=order.id)
+
+        wallet.balance -= order.total_amount
+        wallet.save(update_fields=["balance", "updated_at"])
+
+        WalletTransaction.objects.create(
+            wallet=wallet,
+            order=order,
+            transaction_type="DEBIT",
+            purpose="WALLET_PAYMENT",
+            amount=order.total_amount,
+            status="COMPLETED",
+            description=f"Wallet payment for order {order.order_id}",
+            reference=f"WALLET_ORDER_{order.id}",
+        )
+
+        order.payment_method = "WALLET"
+        order.save(update_fields=["payment_method", "updated_at"])
+
+        messages.success(request, "Order paid using wallet successfully.")
+        return redirect("order_success", order_id=order.id)
+
+    messages.error(request, "Invalid payment method.")
+    return redirect("payment", order_id=order.id)
+
+
+@login_required
+@require_POST
+@transaction.atomic
+def verify_razorpay_payment(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_for_update(),
+        id=order_id,
+        user=request.user
+    )
+
+    razorpay_payment_id = request.POST.get("razorpay_payment_id")
+    razorpay_order_id = request.POST.get("razorpay_order_id")
+    razorpay_signature = request.POST.get("razorpay_signature")
+    selected_method = request.POST.get("selected_method", "RAZORPAY")
+
+    if selected_method not in ["RAZORPAY", "UPI"]:
+        selected_method = "RAZORPAY"
+
+    client = razorpay.Client(
+        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+    )
+
+    try:
+        client.utility.verify_payment_signature({
+            "razorpay_order_id": razorpay_order_id,
+            "razorpay_payment_id": razorpay_payment_id,
+            "razorpay_signature": razorpay_signature,
+        })
+    except Exception:
+        messages.error(request, "Payment verification failed.")
+        return redirect("order_failed_with_order", order_id=order.id)
+
+    success, msg = confirm_order_after_payment(order)
+
+    if not success:
+        messages.error(request, msg)
+        return redirect("order_failed_with_order", order_id=order.id)
+
+    order.payment_method = selected_method
+    order.razorpay_payment_id = razorpay_payment_id
+    order.razorpay_order_id = razorpay_order_id
+    order.razorpay_signature = razorpay_signature
+    order.save(update_fields=[
+        "payment_method",
+        "razorpay_payment_id",
+        "razorpay_order_id",
+        "razorpay_signature",
+        "updated_at",
+    ])
+
+    messages.success(request, "Online payment successful.")
     return redirect("order_success", order_id=order.id)
 
 @login_required

@@ -8,6 +8,7 @@ urlpatterns = [
 
     path("payment/<int:order_id>/", views.payment_view, name="payment"),
     path("confirm-payment/<int:order_id>/", views.confirm_payment, name="confirm_payment"),
+    path("verify-razorpay/<int:order_id>/", views.verify_razorpay_payment, name="verify_razorpay_payment"),
 
     path("success/<int:order_id>/", views.order_success, name="order_success"),
     path("failed/", views.order_failed, name="order_failed"),

@@ -26,6 +26,7 @@ class WalletTransaction(models.Model):
     )
 
     PURPOSE_CHOICES = (
+        ("ADD_MONEY", "Add Money"),
         ("CANCEL_REFUND", "Cancel Refund"),
         ("RETURN_REFUND", "Return Refund"),
         ("WALLET_PAYMENT", "Wallet Payment"),
@@ -36,6 +37,15 @@ class WalletTransaction(models.Model):
         ("COMPLETED", "Completed"),
         ("PENDING", "Pending"),
         ("FAILED", "Failed"),
+    )
+
+    PAYMENT_METHOD_CHOICES = (
+        ("RAZORPAY", "Razorpay"),
+        ("CARD", "Card"),
+        ("NETBANKING", "Netbanking"),
+        ("UPI", "UPI"),
+        ("WALLET", "Wallet"),
+        ("PAY_LATER", "Pay Later"),
     )
 
     wallet = models.ForeignKey(
@@ -63,10 +73,21 @@ class WalletTransaction(models.Model):
     transaction_id = models.CharField(max_length=40, unique=True, editable=False)
     transaction_type = models.CharField(max_length=10, choices=TYPE_CHOICES)
     purpose = models.CharField(max_length=30, choices=PURPOSE_CHOICES)
+    payment_method = models.CharField(
+        max_length=20,
+        choices=PAYMENT_METHOD_CHOICES,
+        blank=True,
+        null=True
+    )
+
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="COMPLETED")
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="PENDING")
     description = models.CharField(max_length=255, blank=True)
     reference = models.CharField(max_length=120, unique=True, blank=True, null=True)
+
+    razorpay_order_id = models.CharField(max_length=120, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=120, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 

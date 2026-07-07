@@ -121,7 +121,7 @@
             </p>
 
             <h1 class="orbitron text-5xl md:text-6xl gold tracking-[0.16em] uppercase drop-shadow">
-                WALLET VAULT
+                COLLECTOR WALLET 
             </h1>
 
             <p class="text-[#d0c5af] mt-4 max-w-2xl">
@@ -172,10 +172,11 @@
                 </div>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                    <a href="{% url 'add_money' %}"
+                    class="glass p-5 rounded-xl text-center hover:bg-[#f2ca50]/10 transition block">
                         <span class="material-symbols-outlined gold text-3xl">add_card</span>
                         <p class="orbitron text-xs gold mt-2">ADD MONEY</p>
-                    </button>
+                    </a>
 
                     <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
                         <span class="material-symbols-outlined text-[#d0c5af] text-3xl">payments</span>

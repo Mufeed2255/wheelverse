@@ -21,6 +21,9 @@ class Order(models.Model):
 
     PAYMENT_CHOICES = (
         ("COD", "Cash on Delivery"),
+        ("WALLET", "Wallet"),
+        ("RAZORPAY", "Razorpay"),
+        ("UPI", "UPI"),
     )
 
     user = models.ForeignKey(
@@ -76,6 +79,9 @@ class Order(models.Model):
 
     ordered_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    razorpay_order_id = models.CharField(max_length=120, blank=True, null=True)
+    razorpay_payment_id = models.CharField(max_length=120, blank=True, null=True)
+    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
 
     def save(self, *args, **kwargs):
         if not self.order_id:

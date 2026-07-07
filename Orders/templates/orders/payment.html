@@ -1,46 +1,32 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WheelVerse | Secure Payment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
     <style>
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: Poppins, sans-serif;
             background: #110e07;
             color: #eae1d4;
         }
 
         .font-orbitron {
-            font-family: 'Orbitron', sans-serif;
+            font-family: Orbitron, sans-serif;
         }
 
         .glass-card {
             background: rgba(26,26,26,0.78);
             backdrop-filter: blur(18px);
             border: 1px solid rgba(242,202,80,0.18);
-            box-shadow: inset 0 1px 1px rgba(255,255,255,0.05);
-        }
-
-        .gold-glow {
-            box-shadow: 0 0 18px rgba(242,202,80,0.35);
-        }
-
-        .carbon-bg {
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.04) 1px, transparent 0);
-            background-size: 24px 24px;
-        }
-
-        .payment-option {
-            transition: 0.25s ease;
         }
 
         .payment-option.active {
@@ -52,40 +38,15 @@
 
         .method-panel {
             display: none;
-            animation: fadeUp 0.35s ease;
         }
 
         .method-panel.active {
             display: block;
         }
-
-        @keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(18px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .pulse-gold {
-            animation: pulseGold 1.6s infinite;
-        }
-
-        @keyframes pulseGold {
-            0%, 100% {
-                box-shadow: 0 0 10px rgba(242,202,80,0.25);
-            }
-            50% {
-                box-shadow: 0 0 25px rgba(242,202,80,0.55);
-            }
-        }
     </style>
 </head>
 
-<body class="min-h-screen carbon-bg">
+<body class="min-h-screen">
 
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
@@ -93,7 +54,7 @@
 <main class="max-w-7xl mx-auto px-8 pt-32 pb-12">
 
     <section class="mb-12 flex items-center gap-6">
-        <div class="p-4 rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10 gold-glow">
+        <div class="p-4 rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10">
             <span class="material-symbols-outlined text-[#f2ca50] text-4xl">shield</span>
         </div>
 
@@ -102,7 +63,7 @@
                 Secure Payment
             </h1>
             <p class="text-[#d0c5af] mt-2">
-                Complete your legendary collectible purchase inside the WheelVerse vault.
+                Complete your WheelVerse order with COD, wallet, UPI, or Razorpay.
             </p>
         </div>
     </section>
@@ -113,137 +74,86 @@
 
             <div class="glass-card rounded-xl p-8">
                 <h3 class="font-orbitron text-[#f2ca50] text-sm tracking-widest mb-6">
-                    SELECT ACQUISITION METHOD
+                    SELECT PAYMENT METHOD
                 </h3>
 
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button type="button" data-method="UPI" class="payment-option flex flex-col items-center justify-center gap-3 p-6 rounded-lg border border-[#4d4635]">
+
+                    <button type="button" data-method="COD"
+                            class="payment-option active flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
+                        <span class="material-symbols-outlined text-[#f2ca50]">payments</span>
+                        <span class="font-orbitron text-xs">COD</span>
+                    </button>
+
+                    <button type="button" data-method="WALLET"
+                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
+                        <span class="material-symbols-outlined text-[#d0c5af]">account_balance_wallet</span>
+                        <span class="font-orbitron text-xs">WALLET</span>
+                    </button>
+
+                    <button type="button" data-method="UPI"
+                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
                         <span class="material-symbols-outlined text-[#d0c5af]">qr_code_2</span>
                         <span class="font-orbitron text-xs">UPI</span>
                     </button>
 
-                    <button type="button" data-method="COD" class="payment-option active flex flex-col items-center justify-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#f2ca50]">payments</span>
-                        <span class="font-orbitron text-xs">Cash on Delivery</span>
-                    </button>
-
-                    <button type="button" data-method="WALLET" class="payment-option flex flex-col items-center justify-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#d0c5af]">account_balance_wallet</span>
-                        <span class="font-orbitron text-xs">Wallets</span>
-                    </button>
-
-                    <button type="button" data-method="RAZORPAY" class="payment-option flex flex-col items-center justify-center gap-3 p-6 rounded-lg border border-[#4d4635]">
+                    <button type="button" data-method="RAZORPAY"
+                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
                         <span class="material-symbols-outlined text-[#d0c5af]">rocket_launch</span>
-                        <span class="font-orbitron text-xs">RazorPay</span>
+                        <span class="font-orbitron text-xs">RAZORPAY</span>
                     </button>
+
                 </div>
             </div>
 
             <div class="glass-card rounded-xl p-8 min-h-[340px]">
 
                 <div id="panel-COD" class="method-panel active">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-
-                        <div class="aspect-[1.6/1] rounded-2xl p-8 bg-gradient-to-br from-[#262016] to-[#080706] border border-[#f2ca50]/30 shadow-2xl relative overflow-hidden pulse-gold">
-                            <div class="absolute right-0 top-0 w-40 h-40 bg-[#f2ca50]/10 blur-3xl"></div>
-
-                            <div class="relative z-10">
-                                <p class="font-orbitron text-xs text-[#f2ca50] tracking-[0.3em] text-right">
-                                    WHEELVERSE
-                                </p>
-
-                                <span class="material-symbols-outlined text-[#f2ca50] text-5xl mt-8 block">
-                                    payments
-                                </span>
-
-                                <p class="font-orbitron text-xl tracking-widest mt-10">
-                                    CASH ON DELIVERY
-                                </p>
-
-                                <div class="flex justify-between mt-8">
-                                    <div>
-                                        <p class="font-orbitron text-[10px] text-[#f2ca50]/70">ORDER ID</p>
-                                        <p class="font-orbitron text-sm">{{ order.order_id }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="font-orbitron text-[10px] text-[#f2ca50]/70">STATUS</p>
-                                        <p class="font-orbitron text-sm">{{ order.status }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
-                                Pay when your collectible arrives
-                            </h2>
-
-                            <p class="text-[#d0c5af] leading-relaxed mb-6">
-                                Your order will be confirmed now. Payment will be collected at delivery.
-                                Please keep the exact amount ready during delivery.
-                            </p>
-
-                            <div class="space-y-4">
-                                <div class="flex items-center gap-3">
-                                    <span class="material-symbols-outlined text-[#f2ca50]">verified</span>
-                                    <span>Order confirmation will happen immediately.</span>
-                                </div>
-
-                                <div class="flex items-center gap-3">
-                                    <span class="material-symbols-outlined text-[#f2ca50]">local_shipping</span>
-                                    <span>Delivery team will collect payment at your address.</span>
-                                </div>
-
-                                <div class="flex items-center gap-3">
-                                    <span class="material-symbols-outlined text-[#f2ca50]">security</span>
-                                    <span>No online card details are required.</span>
-                                </div>
-                            </div>
-
-                            <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-8">
-                                {% csrf_token %}
-                                <input type="hidden" name="payment_method" value="COD">
-
-                                <button type="submit" class="lg:hidden w-full bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron py-4 rounded-lg tracking-[0.2em]">
-                                    CONFIRM COD ORDER
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="panel-UPI" class="method-panel">
-                    <div class="text-center py-14">
-                        <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">qr_code_2</span>
-                        <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-3">UPI Payment Coming Soon</h2>
-                        <p class="text-[#d0c5af] max-w-xl mx-auto">
-                            UPI integration will be available soon. For now, please select Cash on Delivery to confirm your order.
-                        </p>
-                    </div>
+                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                        Cash on Delivery
+                    </h2>
+                    <p class="text-[#d0c5af]">
+                        Your order will be confirmed now. Payment will be collected at delivery.
+                    </p>
                 </div>
 
                 <div id="panel-WALLET" class="method-panel">
-                    <div class="text-center py-14">
-                        <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">account_balance_wallet</span>
-                        <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-3">Wallet Payment Coming Soon</h2>
-                        <p class="text-[#d0c5af] max-w-xl mx-auto">
-                            Wallet balance payment is not active yet. Select Cash on Delivery to continue.
+                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                        Wallet Payment
+                    </h2>
+                    <p class="text-[#d0c5af]">
+                        Available Balance: ₹{{ wallet.balance }}
+                    </p>
+                    {% if wallet.balance < grand_total %}
+                        <p class="text-red-300 mt-4">
+                            Insufficient wallet balance. Please add money or choose another payment method.
                         </p>
-                    </div>
+                    {% else %}
+                        <p class="text-green-300 mt-4">
+                            Wallet balance is sufficient for this order.
+                        </p>
+                    {% endif %}
+                </div>
+
+                <div id="panel-UPI" class="method-panel">
+                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                        UPI Payment
+                    </h2>
+                    <p class="text-[#d0c5af]">
+                        Click confirm to open Razorpay UPI checkout.
+                    </p>
                 </div>
 
                 <div id="panel-RAZORPAY" class="method-panel">
-                    <div class="text-center py-14">
-                        <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">rocket_launch</span>
-                        <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-3">RazorPay Coming Soon</h2>
-                        <p class="text-[#d0c5af] max-w-xl mx-auto">
-                            RazorPay will be connected later. For now, only Cash on Delivery is enabled.
-                        </p>
-                    </div>
+                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                        Razorpay Online Payment
+                    </h2>
+                    <p class="text-[#d0c5af]">
+                        Razorpay supports cards, UPI, netbanking, wallets, and pay later.
+                    </p>
                 </div>
 
             </div>
-
         </div>
 
         <aside class="lg:col-span-4 space-y-8">
@@ -251,138 +161,164 @@
             <div class="glass-card rounded-xl overflow-hidden">
                 <div class="bg-[#f2ca50]/10 px-8 py-4 border-b border-[#f2ca50]/20">
                     <h2 class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
-                        ORDER MANIFEST
+                        ORDER SUMMARY
                     </h2>
                 </div>
 
                 <div class="p-8 space-y-5">
                     <div class="flex justify-between text-[#d0c5af]">
-                        <span>Sub Total Amount</span>
+                        <span>Subtotal</span>
                         <span class="font-orbitron">₹ {{ subtotal }}</span>
                     </div>
 
                     <div class="flex justify-between text-[#d0c5af]">
-                        <span>Delivery Charge</span>
+                        <span>Shipping</span>
                         <span class="font-orbitron">₹ {{ shipping }}</span>
                     </div>
 
                     <div class="flex justify-between text-[#f2ca50]">
-                        <span>Discount Amount</span>
+                        <span>Discount</span>
                         <span class="font-orbitron">- ₹ {{ discount }}</span>
                     </div>
 
-                    <div class="h-px bg-[#4d4635]/70 my-4"></div>
+                    <div class="h-px bg-[#4d4635]/70"></div>
 
                     <div class="flex justify-between items-center text-[#f2ca50]">
-                        <span class="font-orbitron">Total Amount</span>
+                        <span class="font-orbitron">Total</span>
                         <span class="font-orbitron text-xl">₹ {{ grand_total }}</span>
                     </div>
 
-                    <form method="POST" action="{% url 'confirm_payment' order.id %}">
+                    <form id="codForm" method="POST" action="{% url 'confirm_payment' order.id %}">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="COD">
-
-                        <button id="confirmBtn" type="submit" class="w-full mt-8 bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron py-5 rounded-lg text-lg tracking-[0.2em] flex items-center justify-center gap-3 hover:scale-[1.02] transition">
-                            <span>CONFIRM COD ORDER</span>
-                            <span class="material-symbols-outlined">arrow_forward</span>
-                        </button>
                     </form>
 
-                    <p id="methodNotice" class="hidden text-center text-sm text-[#d0c5af] mt-4">
-                        This method is coming soon. Please select Cash on Delivery.
+                    <form id="walletForm" method="POST" action="{% url 'confirm_payment' order.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="payment_method" value="WALLET">
+                    </form>
+
+                    <form id="razorpayVerifyForm" method="POST" action="{% url 'verify_razorpay_payment' order.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+                        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                        <input type="hidden" name="selected_method" id="selected_method" value="RAZORPAY">
+                    </form>
+
+                    <button id="mainPayBtn"
+                            type="button"
+                            class="w-full mt-6 bg-[#f2ca50] text-black py-5 rounded-lg font-orbitron font-bold tracking-widest">
+                        CONFIRM COD ORDER
+                    </button>
+
+                    <p id="methodNotice" class="text-center text-sm text-[#d0c5af] mt-4">
+                        Selected Method: COD
                     </p>
                 </div>
             </div>
 
             <div class="glass-card rounded-xl p-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="font-orbitron text-xs text-[#d0c5af]">
-                        SECURE DELIVERY VAULT
-                    </h3>
-                    <a href="{% url 'checkout' %}" class="text-[#f2ca50] font-orbitron text-xs">
-                        Edit
-                    </a>
-                </div>
+                <h3 class="font-orbitron text-xs text-[#d0c5af] mb-6">
+                    DELIVERY ADDRESS
+                </h3>
 
                 {% if address %}
-                    <div class="flex gap-4">
-                        <span class="material-symbols-outlined text-[#f2ca50] mt-1">location_on</span>
-                        <div>
-                            <p class="font-orbitron text-sm text-white mb-1">
-                                {{ address.full_name }}
-                            </p>
+                    <p class="font-orbitron text-sm text-white mb-1">
+                        {{ address.full_name }}
+                    </p>
 
-                            <p class="text-sm text-[#d0c5af] leading-relaxed">
-                                {{ address.address }}<br>
-                                {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
-                                Phone: {{ address.phone }}
-                            </p>
-                        </div>
-                    </div>
-                {% else %}
-                    <p class="text-[#d0c5af]">No address found.</p>
+                    <p class="text-sm text-[#d0c5af] leading-relaxed">
+                        {{ address.address }}<br>
+                        {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                        Phone: {{ address.phone }}
+                    </p>
                 {% endif %}
-
-                <div class="mt-6 flex items-center gap-3 bg-[#38342b]/40 p-3 rounded border border-[#4d4635]/50">
-                    <span class="material-symbols-outlined text-[#f2ca50] text-sm">verified</span>
-                    <span class="font-orbitron text-[10px] text-[#d0c5af]">
-                        SECURE DELIVERY ACTIVE
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex items-center justify-center gap-3 opacity-60 text-xs">
-                <span class="material-symbols-outlined text-sm">enhanced_encryption</span>
-                <p class="font-orbitron">
-                    Your order is protected with premium delivery verification
-                </p>
             </div>
 
         </aside>
     </div>
 </main>
 
-<footer class="border-t border-[#4d4635]/40 py-10 mt-12">
-    <div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div class="font-orbitron text-2xl font-bold">
-            Wheel<span class="text-[#f2ca50]">Verse</span>
-        </div>
-        <p class="font-orbitron text-xs text-[#d0c5af]/60">
-            © 2026 WHEELVERSE DIGITAL GARAGE. ALL RIGHTS RESERVED.
-        </p>
-    </div>
-</footer>
-
 <script>
+    let selectedMethod = "COD";
+
     const buttons = document.querySelectorAll(".payment-option");
     const panels = document.querySelectorAll(".method-panel");
-    const confirmBtn = document.getElementById("confirmBtn");
+    const mainPayBtn = document.getElementById("mainPayBtn");
     const methodNotice = document.getElementById("methodNotice");
 
     buttons.forEach(button => {
         button.addEventListener("click", () => {
-            const method = button.dataset.method;
+            selectedMethod = button.dataset.method;
 
             buttons.forEach(btn => btn.classList.remove("active"));
             button.classList.add("active");
 
             panels.forEach(panel => panel.classList.remove("active"));
-            document.getElementById(`panel-${method}`).classList.add("active");
+            document.getElementById(`panel-${selectedMethod}`).classList.add("active");
 
-            if (method === "COD") {
-                confirmBtn.disabled = false;
-                confirmBtn.classList.remove("opacity-40", "cursor-not-allowed");
-                confirmBtn.classList.add("hover:scale-[1.02]");
-                confirmBtn.querySelector("span").textContent = "CONFIRM COD ORDER";
-                methodNotice.classList.add("hidden");
+            if (selectedMethod === "COD") {
+                mainPayBtn.textContent = "CONFIRM COD ORDER";
+            } else if (selectedMethod === "WALLET") {
+                mainPayBtn.textContent = "PAY USING WALLET";
+            } else if (selectedMethod === "UPI") {
+                mainPayBtn.textContent = "PAY WITH UPI";
             } else {
-                confirmBtn.disabled = true;
-                confirmBtn.classList.add("opacity-40", "cursor-not-allowed");
-                confirmBtn.classList.remove("hover:scale-[1.02]");
-                confirmBtn.querySelector("span").textContent = "COMING SOON";
-                methodNotice.classList.remove("hidden");
+                mainPayBtn.textContent = "PAY WITH RAZORPAY";
             }
+
+            methodNotice.textContent = "Selected Method: " + selectedMethod;
         });
+    });
+
+    mainPayBtn.addEventListener("click", function () {
+        if (selectedMethod === "COD") {
+            document.getElementById("codForm").submit();
+            return;
+        }
+
+        if (selectedMethod === "WALLET") {
+            document.getElementById("walletForm").submit();
+            return;
+        }
+
+        document.getElementById("selected_method").value = selectedMethod;
+
+        const options = {
+            "key": "{{ razorpay_key_id }}",
+            "amount": "{{ razorpay_amount }}",
+            "currency": "INR",
+            "name": "WheelVerse",
+            "description": "Order {{ order.order_id }}",
+            "order_id": "{{ razorpay_order_id }}",
+
+            "handler": function (response) {
+                document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+                document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+                document.getElementById("razorpay_signature").value = response.razorpay_signature;
+                document.getElementById("razorpayVerifyForm").submit();
+            },
+
+            "prefill": {
+                "name": "{{ request.user.username }}",
+                "email": "{{ request.user.email }}",
+                "contact": "{% if address %}{{ address.phone }}{% endif %}"
+            },
+
+            "theme": {
+                "color": "#f2ca50"
+            },
+
+            "modal": {
+                "ondismiss": function () {
+                    window.location.href = "{% url 'order_failed_with_order' order.id %}";
+                }
+            }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
     });
 </script>
 

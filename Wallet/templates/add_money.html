@@ -1,0 +1,219 @@
+{% load static %}
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse | Add Money</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+            min-height: 100vh;
+        }
+
+        .page-content {
+            margin-left: 360px;
+            padding-top: 120px;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at top right, rgba(242,202,80,.12), transparent 35%),
+                linear-gradient(rgba(0,0,0,.70), rgba(0,0,0,.92)),
+                #080705;
+        }
+
+        @media(max-width:900px) {
+            .page-content {
+                margin-left: 0;
+            }
+        }
+
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .glass {
+            background: rgba(22, 19, 11, 0.88);
+            border: 1px solid rgba(242, 202, 80, 0.22);
+            backdrop-filter: blur(22px);
+            box-shadow: 0 0 40px rgba(0,0,0,.65);
+        }
+
+        .gold {
+            color: #f2ca50;
+        }
+
+        .amount-btn.active {
+            background: #f2ca50;
+            color: #120f08;
+        }
+    </style>
+</head>
+
+<body>
+
+{% include "include/user_sidebar.html" %}
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="page-content">
+    <div class="max-w-[900px] mx-auto px-10 py-14">
+
+        <div class="glass rounded-xl overflow-hidden border-t-2 border-[#f2ca50]">
+
+            <div class="p-8 flex justify-between items-start border-b border-[#f2ca50]/10">
+                <div>
+                    <h1 class="orbitron text-4xl gold uppercase tracking-widest">
+                        ADD MONEY
+                    </h1>
+                    <p class="text-[#d0c5af] mt-2">
+                        Enter amount and continue with Razorpay secure checkout.
+                    </p>
+                </div>
+
+                <a href="{% url 'wallet' %}" class="text-[#d0c5af] hover:text-[#f2ca50] transition">
+                    <span class="material-symbols-outlined text-3xl">close</span>
+                </a>
+            </div>
+
+            <form method="POST" class="p-8 space-y-8">
+                {% csrf_token %}
+
+                <div>
+                    <label class="orbitron text-xs gold tracking-widest block mb-4">
+                        ENTER AMOUNT
+                    </label>
+
+                    <div class="relative">
+                        <span class="absolute left-6 top-1/2 -translate-y-1/2 text-[#f2ca50] text-5xl">
+                            ₹
+                        </span>
+
+                        <input type="number"
+                               name="amount"
+                               id="amountInput"
+                               min="100"
+                               max="50000"
+                               step="1"
+                               placeholder="00,000"
+                               required
+                               class="w-full bg-[#231f17]/70 border border-[#f2ca50]/20 focus:border-[#f2ca50] focus:ring-[#f2ca50]/20 text-[#f2ca50] orbitron text-5xl pl-20 pr-6 py-8 rounded outline-none">
+                    </div>
+
+                    <p class="text-xs text-[#d0c5af] mt-3">
+                        Minimum ₹100 and maximum ₹50,000 allowed.
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="500">
+                        + ₹500
+                    </button>
+
+                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="1000">
+                        + ₹1,000
+                    </button>
+
+                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="2000">
+                        + ₹2,000
+                    </button>
+
+                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="5000">
+                        + ₹5,000
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-4 p-5 bg-[#1f1b13]/70 border border-[#f2ca50]/10 rounded">
+                    <span class="material-symbols-outlined gold">verified_user</span>
+                    <p class="text-xs text-[#d0c5af] uppercase tracking-wider">
+                        Razorpay checkout supports UPI, cards, netbanking, wallets and pay later.
+                    </p>
+                </div>
+
+                <button type="submit"
+                        class="w-full bg-[#f2ca50] text-black py-5 rounded orbitron text-lg font-bold tracking-widest hover:brightness-110 transition flex items-center justify-center gap-3">
+                    PROCEED TO PAYMENT
+                    <span class="material-symbols-outlined">bolt</span>
+                </button>
+            </form>
+
+            <div class="px-8 py-4 border-t border-[#f2ca50]/10 flex justify-between opacity-50">
+                <span class="orbitron text-[10px] text-[#d0c5af] tracking-widest">
+                    WV-RAZORPAY VAULT
+                </span>
+                <span class="material-symbols-outlined text-sm">security</span>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<form id="razorpayVerifyForm" method="POST" action="{% url 'verify_wallet_payment' %}">
+    {% csrf_token %}
+    <input type="hidden" name="wallet_txn_id" value="{% if wallet_txn %}{{ wallet_txn.id }}{% endif %}">
+    <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+    <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+    <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+</form>
+
+<script>
+    const amountInput = document.getElementById("amountInput");
+    const amountButtons = document.querySelectorAll(".amount-btn");
+
+    amountButtons.forEach(button => {
+        button.addEventListener("click", function () {
+            amountInput.value = this.dataset.amount;
+            amountButtons.forEach(btn => btn.classList.remove("active"));
+            this.classList.add("active");
+        });
+    });
+</script>
+
+{% if open_razorpay %}
+<script>
+    const options = {
+        key: "{{ razorpay_key_id }}",
+        amount: "{{ razorpay_amount }}",
+        currency: "INR",
+        name: "WheelVerse",
+        description: "Wallet Top-up ₹{{ amount }}",
+        order_id: "{{ razorpay_order_id }}",
+
+        handler: function (response) {
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+            document.getElementById("razorpay_signature").value = response.razorpay_signature;
+            document.getElementById("razorpayVerifyForm").submit();
+        },
+
+        prefill: {
+            name: "{{ request.user.username }}",
+            email: "{{ request.user.email }}"
+        },
+
+        theme: {
+            color: "#f2ca50"
+        },
+
+        modal: {
+            ondismiss: function () {
+                window.location.href = "{% url 'wallet_payment_failed' wallet_txn.id %}";
+            }
+        }
+    };
+
+    const rzp = new Razorpay(options);
+    rzp.open();
+</script>
+{% endif %}
+
+</body>
+</html>

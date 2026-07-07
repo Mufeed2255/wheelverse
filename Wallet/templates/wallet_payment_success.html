@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Wallet Payment Success</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-[#080705] text-[#eae1d4] min-h-screen">
+
+{% include "include/user_sidebar.html" %}
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="min-h-screen flex items-center justify-center px-6" style="margin-left:360px;padding-top:120px;">
+    <div class="bg-[#16130b] border border-[#f2ca50]/30 max-w-xl w-full p-10 text-center rounded-xl">
+        <div class="text-[#f2ca50] text-7xl mb-5">✓</div>
+
+        <h1 class="text-4xl text-[#f2ca50] font-bold uppercase">
+            Payment Success
+        </h1>
+
+        <p class="text-[#d0c5af] mt-4">
+            ₹{{ amount }} has been added to your wallet.
+        </p>
+
+        <p class="text-[#d0c5af] mt-2 text-sm">
+            Transaction ID: {{ txn.transaction_id }}
+        </p>
+
+        <a href="{% url 'wallet' %}"
+           class="block mt-8 bg-[#f2ca50] text-black py-4 rounded font-bold">
+            GO TO WALLET
+        </a>
+    </div>
+</main>
+
+</body>
+</html>
