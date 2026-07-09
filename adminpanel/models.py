@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 
 
 class Category(models.Model):
@@ -344,3 +345,41 @@ class ReturnRequestImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.return_request.order.order_id}"
+
+
+class Coupon(models.Model):
+    DISCOUNT_TYPE_CHOICES = (
+        ("PERCENTAGE", "Percentage"),
+        ("FIXED", "Fixed Amount"),
+    )
+
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=30, unique=True)
+
+    discount_type = models.CharField(
+        max_length=20,
+        choices=DISCOUNT_TYPE_CHOICES,
+        default="PERCENTAGE"
+    )
+
+    discount_value = models.DecimalField(max_digits=10, decimal_places=2)
+    min_cart_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    usage_limit = models.PositiveIntegerField(default=0)
+    used_count = models.PositiveIntegerField(default=0)
+
+    valid_from = models.DateField(default=timezone.now)
+    valid_till = models.DateField()
+
+    is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
+
+    description = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def is_expired(self):
+        return self.valid_till < timezone.now().date()
+
+    def __str__(self):
+        return self.code

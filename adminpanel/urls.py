@@ -15,6 +15,14 @@ from .views.order_management import (
     admin_return_detail,
     mark_return_picked_up,   
 )
+from adminpanel.views.coupon_management import (
+    admin_coupons,
+    add_coupon,
+    delete_coupon_confirm,
+    edit_coupon,
+    delete_coupon,
+)
+
 
 
 urlpatterns = [
@@ -57,8 +65,14 @@ urlpatterns = [
     path("admin-returns/<int:return_id>/approve/", approve_return, name="approve_return"),
     path("admin-returns/<int:return_id>/reject/", reject_return, name="reject_return"),
     path("admin-returns/<int:return_id>/refund/", process_refund, name="process_refund"),
-    path("returns/<int:return_id>/picked-up/",mark_return_picked_up,name="mark_return_picked_up",
-),
+    path("returns/<int:return_id>/picked-up/",mark_return_picked_up,name="mark_return_picked_up"),
+         
+
+    path("coupons/", admin_coupons, name="admin_coupons"),
+    path("coupons/add/", add_coupon, name="add_coupon"),
+    path("coupons/edit/<int:coupon_id>/", edit_coupon, name="edit_coupon"),
+    path("coupons/delete-confirm/<int:coupon_id>/", delete_coupon_confirm, name="delete_coupon_confirm"),
+    path("coupons/delete/<int:coupon_id>/", delete_coupon, name="delete_coupon"),
 
 ]
     

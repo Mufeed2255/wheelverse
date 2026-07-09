@@ -29,19 +29,8 @@
             border: 1px solid rgba(242,202,80,0.18);
         }
 
-        .payment-option.active {
-            border-color: #f2ca50;
-            background: rgba(242,202,80,0.12);
-            box-shadow: 0 0 16px rgba(242,202,80,0.25);
-            transform: translateY(-3px);
-        }
-
-        .method-panel {
-            display: none;
-        }
-
-        .method-panel.active {
-            display: block;
+        .gold {
+            color: #f2ca50;
         }
     </style>
 </head>
@@ -52,6 +41,43 @@
 {% include "adminpanel/includes/messages.html" %}
 
 <main class="max-w-7xl mx-auto px-8 pt-32 pb-12">
+    <div class="flex items-center justify-between mb-10">
+
+        <!-- Breadcrumb -->
+        <div class="flex items-center gap-3 font-orbitron text-sm uppercase tracking-widest">
+
+            <a href="{% url 'checkout' %}"
+            class="text-[#d0c5af] hover:text-[#f2ca50] transition">
+                Checkout
+            </a>
+
+            <span class="text-[#f2ca50]">›</span>
+
+            <span class="text-[#f2ca50]">
+                Payment
+            </span>
+
+        </div>
+
+        <!-- Back Button -->
+        <a href="{% url 'checkout' %}"
+        class="inline-flex items-center gap-2 px-5 py-3 rounded-lg
+                border border-[#f2ca50]/30
+                bg-[#1b1811]
+                hover:bg-[#f2ca50]
+                hover:text-black
+                transition-all duration-300
+                font-orbitron text-xs tracking-widest uppercase">
+
+            <span class="material-symbols-outlined text-base">
+                arrow_back
+            </span>
+
+            Back to Checkout
+
+        </a>
+
+    </div>
 
     <section class="mb-12 flex items-center gap-6">
         <div class="p-4 rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10">
@@ -63,98 +89,126 @@
                 Secure Payment
             </h1>
             <p class="text-[#d0c5af] mt-2">
-                Complete your WheelVerse order with COD, wallet, UPI, or Razorpay.
+                Selected method:
+                <span class="gold font-orbitron">{{ order.get_payment_method_display }}</span>
             </p>
         </div>
     </section>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-        <div class="lg:col-span-8 space-y-8">
+        <section class="lg:col-span-8">
+            <div class="glass-card rounded-xl p-8 min-h-[420px]">
 
-            <div class="glass-card rounded-xl p-8">
-                <h3 class="font-orbitron text-[#f2ca50] text-sm tracking-widest mb-6">
-                    SELECT PAYMENT METHOD
-                </h3>
+                {% if order.payment_method == "COD" %}
+                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                        payments
+                    </span>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-
-                    <button type="button" data-method="COD"
-                            class="payment-option active flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#f2ca50]">payments</span>
-                        <span class="font-orbitron text-xs">COD</span>
-                    </button>
-
-                    <button type="button" data-method="WALLET"
-                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#d0c5af]">account_balance_wallet</span>
-                        <span class="font-orbitron text-xs">WALLET</span>
-                    </button>
-
-                    <button type="button" data-method="UPI"
-                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#d0c5af]">qr_code_2</span>
-                        <span class="font-orbitron text-xs">UPI</span>
-                    </button>
-
-                    <button type="button" data-method="RAZORPAY"
-                            class="payment-option flex flex-col items-center gap-3 p-6 rounded-lg border border-[#4d4635]">
-                        <span class="material-symbols-outlined text-[#d0c5af]">rocket_launch</span>
-                        <span class="font-orbitron text-xs">RAZORPAY</span>
-                    </button>
-
-                </div>
-            </div>
-
-            <div class="glass-card rounded-xl p-8 min-h-[340px]">
-
-                <div id="panel-COD" class="method-panel active">
-                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
                         Cash on Delivery
                     </h2>
-                    <p class="text-[#d0c5af]">
-                        Your order will be confirmed now. Payment will be collected at delivery.
-                    </p>
-                </div>
 
-                <div id="panel-WALLET" class="method-panel">
-                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
+                    <p class="text-[#d0c5af] leading-relaxed max-w-2xl">
+                        Your order will be confirmed now. Payment will be collected when the product is delivered.
+                    </p>
+
+                    <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-10">
+                        {% csrf_token %}
+                        <input type="hidden" name="payment_method" value="COD">
+
+                        <button type="submit"
+                                class="bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                            CONFIRM COD ORDER
+                        </button>
+                    </form>
+
+                {% elif order.payment_method == "WALLET" %}
+                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                        account_balance_wallet
+                    </span>
+
+                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
                         Wallet Payment
                     </h2>
-                    <p class="text-[#d0c5af]">
-                        Available Balance: ₹{{ wallet.balance }}
-                    </p>
-                    {% if wallet.balance < grand_total %}
-                        <p class="text-red-300 mt-4">
-                            Insufficient wallet balance. Please add money or choose another payment method.
-                        </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
+                        <div class="glass-card p-5 rounded">
+                            <p class="font-orbitron text-xs text-[#d0c5af]">WALLET BALANCE</p>
+                            <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">₹{{ wallet.balance }}</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded">
+                            <p class="font-orbitron text-xs text-[#d0c5af]">ORDER AMOUNT</p>
+                            <p class="font-orbitron text-2xl text-white mt-2">₹{{ grand_total }}</p>
+                        </div>
+
+                        <div class="glass-card p-5 rounded">
+                            <p class="font-orbitron text-xs text-[#d0c5af]">STATUS</p>
+                            {% if wallet.balance >= grand_total %}
+                                <p class="font-orbitron text-green-300 mt-2">AVAILABLE</p>
+                            {% else %}
+                                <p class="font-orbitron text-red-300 mt-2">INSUFFICIENT</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    {% if wallet.balance >= grand_total %}
+                        <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-10">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_method" value="WALLET">
+
+                            <button type="submit"
+                                    class="bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                                PAY USING WALLET
+                            </button>
+                        </form>
                     {% else %}
-                        <p class="text-green-300 mt-4">
-                            Wallet balance is sufficient for this order.
-                        </p>
+                        <a href="{% url 'add_money' %}"
+                           class="inline-block mt-10 bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                            ADD MONEY
+                        </a>
                     {% endif %}
-                </div>
 
-                <div id="panel-UPI" class="method-panel">
-                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
-                        UPI Payment
-                    </h2>
-                    <p class="text-[#d0c5af]">
-                        Click confirm to open Razorpay UPI checkout.
-                    </p>
-                </div>
+                {% elif order.payment_method == "UPI" or order.payment_method == "RAZORPAY" %}
+                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                        {% if order.payment_method == "UPI" %}qr_code_2{% else %}credit_card{% endif %}
+                    </span>
 
-                <div id="panel-RAZORPAY" class="method-panel">
-                    <h2 class="font-orbitron text-2xl text-[#f2ca50] mb-4">
-                        Razorpay Online Payment
+                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
+                        {% if order.payment_method == "UPI" %}
+                            UPI Payment
+                        {% else %}
+                            Razorpay Secure Payment
+                        {% endif %}
                     </h2>
-                    <p class="text-[#d0c5af]">
-                        Razorpay supports cards, UPI, netbanking, wallets, and pay later.
+
+                    <p class="text-[#d0c5af] leading-relaxed max-w-2xl">
+                        Click below to open Razorpay secure checkout. You can complete payment using UPI, cards, netbanking, wallets, or pay later.
                     </p>
-                </div>
+
+                    <form id="razorpayVerifyForm"
+                          method="POST"
+                          action="{% url 'verify_razorpay_payment' order.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
+                        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
+                        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
+                    </form>
+
+                    <button id="razorpayBtn"
+                            type="button"
+                            class="mt-10 bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                        {% if order.payment_method == "UPI" %}
+                            PAY WITH UPI
+                        {% else %}
+                            PAY WITH RAZORPAY
+                        {% endif %}
+                    </button>
+                {% endif %}
 
             </div>
-        </div>
+        </section>
 
         <aside class="lg:col-span-4 space-y-8">
 
@@ -187,34 +241,6 @@
                         <span class="font-orbitron">Total</span>
                         <span class="font-orbitron text-xl">₹ {{ grand_total }}</span>
                     </div>
-
-                    <form id="codForm" method="POST" action="{% url 'confirm_payment' order.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="payment_method" value="COD">
-                    </form>
-
-                    <form id="walletForm" method="POST" action="{% url 'confirm_payment' order.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="payment_method" value="WALLET">
-                    </form>
-
-                    <form id="razorpayVerifyForm" method="POST" action="{% url 'verify_razorpay_payment' order.id %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="razorpay_payment_id" id="razorpay_payment_id">
-                        <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
-                        <input type="hidden" name="razorpay_signature" id="razorpay_signature">
-                        <input type="hidden" name="selected_method" id="selected_method" value="RAZORPAY">
-                    </form>
-
-                    <button id="mainPayBtn"
-                            type="button"
-                            class="w-full mt-6 bg-[#f2ca50] text-black py-5 rounded-lg font-orbitron font-bold tracking-widest">
-                        CONFIRM COD ORDER
-                    </button>
-
-                    <p id="methodNotice" class="text-center text-sm text-[#d0c5af] mt-4">
-                        Selected Method: COD
-                    </p>
                 </div>
             </div>
 
@@ -240,87 +266,46 @@
     </div>
 </main>
 
+{% if order.payment_method == "UPI" or order.payment_method == "RAZORPAY" %}
 <script>
-    let selectedMethod = "COD";
+document.getElementById("razorpayBtn").addEventListener("click", function () {
+    const options = {
+        key: "{{ razorpay_key_id }}",
+        amount: "{{ razorpay_amount }}",
+        currency: "INR",
+        name: "WheelVerse",
+        description: "Order {{ order.order_id }}",
+        order_id: "{{ razorpay_order_id }}",
 
-    const buttons = document.querySelectorAll(".payment-option");
-    const panels = document.querySelectorAll(".method-panel");
-    const mainPayBtn = document.getElementById("mainPayBtn");
-    const methodNotice = document.getElementById("methodNotice");
+        handler: function (response) {
+            document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
+            document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
+            document.getElementById("razorpay_signature").value = response.razorpay_signature;
+            document.getElementById("razorpayVerifyForm").submit();
+        },
 
-    buttons.forEach(button => {
-        button.addEventListener("click", () => {
-            selectedMethod = button.dataset.method;
+        prefill: {
+            name: "{{ request.user.username }}",
+            email: "{{ request.user.email }}",
+            contact: "{% if address %}{{ address.phone }}{% endif %}"
+        },
 
-            buttons.forEach(btn => btn.classList.remove("active"));
-            button.classList.add("active");
+        theme: {
+            color: "#f2ca50"
+        },
 
-            panels.forEach(panel => panel.classList.remove("active"));
-            document.getElementById(`panel-${selectedMethod}`).classList.add("active");
-
-            if (selectedMethod === "COD") {
-                mainPayBtn.textContent = "CONFIRM COD ORDER";
-            } else if (selectedMethod === "WALLET") {
-                mainPayBtn.textContent = "PAY USING WALLET";
-            } else if (selectedMethod === "UPI") {
-                mainPayBtn.textContent = "PAY WITH UPI";
-            } else {
-                mainPayBtn.textContent = "PAY WITH RAZORPAY";
+        modal: {
+            ondismiss: function () {
+                window.location.href = "{% url 'order_failed_with_order' order.id %}";
             }
-
-            methodNotice.textContent = "Selected Method: " + selectedMethod;
-        });
-    });
-
-    mainPayBtn.addEventListener("click", function () {
-        if (selectedMethod === "COD") {
-            document.getElementById("codForm").submit();
-            return;
         }
+    };
 
-        if (selectedMethod === "WALLET") {
-            document.getElementById("walletForm").submit();
-            return;
-        }
-
-        document.getElementById("selected_method").value = selectedMethod;
-
-        const options = {
-            "key": "{{ razorpay_key_id }}",
-            "amount": "{{ razorpay_amount }}",
-            "currency": "INR",
-            "name": "WheelVerse",
-            "description": "Order {{ order.order_id }}",
-            "order_id": "{{ razorpay_order_id }}",
-
-            "handler": function (response) {
-                document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
-                document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
-                document.getElementById("razorpay_signature").value = response.razorpay_signature;
-                document.getElementById("razorpayVerifyForm").submit();
-            },
-
-            "prefill": {
-                "name": "{{ request.user.username }}",
-                "email": "{{ request.user.email }}",
-                "contact": "{% if address %}{{ address.phone }}{% endif %}"
-            },
-
-            "theme": {
-                "color": "#f2ca50"
-            },
-
-            "modal": {
-                "ondismiss": function () {
-                    window.location.href = "{% url 'order_failed_with_order' order.id %}";
-                }
-            }
-        };
-
-        const rzp = new Razorpay(options);
-        rzp.open();
-    });
+    const rzp = new Razorpay(options);
+    rzp.open();
+});
 </script>
+{% endif %}
 
 </body>
 </html>

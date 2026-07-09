@@ -1,0 +1,201 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>WheelVerse Admin - Return Detail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+
+    <style>
+        .label {
+            display: block;
+            color: #f2ca50;
+            font-size: 12px;
+            margin-bottom: 12px;
+            font-family: Orbitron, sans-serif;
+        }
+
+        .input-box {
+            width: 100%;
+            background: #1d190f;
+            border: 1px solid rgba(242, 202, 80, 0.12);
+            color: #eae1d4;
+            padding: 16px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .input-box:focus {
+            border-color: rgba(242, 202, 80, 0.7);
+            box-shadow: 0 0 18px rgba(242, 202, 80, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+{% include 'adminpanel/includes/admin_sidebar.html' %}
+{% include 'adminpanel/includes/admin_topbar.html' %}
+{% include 'adminpanel/includes/messages.html' %}
+
+<main class="min-h-screen bg-[#050505] text-[#eae1d4] pl-[300px] pt-28 pr-10 pb-12">
+
+    <div class="flex justify-between items-start mb-10">
+        <div>
+            <p class="text-[#f2ca50] font-[Orbitron] text-sm">Coupons</p>
+            <h1 class="text-xl text-[#d0c5af] mt-1">Manage your coupons and promotions</h1>
+        </div>
+
+        <a href="{% url 'add_coupon' %}"
+           class="bg-[#f2ca50] text-black px-10 py-4 font-[Orbitron] font-bold tracking-wider hover:bg-[#ffe088] transition">
+            + Add Coupon
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+
+        <div class="bg-[#151515] border border-[#f2ca50]/25 p-7 border-l-4 border-l-[#f2ca50]">
+            <p class="text-xs text-[#d0c5af] mb-3">Active Promotions</p>
+            <h2 class="text-4xl text-[#f2ca50] font-[Orbitron]">{{ active_count }}</h2>
+        </div>
+
+        <div class="bg-[#151515] border border-[#f2ca50]/25 p-7">
+            <p class="text-xs text-[#d0c5af] mb-3">Total Redeemed</p>
+            <h2 class="text-4xl text-white font-[Orbitron]">{{ total_redeemed }}</h2>
+        </div>
+
+        <form method="GET" class="bg-[#151515] border border-[#f2ca50]/25 p-6 grid grid-cols-2 gap-4">
+            <div>
+                <label class="text-[#f2ca50] text-xs">Filter Status</label>
+                <select name="status"
+                        onchange="this.form.submit()"
+                        class="w-full mt-2 bg-[#0b0b0b] border border-[#f2ca50]/30 text-[#eae1d4] px-4 py-3">
+                    <option value="all" {% if status == "all" %}selected{% endif %}>All</option>
+                    <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+                    <option value="expired" {% if status == "expired" %}selected{% endif %}>Expired</option>
+                    <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="text-[#f2ca50] text-xs">Sort By</label>
+                <select name="sort"
+                        onchange="this.form.submit()"
+                        class="w-full mt-2 bg-[#0b0b0b] border border-[#f2ca50]/30 text-[#eae1d4] px-4 py-3">
+                    <option value="newest" {% if sort == "newest" %}selected{% endif %}>Newest</option>
+                    <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>Oldest</option>
+                    <option value="expiry" {% if sort == "expiry" %}selected{% endif %}>Expiry Date</option>
+                    <option value="used" {% if sort == "used" %}selected{% endif %}>Most Used</option>
+                </select>
+            </div>
+        </form>
+
+    </div>
+
+    <div class="bg-[#151515] border border-white/10 rounded overflow-hidden">
+        <table class="w-full text-sm">
+            <thead class="bg-[#1c1b18] text-[#f2ca50] font-[Orbitron] text-xs">
+                <tr>
+                    <th class="text-left p-5">Coupon Name</th>
+                    <th class="text-left p-5">Redeem Amount</th>
+                    <th class="text-left p-5">Min Cart</th>
+                    <th class="text-left p-5">Discount</th>
+                    <th class="text-left p-5">Max Disc</th>
+                    <th class="text-left p-5">Code</th>
+                    <th class="text-left p-5">Valid Till</th>
+                    <th class="text-left p-5">Status</th>
+                    <th class="text-left p-5">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for coupon in page_obj %}
+                <tr class="border-t border-white/5 hover:bg-white/5">
+                    <td class="p-5">
+                        <p class="font-[Orbitron] uppercase text-white text-xs">{{ coupon.name }}</p>
+                        <p class="text-xs text-[#8f8776] mt-1">{{ coupon.description|default:"No description" }}</p>
+                    </td>
+
+                    <td class="p-5">₹{{ coupon.discount_value }}</td>
+                    <td class="p-5">₹{{ coupon.min_cart_amount }}</td>
+
+                    <td class="p-5">
+                        {% if coupon.discount_type == "PERCENTAGE" %}
+                            {{ coupon.discount_value }}%
+                        {% else %}
+                            ₹{{ coupon.discount_value }}
+                        {% endif %}
+                    </td>
+
+                    <td class="p-5">₹{{ coupon.max_discount_amount }}</td>
+
+                    <td class="p-5">
+                        <span class="border border-[#f2ca50]/40 text-[#f2ca50] px-4 py-2 rounded text-xs font-[Orbitron]">
+                            {{ coupon.code }}
+                        </span>
+                    </td>
+
+                    <td class="p-5">{{ coupon.valid_till|date:"d M Y" }}</td>
+
+                    <td class="p-5">
+                        {% if coupon.is_expired %}
+                            <span class="text-red-400">Expired</span>
+                        {% elif coupon.is_active %}
+                            <span class="text-green-400">Active</span>
+                        {% else %}
+                            <span class="text-gray-400">Inactive</span>
+                        {% endif %}
+                    </td>
+
+                    <td class="p-5">
+                        <a href="{% url 'edit_coupon' coupon.id %}" class="text-[#f2ca50] mr-4">Edit</a>
+                        <a href="{% url 'delete_coupon' coupon.id %}"
+                           onclick="return confirm('Delete this coupon?')"
+                           class="text-red-400">
+                            Delete
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="p-10 text-center text-[#d0c5af]">
+                        No coupons found.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <div class="flex justify-end gap-3 mt-8">
+        {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&status={{ status }}&sort={{ sort }}"
+           class="px-4 py-3 bg-[#151515] border border-white/10">
+            ‹
+        </a>
+        {% endif %}
+
+        {% for num in page_obj.paginator.page_range %}
+        <a href="?page={{ num }}&status={{ status }}&sort={{ sort }}"
+           class="px-4 py-3 border border-white/10 {% if page_obj.number == num %}bg-[#f2ca50] text-black{% else %}bg-[#151515] text-white{% endif %}">
+            {{ num }}
+        </a>
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&status={{ status }}&sort={{ sort }}"
+           class="px-4 py-3 bg-[#151515] border border-white/10">
+            ›
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</body>
+</html>
+</main>

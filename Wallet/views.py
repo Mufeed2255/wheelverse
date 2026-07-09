@@ -60,7 +60,7 @@ def wallet_view(request):
 
     pending_refund = transactions.filter(
         transaction_type="CREDIT",
-        purpose="RETURN_REFUND",
+        purpose__in=["RETURN_REFUND", "CANCEL_REFUND"],
         status="PENDING"
     ).aggregate(total=Sum("amount"))["total"] or 0
 
@@ -208,27 +208,33 @@ def verify_wallet_payment(request):
 @login_required
 def wallet_payment_success(request, txn_id):
     txn = get_object_or_404(
-        WalletTransaction,
+        WalletTransaction.objects.select_related("wallet"),
         id=txn_id,
         wallet__user=request.user,
         purpose="ADD_MONEY",
     )
 
+    txn.wallet.refresh_from_db()
+
     return render(request, "wallet_payment_success.html", {
         "txn": txn,
         "amount": txn.amount,
         "wallet": txn.wallet,
+        "new_balance": txn.wallet.balance,
     })
 
 
 @login_required
 def wallet_payment_failed(request, txn_id):
     txn = get_object_or_404(
-        WalletTransaction,
+        WalletTransaction.objects.select_related("wallet"),
         id=txn_id,
         wallet__user=request.user,
         purpose="ADD_MONEY",
     )
+
+    if txn.status == "COMPLETED":
+        return redirect("wallet_payment_success", txn_id=txn.id)
 
     if txn.status == "PENDING":
         txn.status = "FAILED"
@@ -238,4 +244,5 @@ def wallet_payment_failed(request, txn_id):
     return render(request, "wallet_payment_failed.html", {
         "txn": txn,
         "amount": txn.amount,
+        "payment_method": txn.get_payment_method_display() or "Razorpay",
     })

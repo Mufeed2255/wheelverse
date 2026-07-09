@@ -14,6 +14,9 @@ from Products.models import Cart, ProductVariant
 from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnRequestImage ,ProductReview, ProductReviewImage
 from django.db.models import Sum
 from adminpanel.models import Product as AdminProduct
+from django.utils import timezone
+from adminpanel.models import Coupon
+from .models import CouponUsage
 
 from django.db import models
 from django.core.paginator import Paginator
@@ -37,6 +40,8 @@ import razorpay
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from Wallet.models import Wallet, WalletTransaction
+
+
 
 
 def validate_checkout_address(data):
@@ -127,7 +132,6 @@ def checkout_add_address(request):
     })
 
 
-
 @login_required
 def checkout(request):
     cart_items = Cart.objects.filter(
@@ -146,16 +150,42 @@ def checkout(request):
         return redirect("cart")
 
     subtotal = sum(item.subtotal() for item in cart_items)
-    discount = Decimal("0.00")
     shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
+
+    discount = Decimal("0.00")
+    applied_coupon = None
+    coupon_code = request.session.get("applied_coupon_code")
+
+    if coupon_code:
+        today = timezone.now().date()
+        applied_coupon = Coupon.objects.filter(
+            code=coupon_code,
+            is_active=True,
+            is_deleted=False,
+            valid_from__lte=today,
+            valid_till__gte=today
+        ).first()
+
+        if applied_coupon:
+            if applied_coupon.usage_limit == 0 or applied_coupon.used_count < applied_coupon.usage_limit:
+                discount = calculate_coupon_discount(applied_coupon, subtotal)
+            else:
+                request.session.pop("applied_coupon_code", None)
+                applied_coupon = None
+        else:
+            request.session.pop("applied_coupon_code", None)
+
     grand_total = subtotal - discount + shipping
 
-    addresses = Address.objects.filter(
-        user=request.user
-    ).order_by(
-        "-is_default",
-        "-created_at"
-    )
+    addresses = Address.objects.filter(user=request.user).order_by("-is_default", "-created_at")
+
+    today = timezone.now().date()
+    available_coupons = Coupon.objects.filter(
+        is_active=True,
+        is_deleted=False,
+        valid_from__lte=today,
+        valid_till__gte=today
+    ).order_by("-created_at")
 
     context = {
         "cart_items": cart_items,
@@ -165,10 +195,76 @@ def checkout(request):
         "shipping": shipping,
         "grand_total": grand_total,
         "cart_count": cart_items.count(),
+        "available_coupons": available_coupons,
+        "applied_coupon": applied_coupon,
     }
 
     return render(request, "orders/checkout.html", context)
 
+@login_required
+@require_POST
+def apply_coupon(request):
+    code = request.POST.get("coupon_code", "").strip().upper()
+
+    if not code:
+        messages.error(request, "Please enter a coupon code.")
+        return redirect("checkout")
+
+    cart_items = Cart.objects.filter(
+        user=request.user,
+        variant__is_active=True,
+        variant__is_deleted=False
+    ).select_related("variant", "variant__product")
+
+    if not cart_items.exists():
+        messages.error(request, "Your cart is empty.")
+        return redirect("cart")
+
+    subtotal = sum(item.subtotal() for item in cart_items)
+    today = timezone.now().date()
+
+    coupon = Coupon.objects.filter(
+        code=code,
+        is_active=True,
+        is_deleted=False,
+        valid_from__lte=today,
+        valid_till__gte=today
+    ).first()
+
+    if not coupon:
+        messages.error(request, "Invalid or expired coupon.")
+        return redirect("checkout")
+
+    if coupon.usage_limit > 0 and coupon.used_count >= coupon.usage_limit:
+        messages.error(request, "Coupon usage limit reached.")
+        return redirect("checkout")
+
+    if subtotal < coupon.min_cart_amount:
+        messages.error(request, f"Minimum cart amount ₹{coupon.min_cart_amount} required.")
+        return redirect("checkout")
+
+    request.session["applied_coupon_code"] = coupon.code
+    messages.success(request, f"Coupon {coupon.code} applied successfully.")
+    return redirect("checkout")
+
+
+def calculate_coupon_discount(coupon, subtotal):
+    if subtotal < coupon.min_cart_amount:
+        return Decimal("0.00")
+
+    if coupon.discount_type == "PERCENTAGE":
+        discount = (subtotal * coupon.discount_value) / Decimal("100")
+        if coupon.max_discount_amount > 0:
+            discount = min(discount, coupon.max_discount_amount)
+        return discount.quantize(Decimal("0.01"))
+
+    return min(coupon.discount_value, subtotal).quantize(Decimal("0.01"))
+
+@login_required
+def remove_coupon(request):
+    request.session.pop("applied_coupon_code", None)
+    messages.success(request, "Coupon removed successfully.")
+    return redirect("checkout")
 
 @login_required
 @transaction.atomic
@@ -193,49 +289,101 @@ def place_order(request):
         messages.error(request, "Please select a delivery address.")
         return redirect("checkout")
 
-    selected_address = get_object_or_404(Address, id=selected_address_id, user=request.user)
+    selected_address = get_object_or_404(
+        Address,
+        id=selected_address_id,
+        user=request.user
+    )
 
     phone = selected_address.phone_number
     postal_code = selected_address.pincode
 
-    if not phone.isdigit() or len(phone) != 10:
+    if not phone or not phone.isdigit() or len(phone) != 10:
         messages.error(request, "Selected address has an invalid phone number.")
         return redirect("checkout")
 
-    if not postal_code.isdigit() or len(postal_code) != 6:
+    if not postal_code or not postal_code.isdigit() or len(postal_code) != 6:
         messages.error(request, "Selected address has an invalid pincode.")
         return redirect("checkout")
 
     subtotal = Decimal("0.00")
+    updated_cart_items = []
 
-    # Validate stock only — DO NOT deduct here
     for item in cart_items:
         variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+
         if item.quantity > variant.stock:
             messages.error(
                 request,
                 f"Only {variant.stock} unit(s) available for {variant.product.name}."
             )
             return redirect("cart")
-        subtotal += variant.price * item.quantity
+
+        item_price = variant.price
+        item_total = item_price * item.quantity
+        subtotal += item_total
+
+        updated_cart_items.append({
+            "cart_item": item,
+            "variant": variant,
+            "item_price": item_price,
+            "item_total": item_total,
+        })
 
     discount = Decimal("0.00")
+    applied_coupon = None
+    coupon_code = request.session.get("applied_coupon_code")
+
+    if coupon_code:
+        today = timezone.now().date()
+
+        applied_coupon = Coupon.objects.select_for_update().filter(
+            code=coupon_code,
+            is_active=True,
+            is_deleted=False,
+            valid_from__lte=today,
+            valid_till__gte=today
+        ).first()
+
+        if not applied_coupon:
+            request.session.pop("applied_coupon_code", None)
+            messages.error(request, "Applied coupon is invalid or expired.")
+            return redirect("checkout")
+
+        if applied_coupon.usage_limit > 0 and applied_coupon.used_count >= applied_coupon.usage_limit:
+            request.session.pop("applied_coupon_code", None)
+            messages.error(request, "Coupon usage limit reached.")
+            return redirect("checkout")
+
+        if subtotal < applied_coupon.min_cart_amount:
+            messages.error(
+                request,
+                f"Minimum cart amount ₹{applied_coupon.min_cart_amount} required for this coupon."
+            )
+            return redirect("checkout")
+
+        discount = calculate_coupon_discount(applied_coupon, subtotal)
+
     shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
     grand_total = subtotal - discount + shipping
+
+    if grand_total < 0:
+        grand_total = Decimal("0.00")
 
     address_str = selected_address.address_line_1
     if selected_address.address_line_2:
         address_str += f", {selected_address.address_line_2}"
 
-    # Order created as PENDING — not confirmed, stock untouched
     order = Order.objects.create(
         user=request.user,
         subtotal=subtotal,
         discount=discount,
+        coupon_discount=discount,
         shipping_charge=shipping,
         total_amount=grand_total,
         payment_method=payment_method,
         status="PENDING",
+        coupon_code=applied_coupon.code if applied_coupon else None,
     )
 
     OrderAddress.objects.create(
@@ -249,22 +397,33 @@ def place_order(request):
         postal_code=postal_code,
     )
 
-    # Snapshot items, but stock is NOT reduced yet
-    for item in cart_items:
-        variant = item.variant
-        item_total = variant.price * item.quantity
+    for data in updated_cart_items:
+        variant = data["variant"]
+        cart_item = data["cart_item"]
+
         OrderItem.objects.create(
             order=order,
             variant=variant,
             product_name=variant.product.name,
             variant_color=variant.color,
             variant_size=variant.size,
-            price=variant.price,
-            quantity=item.quantity,
-            item_total=item_total,
+            price=data["item_price"],
+            quantity=cart_item.quantity,
+            item_total=data["item_total"],
         )
 
-    # Cart is intentionally NOT cleared here — only on confirmed payment
+    if applied_coupon:
+        applied_coupon.used_count += 1
+        applied_coupon.save(update_fields=["used_count"])
+
+        CouponUsage.objects.create(
+            user=request.user,
+            coupon=applied_coupon,
+            order=order
+        )
+
+        request.session.pop("applied_coupon_code", None)
+
     return redirect("payment", order_id=order.id)
 
 @login_required
@@ -273,21 +432,25 @@ def payment_view(request, order_id):
     address = OrderAddress.objects.filter(order=order).first()
     wallet, created = Wallet.objects.get_or_create(user=request.user)
 
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
-
     razorpay_amount = int(order.total_amount * 100)
+    razorpay_order_id = None
 
-    if not order.razorpay_order_id:
-        razorpay_order = client.order.create({
-            "amount": razorpay_amount,
-            "currency": "INR",
-            "payment_capture": 1,
-        })
+    if order.payment_method in ["RAZORPAY", "UPI"]:
+        client = razorpay.Client(
+            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+        )
 
-        order.razorpay_order_id = razorpay_order["id"]
-        order.save(update_fields=["razorpay_order_id"])
+        if not order.razorpay_order_id:
+            razorpay_order = client.order.create({
+                "amount": razorpay_amount,
+                "currency": "INR",
+                "payment_capture": 1,
+            })
+
+            order.razorpay_order_id = razorpay_order["id"]
+            order.save(update_fields=["razorpay_order_id"])
+
+        razorpay_order_id = order.razorpay_order_id
 
     return render(request, "orders/payment.html", {
         "order": order,
@@ -299,7 +462,7 @@ def payment_view(request, order_id):
         "wallet": wallet,
         "razorpay_key_id": settings.RAZORPAY_KEY_ID,
         "razorpay_amount": razorpay_amount,
-        "razorpay_order_id": order.razorpay_order_id,
+        "razorpay_order_id": razorpay_order_id,
     })
 
 
@@ -388,6 +551,7 @@ def confirm_payment(request, order_id):
             order=order,
             transaction_type="DEBIT",
             purpose="WALLET_PAYMENT",
+            payment_method="WALLET",
             amount=order.total_amount,
             status="COMPLETED",
             description=f"Wallet payment for order {order.order_id}",
@@ -417,10 +581,6 @@ def verify_razorpay_payment(request, order_id):
     razorpay_payment_id = request.POST.get("razorpay_payment_id")
     razorpay_order_id = request.POST.get("razorpay_order_id")
     razorpay_signature = request.POST.get("razorpay_signature")
-    selected_method = request.POST.get("selected_method", "RAZORPAY")
-
-    if selected_method not in ["RAZORPAY", "UPI"]:
-        selected_method = "RAZORPAY"
 
     client = razorpay.Client(
         auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
@@ -442,12 +602,10 @@ def verify_razorpay_payment(request, order_id):
         messages.error(request, msg)
         return redirect("order_failed_with_order", order_id=order.id)
 
-    order.payment_method = selected_method
     order.razorpay_payment_id = razorpay_payment_id
     order.razorpay_order_id = razorpay_order_id
     order.razorpay_signature = razorpay_signature
     order.save(update_fields=[
-        "payment_method",
         "razorpay_payment_id",
         "razorpay_order_id",
         "razorpay_signature",
@@ -579,13 +737,46 @@ def order_detail(request, order_id):
         "progress_percent": progress_percent,
     })
 
+def refund_to_wallet_for_cancel(order, amount, reference_suffix):
+    if amount <= 0:
+        return False
+
+    # COD no refund because user did not pay yet
+    if order.payment_method == "COD":
+        return False
+
+    reference = f"CANCEL_REFUND_{reference_suffix}"
+
+    if WalletTransaction.objects.filter(reference=reference).exists():
+        return False
+
+    wallet, created = Wallet.objects.select_for_update().get_or_create(
+        user=order.user
+    )
+
+    wallet.balance += amount
+    wallet.save(update_fields=["balance", "updated_at"])
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        order=order,
+        transaction_type="CREDIT",
+        purpose="CANCEL_REFUND",
+        payment_method=order.payment_method,
+        amount=amount,
+        status="COMPLETED",
+        description=f"Cancel refund for order {order.order_id}",
+        reference=reference,
+    )
+
+    return True
 
 
 @login_required
 @transaction.atomic
 def cancel_order(request, order_id):
     order = get_object_or_404(
-        Order.objects.select_related("user").prefetch_related(
+        Order.objects.select_for_update().select_related("user").prefetch_related(
             "items",
             "items__variant",
             "items__variant__product"
@@ -610,8 +801,14 @@ def cancel_order(request, order_id):
 
         product_ids_to_sync = set()
 
+        stock_should_restore = order.status in [
+            "CONFIRMED",
+            "SHIPPED",
+            "OUT_FOR_DELIVERY",
+        ]
+
         for item in order.items.filter(is_cancelled=False):
-            if item.variant:
+            if stock_should_restore and item.variant:
                 item.variant.stock += item.quantity
                 item.variant.save(update_fields=["stock"])
                 product_ids_to_sync.add(item.variant.product.id)
@@ -620,25 +817,40 @@ def cancel_order(request, order_id):
             item.cancel_reason = final_reason
             item.save(update_fields=["is_cancelled", "cancel_reason"])
 
+        refund_done = False
+
+        if order.payment_method != "COD" and order.status in [
+            "CONFIRMED",
+            "SHIPPED",
+            "OUT_FOR_DELIVERY",
+        ]:
+            refund_done = refund_to_wallet_for_cancel(
+                order=order,
+                amount=order.total_amount,
+                reference_suffix=f"ORDER_{order.id}"
+            )
         order.status = "CANCELLED"
         order.cancel_reason = final_reason
         order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
         def sync_stock(pids=product_ids_to_sync):
-            from django.db.models import Sum
-            from adminpanel.models import Product as AdminProduct
             for pid in pids:
-                p = AdminProduct.objects.get(id=pid)
-                total = p.variants.filter(
+                product = AdminProduct.objects.get(id=pid)
+                total = product.variants.filter(
                     is_deleted=False,
                     is_active=True
-                ).aggregate(total=Sum('stock'))['total'] or 0
-                p.total_stock = total
-                p.save(update_fields=['total_stock'])
+                ).aggregate(total=Sum("stock"))["total"] or 0
+
+                product.total_stock = total
+                product.save(update_fields=["total_stock"])
 
         transaction.on_commit(sync_stock)
 
-        messages.success(request, "Order cancelled successfully.")
+        if refund_done:
+            messages.success(request, "Item cancelled and amount refunded to wallet.")
+        else:
+            messages.success(request, "Item cancelled successfully.")
+
         return redirect("order_detail", order_id=order.id)
 
     return render(request, "orders/cancel_order.html", {
@@ -703,6 +915,20 @@ def cancel_order_item(request, item_id):
             order.status = "CANCELLED"
             order.cancel_reason = final_reason
             order.save(update_fields=["status", "cancel_reason", "updated_at"])
+            
+        refund_done = False
+
+        if order.payment_method != "COD" and order.status in [
+            "CONFIRMED",
+            "SHIPPED",
+            "OUT_FOR_DELIVERY",
+            "CANCELLED",
+        ]:
+            refund_done = refund_to_wallet_for_cancel(
+                order=order,
+                amount=order_item.item_total,
+                reference_suffix=f"ITEM_{order_item.id}"
+            )
 
         if product_id_to_sync:
             def sync_stock(pid=product_id_to_sync):
@@ -737,6 +963,38 @@ VALID_RETURN_REASONS = [
     "Other",
 ]
 
+def refund_cancelled_order_to_wallet(order, amount):
+    if amount <= 0:
+        return False
+
+    if order.payment_method == "COD":
+        return False
+
+    reference = f"CANCEL_REFUND_ORDER_{order.id}"
+
+    if WalletTransaction.objects.filter(reference=reference).exists():
+        return False
+
+    wallet, created = Wallet.objects.select_for_update().get_or_create(
+        user=order.user
+    )
+
+    wallet.balance += amount
+    wallet.save(update_fields=["balance", "updated_at"])
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        order=order,
+        transaction_type="CREDIT",
+        purpose="CANCEL_REFUND",
+        payment_method=order.payment_method,
+        amount=amount,
+        status="COMPLETED",
+        description=f"Refund for cancelled order {order.order_id}",
+        reference=reference,
+    )
+
+    return True
 
 def get_item_returned_qty(order_item):
     if hasattr(order_item, "return_request"):

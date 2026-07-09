@@ -56,6 +56,44 @@
             color: #120f08;
         }
     </style>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0c0a06",
+                        "on-background": "#eae1d4",
+                        "surface": "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-low": "#1f1b13",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline": "#99907c",
+                        "outline-variant": "#4d4635",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "on-primary": "#3c2f00",
+                        "on-primary-fixed": "#241a00",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a"
+                        
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
 <body>
@@ -164,19 +202,6 @@
     <input type="hidden" name="razorpay_signature" id="razorpay_signature">
 </form>
 
-<script>
-    const amountInput = document.getElementById("amountInput");
-    const amountButtons = document.querySelectorAll(".amount-btn");
-
-    amountButtons.forEach(button => {
-        button.addEventListener("click", function () {
-            amountInput.value = this.dataset.amount;
-            amountButtons.forEach(btn => btn.classList.remove("active"));
-            this.classList.add("active");
-        });
-    });
-</script>
-
 {% if open_razorpay %}
 <script>
     const options = {
@@ -191,6 +216,7 @@
             document.getElementById("razorpay_payment_id").value = response.razorpay_payment_id;
             document.getElementById("razorpay_order_id").value = response.razorpay_order_id;
             document.getElementById("razorpay_signature").value = response.razorpay_signature;
+
             document.getElementById("razorpayVerifyForm").submit();
         },
 
@@ -201,16 +227,15 @@
 
         theme: {
             color: "#f2ca50"
-        },
-
-        modal: {
-            ondismiss: function () {
-                window.location.href = "{% url 'wallet_payment_failed' wallet_txn.id %}";
-            }
         }
     };
 
     const rzp = new Razorpay(options);
+
+    rzp.on("payment.failed", function () {
+        window.location.href = "{% url 'wallet_payment_failed' wallet_txn.id %}";
+    });
+
     rzp.open();
 </script>
 {% endif %}

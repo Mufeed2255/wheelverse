@@ -1,45 +1,222 @@
+
+</head>
+{% load static %}
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Wallet Payment Failed</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
+    <title>WheelVerse | Payment Failed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<body class="bg-[#080705] text-[#eae1d4] min-h-screen">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            background: #080705;
+            color: #eae1d4;
+            font-family: Poppins, sans-serif;
+        }
+
+        .orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .page-content {
+            margin-left: 360px;
+            padding-top: 120px;
+            min-height: 100vh;
+            background:
+                radial-gradient(circle at center, rgba(255,180,171,.08), transparent 32%),
+                #080705;
+        }
+
+        @media(max-width:900px) {
+            .page-content {
+                margin-left: 0;
+                padding-top: 100px;
+            }
+        }
+
+        .failed-card {
+            background: rgba(22, 19, 11, .92);
+            border: 1px solid rgba(255, 180, 171, .30);
+            box-shadow: 0 0 55px rgba(0,0,0,.75);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .failed-card::before,
+        .failed-card::after {
+            content: "";
+            position: absolute;
+            width: 34px;
+            height: 34px;
+            border-color: #ffb4ab;
+        }
+
+        .failed-card::before {
+            left: 0;
+            top: 0;
+            border-left: 4px solid;
+            border-top: 4px solid;
+        }
+
+        .failed-card::after {
+            right: 0;
+            top: 0;
+            border-right: 4px solid;
+            border-top: 4px solid;
+        }
+
+        .gold {
+            color: #f2ca50;
+        }
+
+        .danger {
+            color: #ffb4ab;
+        }
+
+        .info-grid {
+            background: rgba(45, 40, 27, .82);
+            border: 1px solid rgba(242, 202, 80, .22);
+        }
+
+        .alert-box {
+            background: rgba(255, 180, 171, .08);
+            border-left: 4px solid #ffb4ab;
+        }
+    </style>
+    
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "background": "#0c0a06",
+                        "on-background": "#eae1d4",
+                        "surface": "#16130b",
+                        "surface-container": "#231f17",
+                        "surface-container-low": "#1f1b13",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline": "#99907c",
+                        "outline-variant": "#4d4635",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "on-primary": "#3c2f00",
+                        "on-primary-fixed": "#241a00",
+                        "error": "#ffb4ab",
+                        "error-container": "#93000a"
+                        
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron"],
+                        poppins: ["Poppins"],
+                        "headline-md": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "display-lg": ["Orbitron"],
+                        "body-md": ["Poppins"]
+                    }
+                }
+            }
+        }
+    </script>
+
+
+<body>
 
 {% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="min-h-screen flex items-center justify-center px-6" style="margin-left:360px;padding-top:120px;">
-    <div class="bg-[#16130b] border border-red-400/30 max-w-xl w-full p-10 text-center rounded-xl">
-        <div class="text-red-300 text-7xl mb-5">×</div>
+<main class="page-content flex items-center justify-center px-6 py-10">
 
-        <h1 class="text-4xl text-red-300 font-bold uppercase">
-            Payment Failed
+    <section class="failed-card max-w-4xl w-full rounded-xl p-10 md:p-14 text-center">
+
+        <div class="mx-auto w-20 h-20 rounded-xl bg-[#ffb4ab]/10 border border-[#ffb4ab]/40 flex items-center justify-center mb-8">
+            <span class="material-symbols-outlined danger text-5xl">
+                error
+            </span>
+        </div>
+
+        <h1 class="orbitron text-4xl md:text-5xl danger font-bold tracking-widest">
+            PAYMENT FAILED
         </h1>
 
-        <p class="text-[#d0c5af] mt-4">
-            Your wallet top-up was cancelled or failed.
+        <p class="text-[#d0c5af] mt-5 text-lg">
+            We couldn’t complete your wallet top-up.
         </p>
 
-        <p class="text-[#d0c5af] mt-2 text-sm">
-            Amount: ₹{{ amount }}
-        </p>
+        <div class="grid grid-cols-1 md:grid-cols-2 mt-12 text-left info-grid rounded overflow-hidden">
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
+            <div class="p-6 border-b md:border-r border-[#f2ca50]/10">
+                <p class="orbitron text-xs text-[#d0c5af] tracking-widest">
+                    ATTEMPTED AMOUNT
+                </p>
+                <p class="orbitron text-3xl gold mt-2">
+                    ₹{{ amount }}
+                </p>
+            </div>
+
+            <div class="p-6 border-b border-[#f2ca50]/10">
+                <p class="orbitron text-xs text-[#d0c5af] tracking-widest">
+                    PAYMENT METHOD
+                </p>
+                <p class="orbitron text-3xl gold mt-2">
+                    {{ payment_method }}
+                </p>
+            </div>
+
+            <div class="p-6 md:border-r border-[#f2ca50]/10">
+                <p class="orbitron text-xs text-[#d0c5af] tracking-widest">
+                    DATE & TIME
+                </p>
+                <p class="text-white mt-2">
+                    {{ txn.created_at|date:"M d, Y | h:i A" }}
+                </p>
+            </div>
+
+            <div class="p-6">
+                <p class="orbitron text-xs text-[#d0c5af] tracking-widest">
+                    STATUS
+                </p>
+                <p class="orbitron danger mt-2">
+                    FAILED
+                </p>
+            </div>
+
+        </div>
+
+        <div class="alert-box text-left mt-10 p-6 flex gap-4">
+            <span class="material-symbols-outlined danger">
+                report
+            </span>
+            <p class="text-[#eae1d4]">
+                Check your payment details or try again after some time. Alternatively, use a different payment method.
+            </p>
+        </div>
+
+        <div class="flex flex-col md:flex-row justify-center gap-5 mt-12">
             <a href="{% url 'add_money' %}"
-               class="bg-[#f2ca50] text-black py-4 rounded font-bold">
-                RETRY
+               class="bg-[#f2ca50] text-black px-14 py-4 rounded orbitron text-sm font-bold tracking-widest hover:brightness-110 transition shadow-[0_0_25px_rgba(242,202,80,.25)]">
+                TRY AGAIN
             </a>
 
             <a href="{% url 'wallet' %}"
-               class="border border-[#f2ca50]/30 text-[#f2ca50] py-4 rounded font-bold">
-                BACK TO WALLET
+               class="text-[#d0c5af] px-14 py-4 rounded orbitron text-sm font-bold tracking-widest hover:text-[#f2ca50] transition">
+                CANCEL
             </a>
         </div>
-    </div>
+
+    </section>
+
 </main>
 
 </body>

@@ -82,6 +82,9 @@ class Order(models.Model):
     razorpay_order_id = models.CharField(max_length=120, blank=True, null=True)
     razorpay_payment_id = models.CharField(max_length=120, blank=True, null=True)
     razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
+    
+    coupon_code = models.CharField(max_length=30, blank=True, null=True)
+    coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
 
     def save(self, *args, **kwargs):
         if not self.order_id:
@@ -90,6 +93,18 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_id
+
+class CouponUsage(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    coupon = models.ForeignKey("adminpanel.Coupon", on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="coupon_usages")
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ("user", "coupon", "order")
+
+    def __str__(self):
+        return f"{self.user} - {self.coupon.code}"
 
 
 class OrderAddress(models.Model):
