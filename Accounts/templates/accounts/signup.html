@@ -333,7 +333,8 @@
                 name="referral_code"
                 id="referral_code"
                 placeholder="Enter referral code"
-                class="w-full bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/30 py-3.5 pl-12 pr-4 focus:ring-0 rounded-lg"
+                value="{{ referral_code|default:'' }}"
+                class="w-full bg-transparent border-none text-on-surface placeholder:text-on-surface-variant/30 py-3.5 pl-12 pr-4 focus:ring-0 rounded-lg uppercase"
             >
         </div>
 

@@ -13,15 +13,11 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
 from django.shortcuts import render, get_object_or_404
-from django.db.models import Count, Q, Min, Sum
-from adminpanel.models import Product, Category, ProductVariant
-from Products.models import Cart, Wishlist 
-from django.shortcuts import render
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from decimal import Decimal
-from adminpanel.models import ProductVariant
 from django.template.loader import render_to_string
 from django.core.mail import EmailMultiAlternatives
+from decimal import Decimal
+from django.db import transaction
+from Wallet.models import Wallet, WalletTransaction
 
 
 def send_wheelverse_otp_email(to_email, username, otp, purpose, expiry=5):
@@ -75,159 +71,210 @@ Enter the Universe of Wheels
 def landing_page(request):
     return render(request, 'accounts/landing_page.html')
 
+def credit_referral_reward(new_user):
+    if not new_user.referred_by:
+        return False
 
+    referrer = new_user.referred_by
+    reward_amount = Decimal("50.00")
+    reference = f"REFERRAL_REWARD_{new_user.id}"
+
+    if WalletTransaction.objects.filter(reference=reference).exists():
+        return False
+
+    wallet, created = Wallet.objects.select_for_update().get_or_create(
+        user=referrer
+    )
+
+    wallet.balance += reward_amount
+    wallet.save(update_fields=["balance", "updated_at"])
+
+    WalletTransaction.objects.create(
+        wallet=wallet,
+        transaction_type="CREDIT",
+        purpose="REFERRAL_REWARD",
+        payment_method="WALLET",
+        amount=reward_amount,
+        status="COMPLETED",
+        description=f"Referral reward for inviting {new_user.username}",
+        reference=reference,
+    )
+
+    return True
 
 def signup_view(request):
     if request.user.is_authenticated:
-        return redirect('landing_page')
+        return redirect("landing_page")
 
-    if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
-        email = request.POST.get('email', '').strip().lower()
-        phone = request.POST.get('phone', '').strip()
-        password = request.POST.get('password', '')
-        confirm_password = request.POST.get('confirm_password', '')
+    referral_from_url = request.GET.get("ref", "").strip().upper()
 
-      
-        ''' username validation'''
+    if request.method == "POST":
+        username = request.POST.get("username", "").strip()
+        email = request.POST.get("email", "").strip().lower()
+        phone = request.POST.get("phone", "").strip()
+        password = request.POST.get("password", "")
+        confirm_password = request.POST.get("confirm_password", "")
+        referral_code = request.POST.get("referral_code", "").strip().upper()
+
         if not username:
             messages.error(request, "Username cannot be empty.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if len(username) < 5 or len(username) > 20:
             messages.error(request, "Username must be between 5 and 20 characters.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if not username.isalnum():
             messages.error(request, "Username must contain only letters and numbers.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
-
-        ''' user emil validation'''
         if not email:
             messages.error(request, "Email cannot be empty.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         email_pattern = r"^[\w\.-]+@[\w\.-]+\.\w+$"
         if not re.match(email_pattern, email):
             messages.error(request, "Enter a valid email address.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Email already exists.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
-        ''' usr passwrd validation'''
         if len(password) < 8:
             messages.error(request, "Password must be at least 8 characters.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if not re.search(r"[A-Z]", password):
             messages.error(request, "Password must contain one uppercase letter.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if not re.search(r"[a-z]", password):
             messages.error(request, "Password must contain one lowercase letter.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if not re.search(r"[0-9]", password):
             messages.error(request, "Password must contain one number.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
             messages.error(request, "Password must contain one special character.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
         if password != confirm_password:
             messages.error(request, "Passwords do not match.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
+
+        referrer_id = None
+
+        if referral_code:
+            referrer = User.objects.filter(referral_code__iexact=referral_code).first()
+
+            if not referrer:
+                messages.error(request, "Invalid referral code.")
+                return render(request, "accounts/signup.html", {"referral_code": referral_code})
+
+            if referrer.username == username:
+                messages.error(request, "You cannot use your own referral code.")
+                return render(request, "accounts/signup.html", {"referral_code": referral_code})
+
+            referrer_id = referrer.id
 
         otp = str(random.randint(100000, 999999))
 
-        request.session['signup_data'] = {
-            'username': username,
-            'email': email,
-            'phone': phone,
-            'password': password,
-            'otp': otp,
-            'issued_at': time.time() 
+        request.session["signup_data"] = {
+            "username": username,
+            "email": email,
+            "phone": phone,
+            "password": password,
+            "referrer_id": referrer_id,
+            "referral_code": referral_code,
+            "otp": otp,
+            "issued_at": time.time(),
         }
 
         try:
-            subject = "WheelVerse Account Verification OTP"
-            message = f"Your WheelVerse signup OTP is: {otp}"
-            
             send_wheelverse_otp_email(
                 to_email=email,
                 username=username,
                 otp=otp,
                 purpose="Account Verification",
-                expiry=5
+                expiry=5,
             )
 
             messages.success(request, "OTP sent to your email.")
-            return redirect('signup_verify')
+            return redirect("signup_verify")
 
         except Exception as e:
             print("EMAIL ERROR:", e)
-            
-            if 'signup_data' in request.session:
-                del request.session['signup_data']
+            request.session.pop("signup_data", None)
             messages.error(request, "OTP email failed. Check Gmail app password/settings.")
-            return render(request, 'accounts/signup.html')
+            return render(request, "accounts/signup.html", {"referral_code": referral_code})
 
-    return render(request, 'accounts/signup.html')
+    return render(request, "accounts/signup.html", {
+        "referral_code": referral_from_url,
+    })
 
 def signup_verify_view(request):
     import time
-    if request.method == 'POST':
-        user_otp = request.POST.get('otp', '').strip()
-        session_data = request.session.get('signup_data')
+
+    if request.method == "POST":
+        user_otp = request.POST.get("otp", "").strip()
+        session_data = request.session.get("signup_data")
 
         if not session_data:
             messages.error(request, "Verification session timed out. Restart registration.")
-            return redirect('signup')
+            return redirect("signup")
 
-        issued_at = session_data.get('issued_at', 0)
-        if time.time() - issued_at > 60:
-            
-            session_data['otp'] = None 
+        issued_at = session_data.get("issued_at", 0)
+
+        if time.time() - issued_at > 120:
+            session_data["otp"] = None
             request.session.modified = True
             messages.error(request, "Your OTP has expired. Please click Resend OTP.")
-            return render(request, 'accounts/signup_verify.html')
+            return render(request, "accounts/signup_verify.html")
 
-        if user_otp == session_data['otp']:
-            try:
-                user = User(
-                    username=session_data['username'],
-                    email=session_data['email']
-                )
-                user.set_password(session_data['password'])
-                user.phone = session_data['phone']
-                
-                user.save()
-                
-
-                del request.session['signup_data']
-                user.backend = 'django.contrib.auth.backends.ModelBackend' 
-                login(request, user)
-                messages.success(request, "Collector engine unlocked! Welcome to WheelVerse.")
-                return redirect('landing_page')
-                
-            except Exception as e:
-                print("DEBUG ERROR:", e)
-                messages.error(request, "Database error: " + str(e))
-                return redirect('signup')
-            
-        else:
+        if user_otp != session_data["otp"]:
             messages.error(request, "Invalid security code. Re-verify values.")
-            return render(request, 'accounts/signup_verify.html')
+            return render(request, "accounts/signup_verify.html")
 
-    return render(request, 'accounts/signup_verify.html')
+        try:
+            with transaction.atomic():
+                referrer = None
+
+                referrer_id = session_data.get("referrer_id")
+                if referrer_id:
+                    referrer = User.objects.select_for_update().filter(id=referrer_id).first()
+
+                user = User(
+                    username=session_data["username"],
+                    email=session_data["email"],
+                    phone=session_data["phone"],
+                    referred_by=referrer,
+                )
+                user.set_password(session_data["password"])
+                user.save()
+
+                credit_referral_reward(user)
+
+            request.session.pop("signup_data", None)
+
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(request, user)
+
+            messages.success(request, "Collector engine unlocked! Welcome to WheelVerse.")
+            return redirect("landing_page")
+
+        except Exception as e:
+            print("DEBUG ERROR:", e)
+            messages.error(request, "Database error: " + str(e))
+            return redirect("signup")
+
+    return render(request, "accounts/signup_verify.html")
 
 
 def resend_signup_otp_view(request):
@@ -643,7 +690,16 @@ def resend_email_change_otp_view(request):
 # user Profile
 @login_required
 def profile_view(request):
-    return render(request, 'accounts/profile_view.html')
+    referral_link = request.build_absolute_uri(
+        f"/signup/?ref={request.user.referral_code}"
+    )
+
+    referral_count = request.user.referrals.count()
+
+    return render(request, "accounts/profile_view.html", {
+        "referral_link": referral_link,
+        "referral_count": referral_count,
+    })
 
 
 

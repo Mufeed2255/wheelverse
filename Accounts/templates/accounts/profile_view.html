@@ -199,25 +199,88 @@
 
             <!-- CENTERED RE-SIZED SQUARE REFERRAL BOX -->
             <div class="mt-12 flex justify-center w-full">
-                <div class="w-full max-w-[420px] aspect-square bg-surface-container-highest/30 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center text-center glass-panel shadow-[0_0_30px_rgba(242,202,80,0.05)]">
-                    <div class="mb-6 bg-primary/5 p-4 rounded-full border border-primary/10">
+                <div class="w-full max-w-[520px] bg-surface-container-highest/30 border border-primary/20 rounded-xl p-8 flex flex-col items-center justify-center text-center glass-panel shadow-[0_0_30px_rgba(242,202,80,0.05)]">
+                    
+                    <div class="mb-6 bg-primary/5 p-4 rounded-xl border border-primary/10">
                         <span class="material-symbols-outlined text-4xl text-primary">diversity_3</span>
                     </div>
-                    <p class="text-xs text-on-surface-variant font-label-caps tracking-widest opacity-80">YOUR PERSONAL REFERRAL CODE</p>
-                    <p class="text-2xl font-display-lg font-bold text-primary mt-3 tracking-widest border-b border-dashed border-primary/30 pb-2 px-4">
-                        WHEEL-92X-REFR
+
+                    <p class="text-xs text-on-surface-variant font-label-caps tracking-widest opacity-80">
+                        YOUR PERSONAL REFERRAL CODE
                     </p>
-                    <p class="text-[11px] text-on-surface-variant font-body-md mt-4 max-w-[280px] leading-relaxed">
-                        Share this unique tracker with fellow collectors to expand the WheelVerse garage universe.
+
+                    <p id="referralCode" class="text-2xl font-display-lg font-bold text-primary mt-3 tracking-widest border-b border-dashed border-primary/30 pb-2 px-4">
+                        {{ request.user.referral_code }}
                     </p>
-                    <button type="button" class="mt-8 w-full bg-primary/10 text-primary border border-primary/30 py-3 rounded font-label-caps text-xs tracking-widest hover:bg-primary hover:text-background transition-all font-bold">
-                        COPY REFERRAL CODE
-                    </button>
+
+                    <p class="text-[11px] text-on-surface-variant font-body-md mt-4 max-w-[320px] leading-relaxed">
+                        Share this code with your friend. When they signup using this code, ₹50 will be credited to your wallet.
+                    </p>
+
+                    <div class="w-full mt-6">
+                        <label class="block text-[10px] text-primary font-label-caps tracking-widest mb-2 text-left">
+                            REFERRAL LINK
+                        </label>
+
+                        <input
+                            id="referralLink"
+                            value="{{ referral_link }}"
+                            readonly
+                            class="w-full bg-background border border-primary/20 text-on-surface rounded px-4 py-3 text-xs"
+                        >
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full mt-6">
+                        <button
+                            type="button"
+                            onclick="copyReferralCode()"
+                            class="w-full bg-primary/10 text-primary border border-primary/30 py-3 rounded font-label-caps text-xs tracking-widest hover:bg-primary hover:text-background transition-all font-bold"
+                        >
+                            COPY CODE
+                        </button>
+
+                        <button
+                            type="button"
+                            onclick="copyReferralLink()"
+                            class="w-full bg-primary text-background border border-primary py-3 rounded font-label-caps text-xs tracking-widest hover:bg-primary-fixed-dim transition-all font-bold"
+                        >
+                            COPY LINK
+                        </button>
+                    </div>
+
+                    <p class="text-xs text-on-surface-variant mt-5">
+                        Total referred collectors:
+                        <span class="text-primary font-bold">{{ referral_count }}</span>
+                    </p>
+
+                    <p id="copyMessage" class="hidden text-green-400 text-xs mt-3">
+                        Copied successfully!
+                    </p>
                 </div>
             </div>
 
-        </div>
-    </main>
+<script>
+function showCopyMessage() {
+    const msg = document.getElementById("copyMessage");
+    msg.classList.remove("hidden");
+
+    setTimeout(() => {
+        msg.classList.add("hidden");
+    }, 1800);
+}
+
+function copyReferralCode() {
+    const code = document.getElementById("referralCode").innerText.trim();
+    navigator.clipboard.writeText(code);
+    showCopyMessage();
+}
+
+function copyReferralLink() {
+    const link = document.getElementById("referralLink").value;
+    navigator.clipboard.writeText(link);
+    showCopyMessage();
+}
+</script>
 
 </body>
 </html>

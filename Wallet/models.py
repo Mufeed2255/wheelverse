@@ -30,6 +30,7 @@ class WalletTransaction(models.Model):
         ("CANCEL_REFUND", "Cancel Refund"),
         ("RETURN_REFUND", "Return Refund"),
         ("WALLET_PAYMENT", "Wallet Payment"),
+        ("REFERRAL_REWARD", "Referral Reward"),
         ("ADMIN_ADJUSTMENT", "Admin Adjustment"),
     )
 
