@@ -1,3 +1,5 @@
+from Orders.models import ProductReview
+
 from itertools import product
 
 from django.contrib import messages
@@ -15,6 +17,14 @@ from django.views.decorators.http import require_POST
 from decimal import Decimal
 from django.db.models import Prefetch
 from Orders.models import ProductReview
+from adminpanel.services.offers import build_cart_offer_summary
+import json
+from django.shortcuts import get_object_or_404, render
+from django.db.models import Sum, Min
+from adminpanel.models import Product, ProductVariant
+from Products.models import Cart, Wishlist
+from Orders.models import ProductReview
+from adminpanel.services.offers import build_cart_offer_summary
 
 
 def user_collections(request):
@@ -121,12 +131,6 @@ def user_collections(request):
 
 @login_required
 def product_detail(request, product_id):
-    import json
-    from django.shortcuts import get_object_or_404, render
-    from django.db.models import Sum, Min
-    from adminpanel.models import Product, ProductVariant
-    from Products.models import Cart, Wishlist
-    from Orders.models import ProductReview
 
     product = get_object_or_404(
         Product.objects.filter(
@@ -240,118 +244,226 @@ def add_to_cart(request):
 
 
 def get_cart_totals(user):
-    cart_items = Cart.objects.filter(
-        user=user,
-        variant__is_active=True,
-        variant__is_deleted=False
+    """
+    Calculate cart totals using the best active product/category offer
+    for each variant.
+
+    Cart model is not changed. Offer values are calculated dynamically.
+    """
+
+    cart_items = list(
+        Cart.objects.filter(
+            user=user,
+            variant__is_active=True,
+            variant__is_deleted=False,
+        )
+        .select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        )
+        .prefetch_related(
+            "variant__images"
+        )
+        .order_by("-created_at")
     )
 
-    subtotal = sum(item.subtotal() for item in cart_items)
+    offer_summary = build_cart_offer_summary(cart_items)
 
-    discount = Decimal("0.00")
-    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
-    grand_total = subtotal - discount + shipping
+    # Attach calculated offer information to every Cart object so the
+    # template can access item.offer_data.
+    for line in offer_summary["lines"]:
+        cart_item = line["cart_item"]
+        cart_item.offer_data = line
 
-    return cart_items, subtotal, discount, shipping, grand_total
+    original_subtotal = offer_summary["original_subtotal"]
+    offer_discount = offer_summary["offer_discount"]
+    subtotal_after_offer = offer_summary["subtotal_after_offer"]
+
+    shipping = (
+        Decimal("80.00")
+        if subtotal_after_offer > 0
+        else Decimal("0.00")
+    )
+
+    grand_total = subtotal_after_offer + shipping
+
+    return {
+        "cart_items": cart_items,
+        "original_subtotal": original_subtotal,
+        "offer_discount": offer_discount,
+        "subtotal_after_offer": subtotal_after_offer,
+        "shipping": shipping,
+        "grand_total": grand_total,
+        "cart_count": len(cart_items),
+    }
 
 
 @login_required
 def cart_view(request):
-    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
+    totals = get_cart_totals(request.user)
 
-    context = {
-        "cart_items": cart_items,
-        "subtotal": subtotal,
-        "discount": discount,
-        "shipping": shipping,
-        "grand_total": grand_total,
-        "cart_count": cart_items.count(),
+    return render(
+        request,
+        "products/cart.html",
+        {
+            "cart_items": totals["cart_items"],
+            "subtotal": totals["original_subtotal"],
+            "offer_discount": totals["offer_discount"],
+            "subtotal_after_offer": totals["subtotal_after_offer"],
+            "shipping": totals["shipping"],
+            "grand_total": totals["grand_total"],
+            "cart_count": totals["cart_count"],
+        },
+    )
+
+
+def _cart_ajax_response(cart_item, totals):
+    """
+    Build one consistent JSON response for quantity increase/decrease.
+    """
+
+    current_line = None
+
+    for line in totals["cart_items"]:
+        if line.id == cart_item.id:
+            current_line = line
+            break
+
+    if current_line is None:
+        return {
+            "success": False,
+            "message": "Cart item not found.",
+        }
+
+    offer_data = current_line.offer_data
+
+    return {
+        "success": True,
+        "item_id": current_line.id,
+        "quantity": current_line.quantity,
+
+        "unit_original_price": f'{offer_data["original_unit_price"]:.2f}',
+        "unit_final_price": f'{offer_data["final_unit_price"]:.2f}',
+
+        "item_original_total": f'{offer_data["original_line_total"]:.2f}',
+        "item_offer_discount": f'{offer_data["line_offer_discount"]:.2f}',
+        "item_final_total": f'{offer_data["final_line_total"]:.2f}',
+
+        "offer_title": offer_data["offer_title"],
+        "has_offer": offer_data["line_offer_discount"] > 0,
+
+        "subtotal": f'{totals["original_subtotal"]:.2f}',
+        "offer_discount": f'{totals["offer_discount"]:.2f}',
+        "subtotal_after_offer": f'{totals["subtotal_after_offer"]:.2f}',
+        "shipping": f'{totals["shipping"]:.2f}',
+        "grand_total": f'{totals["grand_total"]:.2f}',
+        "cart_count": totals["cart_count"],
     }
-
-    return render(request, "products/cart.html", context)
 
 
 @login_required
+@require_POST
 def increase_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+    cart_item = get_object_or_404(
+        Cart.objects.select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        ),
+        id=item_id,
+        user=request.user,
+    )
 
     if cart_item.quantity >= cart_item.variant.stock:
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({
                 "success": False,
-                "message": "Stock unavailable."
+                "message": "Stock unavailable.",
             })
 
         messages.error(request, "Stock unavailable.")
         return redirect("cart")
 
     cart_item.quantity += 1
-    cart_item.save()
+    cart_item.save(update_fields=["quantity"])
 
-    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
+    totals = get_cart_totals(request.user)
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({
-            "success": True,
-            "item_id": cart_item.id,
-            "quantity": cart_item.quantity,
-            "item_subtotal": str(cart_item.subtotal()),
-            "subtotal": str(subtotal),
-            "discount": str(discount),
-            "shipping": str(shipping),
-            "grand_total": str(grand_total),
-            "cart_count": cart_items.count(),
-        })
+        return JsonResponse(
+            _cart_ajax_response(cart_item, totals)
+        )
 
     messages.success(request, "Cart updated successfully.")
     return redirect("cart")
 
 
 @login_required
+@require_POST
 def decrease_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+    cart_item = get_object_or_404(
+        Cart.objects.select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        ),
+        id=item_id,
+        user=request.user,
+    )
 
     if cart_item.quantity <= 1:
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
             return JsonResponse({
                 "success": False,
-                "message": "Minimum quantity is 1."
+                "message": "Minimum quantity is 1.",
             })
 
         messages.error(request, "Minimum quantity is 1.")
         return redirect("cart")
 
     cart_item.quantity -= 1
-    cart_item.save()
+    cart_item.save(update_fields=["quantity"])
 
-    cart_items, subtotal, discount, shipping, grand_total = get_cart_totals(request.user)
+    totals = get_cart_totals(request.user)
 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse({
-            "success": True,
-            "item_id": cart_item.id,
-            "quantity": cart_item.quantity,
-            "item_subtotal": str(cart_item.subtotal()),
-            "subtotal": str(subtotal),
-            "discount": str(discount),
-            "shipping": str(shipping),
-            "grand_total": str(grand_total),
-            "cart_count": cart_items.count(),
-        })
+        return JsonResponse(
+            _cart_ajax_response(cart_item, totals)
+        )
 
     messages.success(request, "Cart updated successfully.")
     return redirect("cart")
 
 
 @login_required
+@require_POST
 def remove_cart_item(request, item_id):
-    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
+    cart_item = get_object_or_404(
+        Cart,
+        id=item_id,
+        user=request.user,
+    )
+
     cart_item.delete()
+
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        totals = get_cart_totals(request.user)
+
+        return JsonResponse({
+            "success": True,
+            "removed_item_id": item_id,
+            "subtotal": f'{totals["original_subtotal"]:.2f}',
+            "offer_discount": f'{totals["offer_discount"]:.2f}',
+            "subtotal_after_offer": f'{totals["subtotal_after_offer"]:.2f}',
+            "shipping": f'{totals["shipping"]:.2f}',
+            "grand_total": f'{totals["grand_total"]:.2f}',
+            "cart_count": totals["cart_count"],
+            "cart_empty": totals["cart_count"] == 0,
+        })
 
     messages.success(request, "Product removed from cart.")
     return redirect("cart")
-
-
 
 @login_required
 def wishlist_view(request):
@@ -435,5 +547,3 @@ def move_wishlist_to_cart(request, item_id):
 
     messages.success(request, "Product moved to cart.")
     return redirect("cart")
-
-

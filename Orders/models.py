@@ -1,30 +1,32 @@
 from decimal import Decimal
 import uuid
 
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 from adminpanel.models import Product, ProductVariant
+
 
 class Order(models.Model):
     STATUS_CHOICES = [
-    ("PENDING", "Pending"),          
-    ("CONFIRMED", "Confirmed"),
-    ("SHIPPED", "Shipped"),
-    ("OUT_FOR_DELIVERY", "Out for Delivery"),
-    ("DELIVERED", "Delivered"),
-    ("CANCELLED", "Cancelled"),
-    ("RETURN_REQUESTED", "Return Requested"),
-    ("RETURN_APPROVED", "Return Approved"),
-    ("RETURN_REJECTED", "Return Rejected"),
-    ("RETURNED", "Returned"),
-]
+        ("PENDING", "Pending"),
+        ("CONFIRMED", "Confirmed"),
+        ("SHIPPED", "Shipped"),
+        ("OUT_FOR_DELIVERY", "Out for Delivery"),
+        ("DELIVERED", "Delivered"),
+        ("CANCELLED", "Cancelled"),
+        ("RETURN_REQUESTED", "Return Requested"),
+        ("RETURN_APPROVED", "Return Approved"),
+        ("RETURN_REJECTED", "Return Rejected"),
+        ("RETURNED", "Returned"),
+    ]
 
-    PAYMENT_CHOICES = (
+    PAYMENT_CHOICES = [
         ("COD", "Cash on Delivery"),
         ("WALLET", "Wallet"),
         ("RAZORPAY", "Razorpay"),
         ("UPI", "UPI"),
-    )
+    ]
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -39,25 +41,37 @@ class Order(models.Model):
     )
 
     subtotal = models.DecimalField(
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         default=Decimal("0.00")
     )
 
-    discount = models.DecimalField(
-        max_digits=10,
+    offer_discount = models.DecimalField(
+        max_digits=12,
         decimal_places=2,
         default=Decimal("0.00")
     )
 
-    shipping_charge = models.DecimalField(
-        max_digits=10,
+    discount_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    coupon_discount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    shipping_fee = models.DecimalField(
+        max_digits=12,
         decimal_places=2,
         default=Decimal("0.00")
     )
 
     total_amount = models.DecimalField(
-        max_digits=10,
+        max_digits=12,
         decimal_places=2,
         default=Decimal("0.00")
     )
@@ -73,36 +87,86 @@ class Order(models.Model):
         choices=STATUS_CHOICES,
         default="PENDING"
     )
-    
 
-    cancel_reason = models.TextField(blank=True, null=True)
-    return_reason = models.TextField(blank=True, null=True)
+    cancel_reason = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    return_reason = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    razorpay_order_id = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    razorpay_payment_id = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    razorpay_signature = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+
+    coupon_code = models.CharField(
+        max_length=30,
+        blank=True,
+        null=True
+    )
+
+    coupon_discount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
 
     ordered_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    razorpay_order_id = models.CharField(max_length=120, blank=True, null=True)
-    razorpay_payment_id = models.CharField(max_length=120, blank=True, null=True)
-    razorpay_signature = models.CharField(max_length=255, blank=True, null=True)
-    
-    coupon_code = models.CharField(max_length=30, blank=True, null=True)
-    coupon_discount = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0.00"))
 
     def save(self, *args, **kwargs):
         if not self.order_id:
             self.order_id = f"WLV-{uuid.uuid4().hex[:10].upper()}"
+
         super().save(*args, **kwargs)
 
     def __str__(self):
         return self.order_id
 
+
 class CouponUsage(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    coupon = models.ForeignKey("adminpanel.Coupon", on_delete=models.CASCADE)
-    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="coupon_usages")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE
+    )
+
+    coupon = models.ForeignKey(
+        "adminpanel.Coupon",
+        on_delete=models.CASCADE
+    )
+
+    order = models.ForeignKey(
+        Order,
+        on_delete=models.CASCADE,
+        related_name="coupon_usages"
+    )
+
     used_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ("user", "coupon", "order")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["user", "coupon", "order"],
+                name="unique_coupon_usage_per_order"
+            )
+        ]
 
     def __str__(self):
         return f"{self.user} - {self.coupon.code}"
@@ -134,43 +198,127 @@ class OrderItem(models.Model):
         related_name="items"
     )
 
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order_items"
+    )
+
     variant = models.ForeignKey(
         ProductVariant,
         on_delete=models.SET_NULL,
         null=True,
-        blank=True
+        blank=True,
+        related_name="variant_order_items"
     )
-    
-    return_requested_quantity = models.PositiveIntegerField(default=0)
-    
-    product_name = models.CharField(max_length=150)
-    variant_color = models.CharField(max_length=80, blank=True, null=True)
-    variant_size = models.CharField(max_length=80, blank=True, null=True)
 
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    product_name = models.CharField(max_length=255)
+
+    variant_color = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+
+    variant_size = models.CharField(
+        max_length=100,
+        blank=True,
+        null=True
+    )
+    original_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    offer_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    offer_discount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    offer_name = models.CharField(
+        max_length=120,
+        blank=True,
+        null=True
+    )
+
+    offer_type = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True
+    )
+
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
+    price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
+
     quantity = models.PositiveIntegerField(default=1)
-    item_total = models.DecimalField(max_digits=10, decimal_places=2)
+
+    # Final amount for this order item.
+    item_total = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
 
     is_cancelled = models.BooleanField(default=False)
-    cancel_reason = models.TextField(blank=True, null=True)
+
+    cancel_reason = models.TextField(
+        blank=True,
+        null=True
+    )
 
     is_return_requested = models.BooleanField(default=False)
-    return_reason = models.TextField(blank=True, null=True)
+
+    return_requested_quantity = models.PositiveIntegerField(default=0)
+
+    return_reason = models.TextField(
+        blank=True,
+        null=True
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if self.item_total is None or self.item_total == 0:
+            self.item_total = self.price * self.quantity
+
+        super().save(*args, **kwargs)
+
+    @property
+    def subtotal(self):
+        """
+        Compatibility property for old code that uses item.subtotal.
+        """
+        return self.item_total
+
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
-    
-# models.py
+
 
 class ReturnRequest(models.Model):
-    STATUS_CHOICES = (
+    STATUS_CHOICES = [
         ("REQUESTED", "Requested"),
         ("APPROVED", "Approved"),
+        ("PICKED_UP", "Picked Up"),
         ("REJECTED", "Rejected"),
         ("REFUNDED", "Refunded"),
-    )
+    ]
 
     order = models.ForeignKey(
         Order,
@@ -178,7 +326,6 @@ class ReturnRequest(models.Model):
         related_name="order_return_requests"
     )
 
-    # changed OneToOneField to ForeignKey
     order_item = models.ForeignKey(
         OrderItem,
         on_delete=models.CASCADE,
@@ -192,14 +339,35 @@ class ReturnRequest(models.Model):
     )
 
     return_quantity = models.PositiveIntegerField(default=1)
-    picked_up_at = models.DateTimeField(blank=True, null=True)
 
     reason = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="REQUESTED")
-    admin_note = models.TextField(blank=True, null=True)
 
-    refund_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    refunded_at = models.DateTimeField(blank=True, null=True)
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default="REQUESTED"
+    )
+
+    admin_note = models.TextField(
+        blank=True,
+        null=True
+    )
+
+    refund_amount = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0.00")
+    )
+
+    picked_up_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
+
+    refunded_at = models.DateTimeField(
+        blank=True,
+        null=True
+    )
 
     requested_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -208,9 +376,13 @@ class ReturnRequest(models.Model):
         ordering = ["-requested_at"]
 
     def __str__(self):
-        return f"{self.order.order_id} - Qty {self.return_quantity} - {self.status}"
-    
-    
+        return (
+            f"{self.order.order_id} - "
+            f"Qty {self.return_quantity} - "
+            f"{self.status}"
+        )
+
+
 class ReturnRequestImage(models.Model):
     return_request = models.ForeignKey(
         ReturnRequest,
@@ -231,16 +403,34 @@ class ReturnRequestImage(models.Model):
 
     def __str__(self):
         return f"Image for {self.return_request.order.order_id}"
-    
-    
-
 
 
 class ProductReview(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="product_reviews")
-    order_item = models.OneToOneField("OrderItem", on_delete=models.CASCADE, related_name="review")
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reviews")
-    variant = models.ForeignKey(ProductVariant, on_delete=models.SET_NULL, null=True, blank=True, related_name="reviews")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="product_reviews"
+    )
+
+    order_item = models.OneToOneField(
+        OrderItem,
+        on_delete=models.CASCADE,
+        related_name="review"
+    )
+
+    product = models.ForeignKey(
+        Product,
+        on_delete=models.CASCADE,
+        related_name="reviews"
+    )
+
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reviews"
+    )
 
     rating = models.PositiveSmallIntegerField()
     review = models.TextField()
@@ -256,7 +446,16 @@ class ProductReview(models.Model):
 
 
 class ProductReviewImage(models.Model):
-    review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name="images")
-    image = models.ImageField(upload_to="product_reviews/")
+    review = models.ForeignKey(
+        ProductReview,
+        on_delete=models.CASCADE,
+        related_name="images"
+    )
+
+    image = models.ImageField(
+        upload_to="product_reviews/"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
     
+

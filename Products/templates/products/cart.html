@@ -73,10 +73,10 @@
             letter-spacing: .1em;
         }
     </style>
-
 </head>
 
 <body>
+
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
@@ -105,143 +105,241 @@
             <div class="lg:col-span-8 flex flex-col gap-6" id="cart-items-wrapper">
 
                 {% for item in cart_items %}
-                <div class="glass-panel rounded-lg p-6 flex flex-col md:flex-row gap-6 transition-all duration-500 hover:border-[#f2ca50]/40"
-                     id="cart-item-{{ item.id }}">
+                    <div
+                        class="glass-panel rounded-lg p-6 flex flex-col md:flex-row gap-6 transition-all duration-500 hover:border-[#f2ca50]/40"
+                        id="cart-item-{{ item.id }}"
+                    >
+                        <div class="relative w-full md:w-56 h-40 overflow-hidden rounded border border-[#4d4635] bg-black/30">
+                            {% with first_image=item.variant.images.first %}
+                                {% if first_image %}
+                                    <img
+                                        src="{{ first_image.image.url }}"
+                                        alt="{{ item.variant.product.name }}"
+                                        class="w-full h-full object-cover"
+                                    >
+                                {% elif item.variant.image %}
+                                    <img
+                                        src="{{ item.variant.image.url }}"
+                                        alt="{{ item.variant.product.name }}"
+                                        class="w-full h-full object-cover"
+                                    >
+                                {% endif %}
+                            {% endwith %}
 
-                    <div class="relative w-full md:w-56 h-40 overflow-hidden rounded border border-[#4d4635] bg-black/30">
-                        {% with first_image=item.variant.images.first %}
-                            {% if first_image %}
-                                <img src="{{ first_image.image.url }}"
-                                     alt="{{ item.variant.product.name }}"
-                                     class="w-full h-full object-cover">
-                            {% elif item.variant.image %}
-                                <img src="{{ item.variant.image.url }}"
-                                     alt="{{ item.variant.product.name }}"
-                                     class="w-full h-full object-cover">
+                            <div class="absolute top-2 left-2 bg-[#f2ca50] text-black orbitron text-[10px] px-2 py-0.5 rounded">
+                                {{ item.variant.product.rarity|default:"LEGENDARY"|upper }}
+                            </div>
+
+                            {% if item.offer_data.line_offer_discount > 0 %}
+                                <div
+                                    id="offer-badge-{{ item.id }}"
+                                    class="absolute bottom-2 left-2 bg-green-500/90 text-black orbitron text-[9px] px-2 py-1 rounded"
+                                >
+                                    {{ item.offer_data.offer_title }}
+                                </div>
                             {% endif %}
-                        {% endwith %}
-
-                        <div class="absolute top-2 left-2 bg-[#f2ca50] text-black orbitron text-[10px] px-2 py-0.5 rounded">
-                            {{ item.variant.product.rarity|default:"LEGENDARY"|upper }}
                         </div>
-                    </div>
 
-                    <div class="flex-1 flex flex-col justify-between">
+                        <div class="flex-1 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between gap-4 items-start">
+                                    <div>
+                                        <h3 class="orbitron text-xl md:text-2xl text-white">
+                                            {{ item.variant.product.name }}
+                                        </h3>
 
-                        <div>
-                            <div class="flex justify-between gap-4 items-start">
-                                <div>
-                                    <h3 class="orbitron text-xl md:text-2xl text-white">
-                                        {{ item.variant.product.name }}
-                                    </h3>
+                                        <p class="text-[#d0c5af] text-sm mt-2">
+                                            {{ item.variant.product.category.name }}
+                                            • Color: {{ item.variant.color }}
+                                            • Size: {{ item.variant.size }}
+                                        </p>
 
-                                    <p class="text-[#d0c5af] text-sm mt-2">
-                                        {{ item.variant.product.category.name }} • Color: {{ item.variant.color }} • Size: {{ item.variant.size }}
-                                    </p>
+                                        <p class="text-[#d0c5af]/70 text-xs mt-2">
+                                            Available Stock: {{ item.variant.stock }}
+                                        </p>
+                                    </div>
 
-                                    <p class="text-[#d0c5af]/70 text-xs mt-2">
-                                        Available Stock: {{ item.variant.stock }}
-                                    </p>
+                                    <div class="text-right whitespace-nowrap">
+                                        {% if item.offer_data.line_offer_discount > 0 %}
+                                            <p
+                                                id="unit-original-price-{{ item.id }}"
+                                                class="text-xs text-[#8d846f] line-through"
+                                            >
+                                                ₹{{ item.offer_data.original_unit_price|floatformat:2 }}
+                                            </p>
+
+                                            <p
+                                                id="unit-final-price-{{ item.id }}"
+                                                class="orbitron text-[#f2ca50] text-xl"
+                                            >
+                                                ₹{{ item.offer_data.final_unit_price|floatformat:2 }}
+                                            </p>
+
+                                            <p class="text-[10px] text-green-300 mt-1">
+                                                OFFER PRICE
+                                            </p>
+                                        {% else %}
+                                            <p
+                                                id="unit-final-price-{{ item.id }}"
+                                                class="orbitron text-[#f2ca50] text-xl"
+                                            >
+                                                ₹{{ item.offer_data.final_unit_price|floatformat:2 }}
+                                            </p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center mt-6">
+                                <div class="flex items-center gap-4 bg-[#2d2a21] px-4 py-2 rounded-full border border-[#4d4635]">
+                                    <button
+                                        type="button"
+                                        class="qty-btn text-[#f2ca50] hover:text-white disabled:opacity-50"
+                                        data-url="{% url 'decrease_cart_item' item.id %}"
+                                    >
+                                        <span class="material-symbols-outlined text-sm">
+                                            remove
+                                        </span>
+                                    </button>
+
+                                    <span
+                                        class="orbitron text-lg min-w-[24px] text-center"
+                                        id="qty-{{ item.id }}"
+                                    >
+                                        {{ item.quantity }}
+                                    </span>
+
+                                    <button
+                                        type="button"
+                                        class="qty-btn text-[#f2ca50] hover:text-white disabled:opacity-50"
+                                        data-url="{% url 'increase_cart_item' item.id %}"
+                                    >
+                                        <span class="material-symbols-outlined text-sm">
+                                            add
+                                        </span>
+                                    </button>
                                 </div>
 
-                                <p class="orbitron text-[#f2ca50] text-xl whitespace-nowrap">
-                                    ₹{{ item.variant.price }}
-                                </p>
+                                <div class="text-right">
+                                    {% if item.offer_data.line_offer_discount > 0 %}
+                                        <p
+                                            id="item-original-total-{{ item.id }}"
+                                            class="text-xs text-[#8d846f] line-through"
+                                        >
+                                            ₹{{ item.offer_data.original_line_total|floatformat:2 }}
+                                        </p>
+
+                                        <p
+                                            id="item-final-total-{{ item.id }}"
+                                            class="orbitron text-2xl text-[#f2ca50]"
+                                        >
+                                            ₹{{ item.offer_data.final_line_total|floatformat:2 }}
+                                        </p>
+
+                                        <p
+                                            id="item-saving-{{ item.id }}"
+                                            class="text-[10px] text-green-300 mt-1"
+                                        >
+                                            You save ₹{{ item.offer_data.line_offer_discount|floatformat:2 }}
+                                        </p>
+                                    {% else %}
+                                        <p
+                                            id="item-final-total-{{ item.id }}"
+                                            class="orbitron text-2xl text-[#f2ca50]"
+                                        >
+                                            ₹{{ item.offer_data.final_line_total|floatformat:2 }}
+                                        </p>
+                                    {% endif %}
+
+                                    <form
+                                        method="POST"
+                                        action="{% url 'remove_cart_item' item.id %}"
+                                    >
+                                        {% csrf_token %}
+
+                                        <button
+                                            type="submit"
+                                            class="text-[10px] orbitron text-red-300 hover:underline flex items-center gap-1 justify-end mt-2"
+                                        >
+                                            <span class="material-symbols-outlined text-xs">
+                                                delete
+                                            </span>
+
+                                            REMOVE UNIT
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-
-                        <div class="flex justify-between items-center mt-6">
-
-                            <div class="flex items-center gap-4 bg-[#2d2a21] px-4 py-2 rounded-full border border-[#4d4635]">
-
-                                <button type="button"
-                                        class="qty-btn text-[#f2ca50] hover:text-white"
-                                        data-url="{% url 'decrease_cart_item' item.id %}">
-                                    <span class="material-symbols-outlined text-sm">remove</span>
-                                </button>
-
-                                <span class="orbitron text-lg min-w-[24px] text-center"
-                                      id="qty-{{ item.id }}">
-                                    {{ item.quantity }}
-                                </span>
-
-                                <button type="button"
-                                        class="qty-btn text-[#f2ca50] hover:text-white"
-                                        data-url="{% url 'increase_cart_item' item.id %}">
-                                    <span class="material-symbols-outlined text-sm">add</span>
-                                </button>
-
-                            </div>
-
-                            <div class="text-right">
-                                <p class="orbitron text-2xl text-[#f2ca50]"
-                                   id="item-subtotal-{{ item.id }}">
-                                    ₹{{ item.subtotal }}
-                                </p>
-
-                                <form method="POST" action="{% url 'remove_cart_item' item.id %}">
-                                    {% csrf_token %}
-                                    <button type="submit"
-                                            class="text-[10px] orbitron text-red-300 hover:underline flex items-center gap-1 justify-end mt-2">
-                                        <span class="material-symbols-outlined text-xs">delete</span>
-                                        REMOVE UNIT
-                                    </button>
-                                </form>
-                            </div>
-
                         </div>
                     </div>
 
-                </div>
-
                 {% empty %}
-                <div class="glass-panel rounded-lg p-16 text-center">
-                    <span class="material-symbols-outlined text-7xl text-[#f2ca50]/40">
-                        shopping_cart_off
-                    </span>
+                    <div class="glass-panel rounded-lg p-16 text-center">
+                        <span class="material-symbols-outlined text-7xl text-[#f2ca50]/40">
+                            shopping_cart_off
+                        </span>
 
-                    <h2 class="orbitron text-3xl mt-6 text-white">
-                        YOUR CART IS EMPTY
-                    </h2>
+                        <h2 class="orbitron text-3xl mt-6 text-white">
+                            YOUR CART IS EMPTY
+                        </h2>
 
-                    <p class="text-[#d0c5af] mt-3">
-                        Add collector cars from collections.
-                    </p>
+                        <p class="text-[#d0c5af] mt-3">
+                            Add collector cars from collections.
+                        </p>
 
-                    <a href="{% url 'collections' %}"
-                       class="inline-block mt-8 btn-gold px-8 py-4 text-sm no-underline">
-                        EXPLORE COLLECTIONS
-                    </a>
-                </div>
+                        <a
+                            href="{% url 'collections' %}"
+                            class="inline-block mt-8 btn-gold px-8 py-4 text-sm no-underline"
+                        >
+                            EXPLORE COLLECTIONS
+                        </a>
+                    </div>
                 {% endfor %}
-
             </div>
 
             <aside class="lg:col-span-4">
                 <div class="sticky top-28">
-
                     <div class="glass-panel carbon-texture p-8 rounded-lg relative overflow-hidden">
 
                         <h2 class="orbitron text-xl text-[#f2ca50] mb-6 flex items-center gap-2">
-                            <span class="material-symbols-outlined">receipt_long</span>
+                            <span class="material-symbols-outlined">
+                                receipt_long
+                            </span>
+
                             ORDER SUMMARY
                         </h2>
 
                         <div class="flex flex-col gap-4">
-
                             <div class="flex justify-between text-[#d0c5af]">
-                                <span>Subtotal</span>
-                                <span class="orbitron" id="cart-subtotal">₹{{ subtotal }}</span>
+                                <span>Original Subtotal</span>
+
+                                <span class="orbitron" id="cart-subtotal">
+                                    ₹{{ subtotal|floatformat:2 }}
+                                </span>
+                            </div>
+
+                            <div class="flex justify-between text-green-300">
+                                <span>Offer Discount</span>
+
+                                <span class="orbitron" id="cart-offer-discount">
+                                    -₹{{ offer_discount|floatformat:2 }}
+                                </span>
                             </div>
 
                             <div class="flex justify-between text-[#d0c5af]">
-                                <span>Discount</span>
-                                <span class="orbitron" id="cart-discount">-₹{{ discount }}</span>
+                                <span>After Offer</span>
+
+                                <span class="orbitron" id="cart-after-offer">
+                                    ₹{{ subtotal_after_offer|floatformat:2 }}
+                                </span>
                             </div>
 
                             <div class="flex justify-between text-[#d0c5af]">
                                 <span>Shipping</span>
-                                <span class="orbitron" id="cart-shipping">₹{{ shipping }}</span>
+
+                                <span class="orbitron" id="cart-shipping">
+                                    ₹{{ shipping|floatformat:2 }}
+                                </span>
                             </div>
 
                             <div class="h-[1px] bg-[#4d4635] my-3"></div>
@@ -251,69 +349,100 @@
                                     TOTAL PAYABLE
                                 </span>
 
-                                <span class="orbitron text-[#f2ca50] text-3xl"
-                                      id="cart-grand-total">
-                                    ₹{{ grand_total }}
+                                <span
+                                    class="orbitron text-[#f2ca50] text-3xl"
+                                    id="cart-grand-total"
+                                >
+                                    ₹{{ grand_total|floatformat:2 }}
                                 </span>
                             </div>
 
                             {% if cart_items %}
-                            <a href="{% url 'checkout' %}"
-                               class="w-full btn-gold py-5 mt-6 flex items-center justify-center gap-2">
-                                PROCEED TO CHECKOUT
-                                <span class="material-symbols-outlined">lock</span>
-                            </a>
+                                <a
+                                    href="{% url 'checkout' %}"
+                                    class="w-full btn-gold py-5 mt-6 flex items-center justify-center gap-2"
+                                >
+                                    PROCEED TO CHECKOUT
+
+                                    <span class="material-symbols-outlined">
+                                        lock
+                                    </span>
+                                </a>
                             {% else %}
-                            <button disabled class="w-full bg-[#38342b] text-[#d0c5af] orbitron py-5 mt-6 cursor-not-allowed">
-                                CART EMPTY
-                            </button>
+                                <button
+                                    disabled
+                                    class="w-full bg-[#38342b] text-[#d0c5af] orbitron py-5 mt-6 cursor-not-allowed"
+                                >
+                                    CART EMPTY
+                                </button>
                             {% endif %}
 
                             <p class="text-[10px] text-[#d0c5af] text-center mt-4">
                                 Secure WheelVerse transaction. Stock checked before checkout.
                             </p>
-
                         </div>
 
                         <div class="absolute -bottom-20 -right-20 w-64 h-64 bg-[#f2ca50]/10 rounded-full blur-[100px] pointer-events-none"></div>
                     </div>
-
                 </div>
             </aside>
-
         </div>
     </div>
-
 </main>
 
 <footer class="relative w-full pt-16 pb-10 bg-[#110e07] border-t border-[#38342b]">
     <div class="grid grid-cols-1 md:grid-cols-4 gap-8 px-8 lg:px-20 max-w-[1440px] mx-auto">
-
         <div>
-            <h2 class="orbitron text-[#f2ca50] text-4xl mb-6">WheelVerse</h2>
+            <h2 class="orbitron text-[#f2ca50] text-4xl mb-6">
+                WheelVerse
+            </h2>
+
             <p class="text-[#d0c5af]">
                 The premier destination for elite car collectors and cinematic performance enthusiasts.
             </p>
         </div>
 
         <div class="flex flex-col gap-4">
-            <h4 class="orbitron text-[#f2ca50] text-sm">EXPERIENCE</h4>
-            <a class="text-[#d0c5af] hover:text-white" href="{% url 'collections' %}">Collections</a>
-            <a class="text-[#d0c5af] hover:text-white" href="{% url 'cart' %}">Cart</a>
+            <h4 class="orbitron text-[#f2ca50] text-sm">
+                EXPERIENCE
+            </h4>
+
+            <a class="text-[#d0c5af] hover:text-white" href="{% url 'collections' %}">
+                Collections
+            </a>
+
+            <a class="text-[#d0c5af] hover:text-white" href="{% url 'cart' %}">
+                Cart
+            </a>
         </div>
 
         <div class="flex flex-col gap-4">
-            <h4 class="orbitron text-[#f2ca50] text-sm">SUPPORT</h4>
-            <a class="text-[#d0c5af] hover:text-white" href="#">Contact Support</a>
-            <a class="text-[#d0c5af] hover:text-white" href="#">Shipping & Returns</a>
+            <h4 class="orbitron text-[#f2ca50] text-sm">
+                SUPPORT
+            </h4>
+
+            <a class="text-[#d0c5af] hover:text-white" href="#">
+                Contact Support
+            </a>
+
+            <a class="text-[#d0c5af] hover:text-white" href="#">
+                Shipping & Returns
+            </a>
         </div>
 
         <div class="flex flex-col gap-4">
-            <h4 class="orbitron text-[#f2ca50] text-sm">LEGAL</h4>
-            <a class="text-[#d0c5af] hover:text-white" href="#">Privacy Policy</a>
-            <a class="text-[#d0c5af] hover:text-white" href="#">Terms of Service</a>
-        </div>
+            <h4 class="orbitron text-[#f2ca50] text-sm">
+                LEGAL
+            </h4>
 
+            <a class="text-[#d0c5af] hover:text-white" href="#">
+                Privacy Policy
+            </a>
+
+            <a class="text-[#d0c5af] hover:text-white" href="#">
+                Terms of Service
+            </a>
+        </div>
     </div>
 
     <div class="mt-16 px-8 lg:px-20 max-w-[1440px] mx-auto border-t border-[#38342b] pt-8 text-center">
@@ -333,8 +462,14 @@
             for (let i = 0; i < cookies.length; i++) {
                 const cookie = cookies[i].trim();
 
-                if (cookie.substring(0, name.length + 1) === (name + "=")) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                if (
+                    cookie.substring(0, name.length + 1)
+                    === (name + "=")
+                ) {
+                    cookieValue = decodeURIComponent(
+                        cookie.substring(name.length + 1)
+                    );
+
                     break;
                 }
             }
@@ -343,14 +478,37 @@
         return cookieValue;
     }
 
+    function money(value) {
+        return "₹" + Number(value).toFixed(2);
+    }
+
+    function updateSummary(data) {
+        document.getElementById("cart-subtotal").innerText =
+            money(data.subtotal);
+
+        document.getElementById("cart-offer-discount").innerText =
+            "-₹" + Number(data.offer_discount).toFixed(2);
+
+        document.getElementById("cart-after-offer").innerText =
+            money(data.subtotal_after_offer);
+
+        document.getElementById("cart-shipping").innerText =
+            money(data.shipping);
+
+        document.getElementById("cart-grand-total").innerText =
+            money(data.grand_total);
+    }
+
     document.querySelectorAll(".qty-btn").forEach(function (button) {
         button.addEventListener("click", function () {
-            const url = this.dataset.url;
+            const clickedButton = this;
+            const url = clickedButton.dataset.url;
 
-            this.disabled = true;
+            clickedButton.disabled = true;
 
             fetch(url, {
                 method: "POST",
+
                 headers: {
                     "X-CSRFToken": getCookie("csrftoken"),
                     "X-Requested-With": "XMLHttpRequest"
@@ -360,23 +518,54 @@
                 return response.json();
             })
             .then(function (data) {
-                if (data.success) {
-                    document.getElementById("qty-" + data.item_id).innerText = data.quantity;
-                    document.getElementById("item-subtotal-" + data.item_id).innerText = "₹" + data.item_subtotal;
-
-                    document.getElementById("cart-subtotal").innerText = "₹" + data.subtotal;
-                    document.getElementById("cart-discount").innerText = "-₹" + data.discount;
-                    document.getElementById("cart-shipping").innerText = "₹" + data.shipping;
-                    document.getElementById("cart-grand-total").innerText = "₹" + data.grand_total;
-                } else {
+                if (!data.success) {
                     alert(data.message);
+                    return;
                 }
+
+                document.getElementById(
+                    "qty-" + data.item_id
+                ).innerText = data.quantity;
+
+                const finalTotal = document.getElementById(
+                    "item-final-total-" + data.item_id
+                );
+
+                if (finalTotal) {
+                    finalTotal.innerText = money(
+                        data.item_final_total
+                    );
+                }
+
+                const originalTotal = document.getElementById(
+                    "item-original-total-" + data.item_id
+                );
+
+                if (originalTotal) {
+                    originalTotal.innerText = money(
+                        data.item_original_total
+                    );
+                }
+
+                const saving = document.getElementById(
+                    "item-saving-" + data.item_id
+                );
+
+                if (saving) {
+                    saving.innerText =
+                        "You save " +
+                        money(data.item_offer_discount);
+                }
+
+                updateSummary(data);
             })
             .catch(function () {
-                alert("Something went wrong. Please try again.");
+                alert(
+                    "Something went wrong. Please try again."
+                );
             })
-            .finally(() => {
-                this.disabled = false;
+            .finally(function () {
+                clickedButton.disabled = false;
             });
         });
     });

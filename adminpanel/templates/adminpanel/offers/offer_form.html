@@ -1,0 +1,167 @@
+{% extends "adminpanel/offers/offer_base.html" %}
+
+{% block title %}
+    {% if mode == "edit" %}Edit Offer{% else %}Add Offer{% endif %} | WheelVerse
+{% endblock %}
+
+{% block content %}
+<section class="mb-8">
+    <h1 class="font-orbitron text-3xl md:text-4xl text-gold uppercase tracking-wider">
+        {% if mode == "edit" %}Edit Offer{% else %}Add Offer{% endif %}
+    </h1>
+</section>
+
+<section class="offer-card relative p-6 md:p-10">
+    <span class="absolute left-0 top-0 w-8 h-8 border-l-2 border-t-2 border-gold"></span>
+    <span class="absolute right-0 top-0 w-8 h-8 border-r-2 border-t-2 border-gold/40"></span>
+    <span class="absolute left-0 bottom-0 w-8 h-8 border-l-2 border-b-2 border-gold/40"></span>
+    <span class="absolute right-0 bottom-0 w-8 h-8 border-r-2 border-b-2 border-gold"></span>
+
+    <form method="post" class="grid grid-cols-1 lg:grid-cols-2 gap-x-12 gap-y-8" id="offerForm">
+        {% csrf_token %}
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Offer Title</label>
+            <input class="field mt-3 px-4" type="text" name="title" required
+                   value="{% if form_data %}{{ form_data.title }}{% elif offer %}{{ offer.title }}{% endif %}"
+                   placeholder="E.G. MONACO GRAND PRIX FLASH">
+        </div>
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Offer Type</label>
+            <select class="field mt-3 px-4" name="offer_type" id="offerType" required>
+                <option value="PRODUCT"
+                    {% if form_data.offer_type == "PRODUCT" or offer.offer_type == "PRODUCT" %}selected{% endif %}>
+                    Product-Based
+                </option>
+                <option value="CATEGORY"
+                    {% if form_data.offer_type == "CATEGORY" or offer.offer_type == "CATEGORY" %}selected{% endif %}>
+                    Category-Based
+                </option>
+            </select>
+        </div>
+
+        <div id="productTarget">
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Select Product</label>
+            <select class="field mt-3 px-4" name="product">
+                <option value="">Choose product</option>
+                {% for product in products %}
+                <option value="{{ product.id }}"
+                    {% if form_data.product == product.id|stringformat:"s" or offer.product_id == product.id %}selected{% endif %}>
+                    {{ product.name }} — {{ product.category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div id="categoryTarget">
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Select Category</label>
+            <select class="field mt-3 px-4" name="category">
+                <option value="">Choose category</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}"
+                    {% if form_data.category == category.id|stringformat:"s" or offer.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Discount Type</label>
+            <select class="field mt-3 px-4" name="discount_type" id="discountType">
+                <option value="PERCENTAGE"
+                    {% if form_data.discount_type == "PERCENTAGE" or offer.discount_type == "PERCENTAGE" %}selected{% endif %}>
+                    Percentage
+                </option>
+                <option value="FIXED"
+                    {% if form_data.discount_type == "FIXED" or offer.discount_type == "FIXED" %}selected{% endif %}>
+                    Fixed Amount
+                </option>
+            </select>
+        </div>
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Discount Value</label>
+            <div class="relative mt-3">
+                <span id="discountPrefix" class="absolute left-4 top-1/2 -translate-y-1/2 text-gold font-bold">%</span>
+                <input class="field pl-11 pr-4" type="number" min="0.01" step="0.01"
+                       name="discount_value" required
+                       value="{% if form_data %}{{ form_data.discount_value }}{% elif offer %}{{ offer.discount_value }}{% endif %}"
+                       placeholder="0.00">
+            </div>
+        </div>
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Start Date</label>
+            <input class="field mt-3 px-4" type="date" name="start_date" required
+                   value="{% if form_data %}{{ form_data.start_date }}{% elif offer %}{{ offer.start_date|date:'Y-m-d' }}{% endif %}">
+        </div>
+
+        <div>
+            <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">End Date</label>
+            <input class="field mt-3 px-4" type="date" name="end_date" required
+                   value="{% if form_data %}{{ form_data.end_date }}{% elif offer %}{{ offer.end_date|date:'Y-m-d' }}{% endif %}">
+        </div>
+
+        <div class="lg:col-span-2">
+            <label class="inline-flex items-center gap-3 cursor-pointer">
+                <input class="rounded bg-black border-gold text-gold focus:ring-gold"
+                       type="checkbox" name="is_active"
+                       {% if form_data %}
+                           {% if form_data.is_active %}checked{% endif %}
+                       {% elif offer %}
+                           {% if offer.is_active %}checked{% endif %}
+                       {% else %}
+                           checked
+                       {% endif %}>
+                <span class="font-orbitron text-[11px] text-muted uppercase tracking-widest">
+                    Activate offer
+                </span>
+            </label>
+        </div>
+
+        <div class="lg:col-span-2 flex flex-col sm:flex-row justify-end gap-4 pt-6">
+            <a href="{% url 'admin_offers' %}"
+               class="px-8 py-4 border border-white/10 font-orbitron text-xs uppercase tracking-widest text-muted text-center">
+                Cancel
+            </a>
+
+            <button type="submit"
+                    class="gold-btn px-9 py-4 font-orbitron text-xs font-bold uppercase tracking-[.15em] inline-flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined">verified_user</span>
+                {% if mode == "edit" %}Save Changes{% else %}Register New Offer{% endif %}
+            </button>
+        </div>
+    </form>
+</section>
+
+<script>
+    const offerType = document.getElementById("offerType");
+    const productTarget = document.getElementById("productTarget");
+    const categoryTarget = document.getElementById("categoryTarget");
+    const discountType = document.getElementById("discountType");
+    const discountPrefix = document.getElementById("discountPrefix");
+
+    function syncTargetFields() {
+        const productMode = offerType.value === "PRODUCT";
+
+        productTarget.classList.toggle("hidden", !productMode);
+        categoryTarget.classList.toggle("hidden", productMode);
+
+        productTarget.querySelector("select").disabled = !productMode;
+        categoryTarget.querySelector("select").disabled = productMode;
+    }
+
+    function syncDiscountPrefix() {
+        discountPrefix.textContent =
+            discountType.value === "PERCENTAGE" ? "%" : "₹";
+    }
+
+    offerType.addEventListener("change", syncTargetFields);
+    discountType.addEventListener("change", syncDiscountPrefix);
+
+    syncTargetFields();
+    syncDiscountPrefix();
+</script>
+{% endblock %}

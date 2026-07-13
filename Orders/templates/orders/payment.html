@@ -221,25 +221,47 @@
 
                 <div class="p-8 space-y-5">
                     <div class="flex justify-between text-[#d0c5af]">
-                        <span>Subtotal</span>
-                        <span class="font-orbitron">₹ {{ subtotal }}</span>
+                        <span>Original subtotal</span>
+                        <span class="font-orbitron">₹{{ subtotal|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between text-green-300">
+                        <span>Offer discount</span>
+                        <span class="font-orbitron">-₹{{ offer_discount|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between text-[#d0c5af]">
+                        <span>After offer</span>
+                        <span class="font-orbitron">₹{{ subtotal_after_offer|floatformat:2 }}</span>
+                    </div>
+
+                    <div class="flex justify-between text-blue-300">
+                        <span>
+                            Coupon discount
+                            {% if order.coupon_code %}
+                                <small class="block text-[9px] text-[#8f8777]">
+                                    {{ order.coupon_code }}
+                                </small>
+                            {% endif %}
+                        </span>
+                        <span class="font-orbitron">-₹{{ coupon_discount|floatformat:2 }}</span>
                     </div>
 
                     <div class="flex justify-between text-[#d0c5af]">
                         <span>Shipping</span>
-                        <span class="font-orbitron">₹ {{ shipping }}</span>
+                        <span class="font-orbitron">₹{{ shipping|floatformat:2 }}</span>
                     </div>
 
                     <div class="flex justify-between text-[#f2ca50]">
-                        <span>Discount</span>
-                        <span class="font-orbitron">- ₹ {{ discount }}</span>
+                        <span>Total savings</span>
+                        <span class="font-orbitron">-₹{{ total_savings|floatformat:2 }}</span>
                     </div>
 
                     <div class="h-px bg-[#4d4635]/70"></div>
 
                     <div class="flex justify-between items-center text-[#f2ca50]">
                         <span class="font-orbitron">Total</span>
-                        <span class="font-orbitron text-xl">₹ {{ grand_total }}</span>
+                        <span class="font-orbitron text-xl">₹{{ grand_total|floatformat:2 }}</span>
                     </div>
                 </div>
             </div>

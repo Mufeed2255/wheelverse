@@ -1,0 +1,153 @@
+{% extends "adminpanel/offers/offer_base.html" %}
+
+{% block title %}Offers Management | WheelVerse{% endblock %}
+
+{% block content %}
+<section class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-6 mb-8">
+    <div>
+        <h1 class="font-orbitron text-gold text-4xl md:text-6xl font-bold uppercase tracking-[.08em] leading-tight">
+            Offers<br>Management
+        </h1>
+        <div class="mt-4 w-24 h-[3px] bg-gradient-to-r from-gold to-transparent"></div>
+    </div>
+
+    <a href="{% url 'add_offer' %}"
+       class="gold-btn px-7 py-4 font-orbitron text-xs font-bold uppercase tracking-[.16em] inline-flex items-center justify-center gap-2 transition hover:-translate-y-1">
+        <span class="material-symbols-outlined">add</span>
+        Register New Offer
+    </a>
+</section>
+
+<form method="get" class="offer-card p-4 mb-5 grid grid-cols-1 md:grid-cols-4 gap-3">
+    <input class="field px-4 text-sm" type="text" name="search" value="{{ search }}" placeholder="Search offer or target">
+
+    <select class="field px-4 text-sm" name="type">
+        <option value="all">All Types</option>
+        <option value="product" {% if offer_type == "product" %}selected{% endif %}>Product Based</option>
+        <option value="category" {% if offer_type == "category" %}selected{% endif %}>Category Based</option>
+    </select>
+
+    <select class="field px-4 text-sm" name="status">
+        <option value="all">All Statuses</option>
+        <option value="active" {% if status == "active" %}selected{% endif %}>Active</option>
+        <option value="upcoming" {% if status == "upcoming" %}selected{% endif %}>Upcoming</option>
+        <option value="expired" {% if status == "expired" %}selected{% endif %}>Expired</option>
+        <option value="inactive" {% if status == "inactive" %}selected{% endif %}>Inactive</option>
+    </select>
+
+    <button class="gold-btn px-5 font-orbitron text-xs uppercase tracking-widest" type="submit">
+        Apply Filters
+    </button>
+</form>
+
+<section class="offer-card overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[1050px] text-left">
+            <thead class="bg-[#2a271e] border-b border-gold/20">
+                <tr class="font-orbitron text-[11px] uppercase tracking-wider text-muted">
+                    <th class="px-6 py-5">Offer Title</th>
+                    <th class="px-6 py-5">Type</th>
+                    <th class="px-6 py-5">Target</th>
+                    <th class="px-6 py-5 text-center">Discount</th>
+                    <th class="px-6 py-5">Start Date</th>
+                    <th class="px-6 py-5">End Date</th>
+                    <th class="px-6 py-5 text-center">Status</th>
+                    <th class="px-6 py-5 text-right">Actions</th>
+                </tr>
+            </thead>
+
+            <tbody class="divide-y divide-white/5">
+                {% for offer in page_obj %}
+                <tr class="hover:bg-gold/[.035] transition">
+                    <td class="px-6 py-5 font-semibold text-white">{{ offer.title }}</td>
+
+                    <td class="px-6 py-5">
+                        <span class="px-3 py-1 rounded-full border border-white/10 bg-white/5 text-[10px] font-orbitron text-muted">
+                            {{ offer.get_offer_type_display }}
+                        </span>
+                    </td>
+
+                    <td class="px-6 py-5 text-sm text-muted">{{ offer.target_name }}</td>
+
+                    <td class="px-6 py-5 text-center font-orbitron font-bold text-gold">
+                        {% if offer.discount_type == "PERCENTAGE" %}
+                            {{ offer.discount_value|floatformat:0 }}%
+                        {% else %}
+                            ₹{{ offer.discount_value|floatformat:2 }}
+                        {% endif %}
+                    </td>
+
+                    <td class="px-6 py-5 text-xs text-muted">{{ offer.start_date|date:"Y-m-d" }}</td>
+                    <td class="px-6 py-5 text-xs text-muted">{{ offer.end_date|date:"Y-m-d" }}</td>
+
+                    <td class="px-6 py-5 text-center">
+                        {% with state=offer.status_label %}
+                            {% if state == "ACTIVE" %}
+                                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[9px] bg-gold/10 border border-gold/30 text-gold">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-gold animate-pulse"></span> ACTIVE
+                                </span>
+                            {% elif state == "UPCOMING" %}
+                                <span class="px-3 py-1 rounded-full text-[9px] bg-blue-500/10 border border-blue-500/30 text-blue-300">UPCOMING</span>
+                            {% elif state == "EXPIRED" %}
+                                <span class="px-3 py-1 rounded-full text-[9px] bg-white/5 border border-white/10 text-muted">EXPIRED</span>
+                            {% else %}
+                                <span class="px-3 py-1 rounded-full text-[9px] bg-red-500/10 border border-red-500/30 text-red-300">INACTIVE</span>
+                            {% endif %}
+                        {% endwith %}
+                    </td>
+
+                    <td class="px-6 py-5">
+                        <div class="flex items-center justify-end gap-4">
+                            <a class="text-[10px] font-orbitron text-gold hover:underline"
+                               href="{% url 'edit_offer' offer.id %}">Edit</a>
+
+                            <form method="post" action="{% url 'toggle_offer_status' offer.id %}">
+                                {% csrf_token %}
+                                <button class="text-[10px] font-orbitron text-blue-300 hover:underline" type="submit">
+                                    {% if offer.is_active %}Disable{% else %}Enable{% endif %}
+                                </button>
+                            </form>
+
+                            <a class="text-[10px] font-orbitron text-red-300 hover:underline"
+                               href="{% url 'delete_offer_confirm' offer.id %}">Delete</a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="px-6 py-20 text-center text-muted">
+                        <span class="material-symbols-outlined text-6xl text-gold/20">local_offer</span>
+                        <p class="font-orbitron mt-4">No offers found.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="px-6 py-5 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4">
+        <p class="text-xs text-muted">
+            Showing {{ page_obj.start_index }}–{{ page_obj.end_index }}
+            of {{ page_obj.paginator.count }} offers
+        </p>
+
+        <div class="flex items-center gap-2">
+            {% if page_obj.has_previous %}
+            <a class="w-9 h-9 border border-white/10 inline-flex items-center justify-center"
+               href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.previous_page_number }}">‹</a>
+            {% endif %}
+
+            <span class="w-9 h-9 bg-gold text-black inline-flex items-center justify-center font-orbitron text-xs">
+                {{ page_obj.number }}
+            </span>
+
+            {% if page_obj.has_next %}
+            <a class="w-9 h-9 border border-white/10 inline-flex items-center justify-center"
+               href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.next_page_number }}">›</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</section>
+{% endblock %}

@@ -807,20 +807,18 @@
                         </span>
 
                         <div>
-                            <p
-                                class="text-[10px] font-orbitron
-                                       uppercase tracking-widest
-                                       text-[#aaa18d]"
-                            >
-                                Total Discount Given
-                            </p>
+                            <span>Offer Discount</span>
+                            <span>₹{{ offer_discount|floatformat:2 }}</span>
+                        </div>
 
-                            <h3
-                                class="mt-1 text-2xl font-orbitron
-                                       text-[#f3eee4]"
-                            >
-                                ₹{{ total_discount|floatformat:2 }}
-                            </h3>
+                        <div>
+                            <span>Coupon Discount</span>
+                            <span>₹{{ coupon_discount|floatformat:2 }}</span>
+                        </div>
+
+                        <div>
+                            <span>Total Discount</span>
+                            <span>₹{{ total_discount|floatformat:2 }}</span>
                         </div>
                     </div>
                 </article>

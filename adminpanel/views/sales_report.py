@@ -11,13 +11,14 @@ from django.db.models import (
     ExpressionWrapper,
     F,
     IntegerField,
+    Max,
     Q,
     Sum,
     Value,
 )
 from django.db.models.functions import Coalesce, TruncMonth
 from django.http import HttpResponse
-from django.shortcuts import redirect, render
+from django.shortcuts import render
 from django.utils import timezone
 from django.utils.http import urlencode
 
@@ -40,13 +41,14 @@ from reportlab.platypus import (
 
 from Orders.models import Order, OrderItem
 from adminpanel.models import Category
-from django.db.models import Max
 
 
-# Orders counted as completed sales.
-COMPLETED_ORDER_STATUSES = ["DELIVERED"]
+ZERO_MONEY = Decimal("0.00")
 
-DELIVERED_OR_POST_DELIVERY_STATUSES = [
+# These statuses represent orders that reached delivery.
+# Their sales/discount values remain in the report even if the order
+# later moves into a return-related status.
+SALES_ORDER_STATUSES = [
     "DELIVERED",
     "RETURN_REQUESTED",
     "RETURN_APPROVED",
@@ -56,7 +58,6 @@ DELIVERED_OR_POST_DELIVERY_STATUSES = [
 
 
 def parse_report_date(date_value):
-
     if not date_value:
         return None
 
@@ -67,25 +68,193 @@ def parse_report_date(date_value):
 
 
 def calculate_percentage_change(current_value, previous_value):
-    """
-    Calculate percentage change safely.
-    """
     current_value = Decimal(current_value or 0)
     previous_value = Decimal(previous_value or 0)
 
     if previous_value == 0:
-        if current_value > 0:
-            return Decimal("100.00")
-        return Decimal("0.00")
+        return Decimal("100.00") if current_value > 0 else ZERO_MONEY
 
-    return ((current_value - previous_value) / previous_value) * Decimal("100")
+    return (
+        (current_value - previous_value)
+        / previous_value
+        * Decimal("100")
+    )
+
+
+def _money(value):
+    return Decimal(value or 0).quantize(Decimal("0.01"))
+
+
+def _build_search_filter(search):
+    return (
+        Q(product_name__icontains=search)
+        | Q(variant__product__name__icontains=search)
+        | Q(variant__product__sku__icontains=search)
+        | Q(order__order_id__icontains=search)
+        | Q(order__user__username__icontains=search)
+        | Q(order__user__email__icontains=search)
+    )
+
+
+def _get_discount_summary(
+    *,
+    start_date,
+    end_date,
+    search,
+    category_id,
+):
+    """
+    Return offer, coupon and total discounts.
+
+    For the all-category report, use exact order-level discount fields.
+
+    For a selected category, allocate each order-level discount
+    proportionally according to that category's item value inside the order.
+    This prevents the category discount summary from incorrectly becoming zero.
+    """
+
+    discount_orders = (
+        Order.objects
+        .filter(
+            ordered_at__date__range=[start_date, end_date],
+            status__in=SALES_ORDER_STATUSES,
+        )
+        .prefetch_related(
+            "items",
+            "items__variant",
+            "items__variant__product",
+            "items__variant__product__category",
+        )
+        .select_related("user")
+        .distinct()
+    )
+
+    if search:
+        discount_orders = discount_orders.filter(
+            Q(order_id__icontains=search)
+            | Q(user__username__icontains=search)
+            | Q(user__email__icontains=search)
+            | Q(items__product_name__icontains=search)
+            | Q(items__variant__product__name__icontains=search)
+            | Q(items__variant__product__sku__icontains=search)
+        ).distinct()
+
+    if category_id == "all":
+        summary = discount_orders.aggregate(
+            offer_discount=Coalesce(
+                Sum("offer_discount"),
+                Value(ZERO_MONEY),
+                output_field=DecimalField(
+                    max_digits=15,
+                    decimal_places=2,
+                ),
+            ),
+            coupon_discount=Coalesce(
+                Sum("coupon_discount"),
+                Value(ZERO_MONEY),
+                output_field=DecimalField(
+                    max_digits=15,
+                    decimal_places=2,
+                ),
+            ),
+            total_discount=Coalesce(
+                Sum("discount_amount"),
+                Value(ZERO_MONEY),
+                output_field=DecimalField(
+                    max_digits=15,
+                    decimal_places=2,
+                ),
+            ),
+        )
+
+        # Keep total consistent even for older rows where discount_amount
+        # was not populated correctly.
+        calculated_total = (
+            _money(summary["offer_discount"])
+            + _money(summary["coupon_discount"])
+        )
+
+        stored_total = _money(summary["total_discount"])
+
+        return {
+            "offer_discount": _money(summary["offer_discount"]),
+            "coupon_discount": _money(summary["coupon_discount"]),
+            "total_discount": (
+                stored_total
+                if stored_total == calculated_total
+                else calculated_total
+            ),
+        }
+
+    try:
+        selected_category_id = int(category_id)
+    except (TypeError, ValueError):
+        return {
+            "offer_discount": ZERO_MONEY,
+            "coupon_discount": ZERO_MONEY,
+            "total_discount": ZERO_MONEY,
+        }
+
+    allocated_offer_discount = ZERO_MONEY
+    allocated_coupon_discount = ZERO_MONEY
+
+    for order in discount_orders:
+        all_items = [
+            item
+            for item in order.items.all()
+            if not item.is_cancelled
+        ]
+
+        order_item_value = sum(
+            (_money(item.item_total) for item in all_items),
+            ZERO_MONEY,
+        )
+
+        if order_item_value <= 0:
+            continue
+
+        category_item_value = sum(
+            (
+                _money(item.item_total)
+                for item in all_items
+                if (
+                    item.variant
+                    and item.variant.product
+                    and item.variant.product.category_id
+                    == selected_category_id
+                )
+            ),
+            ZERO_MONEY,
+        )
+
+        if category_item_value <= 0:
+            continue
+
+        category_ratio = category_item_value / order_item_value
+
+        allocated_offer_discount += _money(
+            _money(order.offer_discount) * category_ratio
+        )
+
+        allocated_coupon_discount += _money(
+            _money(order.coupon_discount) * category_ratio
+        )
+
+    allocated_offer_discount = _money(allocated_offer_discount)
+    allocated_coupon_discount = _money(allocated_coupon_discount)
+
+    return {
+        "offer_discount": allocated_offer_discount,
+        "coupon_discount": allocated_coupon_discount,
+        "total_discount": _money(
+            allocated_offer_discount + allocated_coupon_discount
+        ),
+    }
 
 
 def get_sales_report_data(request):
-
     today = timezone.localdate()
 
-#filter values
     start_date_raw = request.GET.get("start_date", "").strip()
     end_date_raw = request.GET.get("end_date", "").strip()
     category_id = request.GET.get("category", "all").strip()
@@ -95,58 +264,48 @@ def get_sales_report_data(request):
     start_date = parse_report_date(start_date_raw)
     end_date = parse_report_date(end_date_raw)
 
-    # Default date range: current month
     if not start_date:
         start_date = today.replace(day=1)
 
     if not end_date:
         end_date = today
 
-    # Correct reversed date range
     if start_date > end_date:
         start_date, end_date = end_date, start_date
 
         messages.warning(
             request,
-            "Start date was after end date, so the dates were automatically corrected."
+            "Start date was after end date, so the dates were automatically corrected.",
         )
 
-    # Previous period used for percentage comparisons
     report_days = (end_date - start_date).days + 1
-
     previous_end_date = start_date - timezone.timedelta(days=1)
-
     previous_start_date = (
         previous_end_date
         - timezone.timedelta(days=report_days - 1)
     )
-#current delivered item
 
     sales_items = (
         OrderItem.objects
         .filter(
-            order__status="DELIVERED",
-            order__ordered_at__date__range=[
-                start_date,
-                end_date,
-            ],
+            order__status__in=SALES_ORDER_STATUSES,
+            order__ordered_at__date__range=[start_date, end_date],
             is_cancelled=False,
         )
         .select_related(
             "order",
             "order__user",
+            "product",
             "variant",
             "variant__product",
             "variant__product__category",
         )
     )
 
-
-
     previous_items = (
         OrderItem.objects
         .filter(
-            order__status="DELIVERED",
+            order__status__in=SALES_ORDER_STATUSES,
             order__ordered_at__date__range=[
                 previous_start_date,
                 previous_end_date,
@@ -156,14 +315,13 @@ def get_sales_report_data(request):
         .select_related(
             "order",
             "order__user",
+            "product",
             "variant",
             "variant__product",
             "variant__product__category",
         )
     )
 
- #catogry filter
- 
     if category_id != "all":
         try:
             selected_category_id = int(category_id)
@@ -175,43 +333,29 @@ def get_sales_report_data(request):
             previous_items = previous_items.filter(
                 variant__product__category_id=selected_category_id
             )
-
         except (TypeError, ValueError):
             category_id = "all"
 
-#filter search
-
     if search:
-        search_filter = (
-            Q(product_name__icontains=search)
-            | Q(variant__product__name__icontains=search)
-            | Q(variant__product__sku__icontains=search)
-            | Q(order__order_id__icontains=search)
-            | Q(order__user__username__icontains=search)
-            | Q(order__user__email__icontains=search)
-        )
-
+        search_filter = _build_search_filter(search)
         sales_items = sales_items.filter(search_filter)
-
         previous_items = previous_items.filter(search_filter)
-
-#distinct order ids for current and previous periods
 
     current_order_ids = sales_items.values_list(
         "order_id",
-        flat=True
+        flat=True,
     ).distinct()
 
     previous_order_ids = previous_items.values_list(
         "order_id",
-        flat=True
+        flat=True,
     ).distinct()
 
     sales_orders = (
         Order.objects
         .filter(
             id__in=current_order_ids,
-            status="DELIVERED",
+            status__in=SALES_ORDER_STATUSES,
         )
         .select_related("user")
         .distinct()
@@ -221,43 +365,37 @@ def get_sales_report_data(request):
         Order.objects
         .filter(
             id__in=previous_order_ids,
-            status="DELIVERED",
+            status__in=SALES_ORDER_STATUSES,
         )
         .select_related("user")
         .distinct()
     )
 
-#currebt item sommery
-
     item_summary = sales_items.aggregate(
         total_revenue=Coalesce(
             Sum("item_total"),
-            Value(Decimal("0.00")),
+            Value(ZERO_MONEY),
             output_field=DecimalField(
                 max_digits=15,
                 decimal_places=2,
             ),
         ),
-
         total_products_sold=Coalesce(
             Sum("quantity"),
             Value(0),
             output_field=IntegerField(),
         ),
     )
-
-#previos item summary
 
     previous_item_summary = previous_items.aggregate(
         total_revenue=Coalesce(
             Sum("item_total"),
-            Value(Decimal("0.00")),
+            Value(ZERO_MONEY),
             output_field=DecimalField(
                 max_digits=15,
                 decimal_places=2,
             ),
         ),
-
         total_products_sold=Coalesce(
             Sum("quantity"),
             Value(0),
@@ -265,89 +403,48 @@ def get_sales_report_data(request):
         ),
     )
 
-    total_revenue = item_summary["total_revenue"]
-    total_products_sold = item_summary["total_products_sold"]
+    total_revenue = _money(item_summary["total_revenue"])
+    total_products_sold = item_summary["total_products_sold"] or 0
 
-    previous_revenue = previous_item_summary["total_revenue"]
-    previous_products_sold = previous_item_summary[
-        "total_products_sold"
-    ]
-
-#complete order count
+    previous_revenue = _money(
+        previous_item_summary["total_revenue"]
+    )
+    previous_products_sold = (
+        previous_item_summary["total_products_sold"] or 0
+    )
 
     completed_orders = sales_orders.count()
-
     total_orders = completed_orders
-
     previous_order_count = previous_orders.count()
-    
-    if category_id == "all":
 
-        discount_orders = (
-            Order.objects
-            .filter(
-                ordered_at__date__range=[
-                    start_date,
-                    end_date,
-                ],
-                status__in=DELIVERED_OR_POST_DELIVERY_STATUSES,
-            )
-            .select_related("user")
-        )
+    discount_summary = _get_discount_summary(
+        start_date=start_date,
+        end_date=end_date,
+        search=search,
+        category_id=category_id,
+    )
 
-        if search:
-            discount_orders = discount_orders.filter(
-                Q(order_id__icontains=search)
-                | Q(user__username__icontains=search)
-                | Q(user__email__icontains=search)
-                | Q(items__product_name__icontains=search)
-                | Q(items__variant__product__name__icontains=search)
-                | Q(items__variant__product__sku__icontains=search)
-            ).distinct()
-
-        discount_summary = discount_orders.aggregate(
-            normal_discount=Coalesce(
-                Sum("discount"),
-                Value(Decimal("0.00")),
-                output_field=DecimalField(
-                    max_digits=15,
-                    decimal_places=2,
-                ),
-            ),
-            coupon_discount_total=Coalesce(
-                Sum("coupon_discount"),
-                Value(Decimal("0.00")),
-                output_field=DecimalField(
-                    max_digits=15,
-                    decimal_places=2,
-                ),
-            ),
-        )                                                                                           
-
-        total_discount = (
-            discount_summary["normal_discount"]
-            + discount_summary["coupon_discount_total"]
-        )
-
-    else:
-        total_discount = Decimal("0.00")
-
-#avg ordr val
+    offer_discount = discount_summary["offer_discount"]
+    coupon_discount = discount_summary["coupon_discount"]
+    total_discount = discount_summary["total_discount"]
 
     average_order_value = (
         total_revenue / completed_orders
         if completed_orders
-        else Decimal("0.00")
+        else ZERO_MONEY
     )
 
     previous_average_order_value = (
         previous_revenue / previous_order_count
         if previous_order_count
-        else Decimal("0.00")
+        else ZERO_MONEY
     )
 
-#% changes
-    
+    average_order_value = _money(average_order_value)
+    previous_average_order_value = _money(
+        previous_average_order_value
+    )
+
     revenue_change = calculate_percentage_change(
         total_revenue,
         previous_revenue,
@@ -368,8 +465,6 @@ def get_sales_report_data(request):
         previous_average_order_value,
     )
 
-#monthly sales chart
-
     monthly_sales_queryset = (
         sales_items
         .annotate(
@@ -379,13 +474,12 @@ def get_sales_report_data(request):
         .annotate(
             revenue=Coalesce(
                 Sum("item_total"),
-                Value(Decimal("0.00")),
+                Value(ZERO_MONEY),
                 output_field=DecimalField(
                     max_digits=15,
                     decimal_places=2,
                 ),
             ),
-
             orders=Count(
                 "order_id",
                 distinct=True,
@@ -399,32 +493,24 @@ def get_sales_report_data(request):
     monthly_orders = []
 
     for row in monthly_sales_queryset:
-        if row["month"]:
-            monthly_labels.append(
-                row["month"].strftime("%b %Y")
-            )
+        if not row["month"]:
+            continue
 
-            monthly_revenue.append(
-                float(row["revenue"] or 0)
-            )
-
-            monthly_orders.append(
-                row["orders"] or 0
-            )
-
-#catogery revenue
+        monthly_labels.append(
+            row["month"].strftime("%b %Y")
+        )
+        monthly_revenue.append(
+            float(row["revenue"] or 0)
+        )
+        monthly_orders.append(
+            row["orders"] or 0
+        )
 
     category_sales_queryset = (
         sales_items
-        .exclude(
-            variant__isnull=True
-        )
-        .exclude(
-            variant__product__isnull=True
-        )
-        .exclude(
-            variant__product__category__isnull=True
-        )
+        .exclude(variant__isnull=True)
+        .exclude(variant__product__isnull=True)
+        .exclude(variant__product__category__isnull=True)
         .values(
             "variant__product__category_id",
             "variant__product__category__name",
@@ -432,19 +518,17 @@ def get_sales_report_data(request):
         .annotate(
             revenue=Coalesce(
                 Sum("item_total"),
-                Value(Decimal("0.00")),
+                Value(ZERO_MONEY),
                 output_field=DecimalField(
                     max_digits=15,
                     decimal_places=2,
                 ),
             ),
-
             quantity_sold=Coalesce(
                 Sum("quantity"),
                 Value(0),
                 output_field=IntegerField(),
             ),
-
             completed_orders=Count(
                 "order_id",
                 distinct=True,
@@ -462,16 +546,12 @@ def get_sales_report_data(request):
             row["variant__product__category__name"]
             or "Uncategorized"
         )
-
         category_revenue.append(
             float(row["revenue"] or 0)
         )
-
         category_quantity.append(
             row["quantity_sold"] or 0
         )
-
-#detailed prodict report
 
     product_report = (
         sales_items
@@ -490,21 +570,18 @@ def get_sales_report_data(request):
                 Value(0),
                 output_field=IntegerField(),
             ),
-
             gross_revenue=Coalesce(
                 Sum("item_total"),
-                Value(Decimal("0.00")),
+                Value(ZERO_MONEY),
                 output_field=DecimalField(
                     max_digits=15,
                     decimal_places=2,
                 ),
             ),
-
             completed_order_count=Count(
                 "order_id",
                 distinct=True,
             ),
-
             last_sale_date=Max(
                 "order__ordered_at"
             ),
@@ -519,7 +596,7 @@ def get_sales_report_data(request):
                         decimal_places=2,
                     ),
                 ),
-                Value(Decimal("0.00")),
+                Value(ZERO_MONEY),
                 output_field=DecimalField(
                     max_digits=12,
                     decimal_places=2,
@@ -527,66 +604,70 @@ def get_sales_report_data(request):
             )
         )
     )
-#reopr sorting
 
     if sort == "revenue_low":
         product_report = product_report.order_by(
             "gross_revenue",
             "variant__product__name",
         )
-
     elif sort == "quantity_high":
         product_report = product_report.order_by(
             "-quantity_sold",
             "variant__product__name",
         )
-
     elif sort == "quantity_low":
         product_report = product_report.order_by(
             "quantity_sold",
             "variant__product__name",
         )
-
     elif sort == "name":
         product_report = product_report.order_by(
             "variant__product__name"
         )
-
     else:
         product_report = product_report.order_by(
             "-gross_revenue",
             "variant__product__name",
         )
 
-
     normalized_report = []
+
     for row in product_report:
         normalized_report.append({
             "report_product_id": row["variant__product_id"],
             "report_product_sku": row["variant__product__sku"],
             "report_product_name": row["variant__product__name"],
-            "report_category_name": row["variant__product__category__name"],
-            "report_total_stock": row["variant__product__total_stock"],
+            "report_category_name": (
+                row["variant__product__category__name"]
+            ),
+            "report_total_stock": (
+                row["variant__product__total_stock"]
+            ),
             "quantity_sold": row["quantity_sold"],
             "gross_revenue": row["gross_revenue"],
             "average_price": row["average_price"],
             "last_sale_date": row["last_sale_date"],
-            # keep original keys too, for Excel/PDF export code below
+            "completed_order_count": (
+                row["completed_order_count"]
+            ),
+
+            # Export compatibility keys
             "product_id": row["variant__product_id"],
             "product__sku": row["variant__product__sku"],
             "product__name": row["variant__product__name"],
-            "product__category__name": row["variant__product__category__name"],
-            "product__total_stock": row["variant__product__total_stock"],
+            "product__category__name": (
+                row["variant__product__category__name"]
+            ),
+            "product__total_stock": (
+                row["variant__product__total_stock"]
+            ),
         })
 
-#catogery dropdown
     categories = (
         Category.objects
         .filter(is_active=True)
         .order_by("name")
     )
-
-#return report
 
     return {
         "sales_orders": sales_orders,
@@ -603,7 +684,11 @@ def get_sales_report_data(request):
         "total_revenue": total_revenue,
         "total_orders": total_orders,
         "completed_orders": completed_orders,
+
+        "offer_discount": offer_discount,
+        "coupon_discount": coupon_discount,
         "total_discount": total_discount,
+
         "total_products_sold": total_products_sold,
         "average_order_value": average_order_value,
 
@@ -626,10 +711,14 @@ def get_sales_report_data(request):
 def sales_report(request):
     report_data = get_sales_report_data(request)
 
-    product_report = report_data["product_report"]
+    paginator = Paginator(
+        report_data["product_report"],
+        10,
+    )
 
-    paginator = Paginator(product_report, 10)
-    page_obj = paginator.get_page(request.GET.get("page"))
+    page_obj = paginator.get_page(
+        request.GET.get("page")
+    )
 
     query_params = request.GET.copy()
     query_params.pop("page", None)
@@ -638,7 +727,10 @@ def sales_report(request):
     context = {
         **report_data,
         "page_obj": page_obj,
-        "base_query": urlencode(query_params, doseq=True),
+        "base_query": urlencode(
+            query_params,
+            doseq=True,
+        ),
     }
 
     return render(
@@ -651,7 +743,9 @@ def sales_report(request):
 @staff_member_required(login_url="admin_login")
 def export_sales_excel(request):
     report_data = get_sales_report_data(request)
-    product_report = list(report_data["product_report"])
+    product_report = list(
+        report_data["product_report"]
+    )
 
     workbook = Workbook()
     worksheet = workbook.active
@@ -682,28 +776,58 @@ def export_sales_excel(request):
         color="F2CA50",
     )
 
-    worksheet.merge_cells("A1:H1")
+    worksheet.merge_cells("A1:I1")
     worksheet["A1"] = "WHEELVERSE SALES REPORT"
     worksheet["A1"].font = title_font
     worksheet["A1"].fill = dark_fill
-    worksheet["A1"].alignment = Alignment(horizontal="center")
+    worksheet["A1"].alignment = Alignment(
+        horizontal="center"
+    )
 
-    worksheet.merge_cells("A2:H2")
+    worksheet.merge_cells("A2:I2")
     worksheet["A2"] = (
         f"Period: {report_data['start_date']:%d %b %Y}"
         f" to {report_data['end_date']:%d %b %Y}"
     )
     worksheet["A2"].font = white_font
     worksheet["A2"].fill = dark_fill
-    worksheet["A2"].alignment = Alignment(horizontal="center")
+    worksheet["A2"].alignment = Alignment(
+        horizontal="center"
+    )
 
     summary_rows = [
-        ["Total Revenue", float(report_data["total_revenue"])],
-        ["Products Sold", report_data["total_products_sold"]],
-        ["Total Orders", report_data["total_orders"]],
-        ["Completed Orders", report_data["completed_orders"]],
-        ["Average Order Value", float(report_data["average_order_value"])],
-        ["Total Discount", float(report_data["total_discount"])],
+        [
+            "Total Revenue",
+            float(report_data["total_revenue"]),
+        ],
+        [
+            "Products Sold",
+            report_data["total_products_sold"],
+        ],
+        [
+            "Total Orders",
+            report_data["total_orders"],
+        ],
+        [
+            "Completed Orders",
+            report_data["completed_orders"],
+        ],
+        [
+            "Average Order Value",
+            float(report_data["average_order_value"]),
+        ],
+        [
+            "Offer Discount",
+            float(report_data["offer_discount"]),
+        ],
+        [
+            "Coupon Discount",
+            float(report_data["coupon_discount"]),
+        ],
+        [
+            "Total Discount",
+            float(report_data["total_discount"]),
+        ],
     ]
 
     current_row = 4
@@ -711,7 +835,10 @@ def export_sales_excel(request):
     for label, value in summary_rows:
         worksheet.cell(current_row, 1, label)
         worksheet.cell(current_row, 2, value)
-        worksheet.cell(current_row, 1).font = Font(bold=True)
+        worksheet.cell(
+            current_row,
+            1,
+        ).font = Font(bold=True)
         current_row += 1
 
     current_row += 1
@@ -723,33 +850,47 @@ def export_sales_excel(request):
         "Category",
         "Average Price",
         "Quantity Sold",
+        "Orders",
         "Revenue",
         "Last Sale",
     ]
 
-    for column_index, header in enumerate(headers, start=1):
+    header_row = current_row
+
+    for column_index, header in enumerate(
+        headers,
+        start=1,
+    ):
         cell = worksheet.cell(
-            row=current_row,
+            row=header_row,
             column=column_index,
             value=header,
         )
         cell.fill = gold_fill
         cell.font = header_font
-        cell.alignment = Alignment(horizontal="center")
-
-    current_row += 1
+        cell.alignment = Alignment(
+            horizontal="center"
+        )
 
     for product in product_report:
+        current_row += 1
+
         worksheet.append([
             product["product_id"] or "-",
             product["product__sku"] or "-",
             product["product__name"] or "Deleted Product",
-            product["product__category__name"] or "Uncategorized",
+            (
+                product["product__category__name"]
+                or "Uncategorized"
+            ),
             float(product["average_price"] or 0),
             product["quantity_sold"] or 0,
+            product["completed_order_count"] or 0,
             float(product["gross_revenue"] or 0),
             (
-                product["last_sale_date"].strftime("%d %b %Y")
+                product["last_sale_date"].strftime(
+                    "%d %b %Y"
+                )
                 if product["last_sale_date"]
                 else "-"
             ),
@@ -762,8 +903,9 @@ def export_sales_excel(request):
         4: 20,
         5: 18,
         6: 16,
-        7: 18,
+        7: 12,
         8: 18,
+        9: 18,
     }
 
     for column_number, width in column_widths.items():
@@ -771,15 +913,15 @@ def export_sales_excel(request):
             get_column_letter(column_number)
         ].width = width
 
-    worksheet.freeze_panes = f"A{current_row}"
+    worksheet.freeze_panes = f"A{header_row + 1}"
 
     for row in worksheet.iter_rows(
-        min_row=current_row,
+        min_row=header_row + 1,
         min_col=5,
-        max_col=7,
+        max_col=8,
     ):
-        row[0].number_format = '\u20b9#,##0.00'
-        row[2].number_format = '\u20b9#,##0.00'
+        row[0].number_format = '₹#,##0.00'
+        row[3].number_format = '₹#,##0.00'
 
     response = HttpResponse(
         content_type=(
@@ -805,7 +947,10 @@ def export_sales_excel(request):
 @staff_member_required(login_url="admin_login")
 def export_sales_pdf(request):
     report_data = get_sales_report_data(request)
-    product_report = list(report_data["product_report"])
+
+    product_report = list(
+        report_data["product_report"]
+    )
 
     buffer = io.BytesIO()
 
@@ -840,7 +985,10 @@ def export_sales_pdf(request):
     )
 
     story = [
-        Paragraph("WHEELVERSE SALES REPORT", title_style),
+        Paragraph(
+            "WHEELVERSE SALES REPORT",
+            title_style,
+        ),
         Paragraph(
             (
                 f"Report period: "
@@ -854,26 +1002,28 @@ def export_sales_pdf(request):
 
     summary_data = [
         [
-            "Total Revenue",
-            "Products Sold",
+            "Revenue",
+            "Products",
             "Orders",
-            "Completed",
-            "Average Order",
-            "Discount",
+            "Average",
+            "Offer Disc.",
+            "Coupon Disc.",
+            "Total Disc.",
         ],
         [
             f"Rs. {report_data['total_revenue']:,.2f}",
             f"{report_data['total_products_sold']:,}",
             f"{report_data['total_orders']:,}",
-            f"{report_data['completed_orders']:,}",
             f"Rs. {report_data['average_order_value']:,.2f}",
+            f"Rs. {report_data['offer_discount']:,.2f}",
+            f"Rs. {report_data['coupon_discount']:,.2f}",
             f"Rs. {report_data['total_discount']:,.2f}",
         ],
     ]
 
     summary_table = Table(
         summary_data,
-        colWidths=[43 * mm] * 6,
+        colWidths=[37 * mm] * 7,
     )
 
     summary_table.setStyle(
@@ -940,8 +1090,9 @@ def export_sales_pdf(request):
         "SKU",
         "Product",
         "Category",
-        "Average Price",
-        "Qty Sold",
+        "Avg. Price",
+        "Qty",
+        "Orders",
         "Revenue",
         "Stock",
         "Last Sale",
@@ -952,13 +1103,19 @@ def export_sales_pdf(request):
             str(product["product_id"] or "-"),
             product["product__sku"] or "-",
             product["product__name"] or "Deleted Product",
-            product["product__category__name"] or "Uncategorized",
+            (
+                product["product__category__name"]
+                or "Uncategorized"
+            ),
             f"Rs. {product['average_price'] or 0:,.2f}",
             str(product["quantity_sold"] or 0),
+            str(product["completed_order_count"] or 0),
             f"Rs. {product['gross_revenue'] or 0:,.2f}",
             str(product["product__total_stock"] or 0),
             (
-                product["last_sale_date"].strftime("%d %b %Y")
+                product["last_sale_date"].strftime(
+                    "%d %b %Y"
+                )
                 if product["last_sale_date"]
                 else "-"
             ),
@@ -968,15 +1125,16 @@ def export_sales_pdf(request):
         report_table_data,
         repeatRows=1,
         colWidths=[
-            16 * mm,
-            24 * mm,
-            48 * mm,
-            32 * mm,
-            30 * mm,
-            20 * mm,
-            31 * mm,
-            19 * mm,
+            14 * mm,
+            22 * mm,
+            42 * mm,
+            28 * mm,
             27 * mm,
+            16 * mm,
+            17 * mm,
+            29 * mm,
+            17 * mm,
+            25 * mm,
         ],
     )
 
@@ -1043,7 +1201,7 @@ def export_sales_pdf(request):
             (
                 "ALIGN",
                 (4, 1),
-                (8, -1),
+                (9, -1),
                 "RIGHT",
             ),
             (

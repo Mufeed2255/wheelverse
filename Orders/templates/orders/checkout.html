@@ -294,7 +294,31 @@
                             <p class="orbitron text-[9px] text-[#d0c5af] mt-1">
                                 {{ item.variant.color }} / {{ item.variant.size }}
                             </p>
-                            <p class="orbitron text-sm gold mt-2">₹{{ item.subtotal }}</p>
+                            <div class="mt-2">
+                                {% if item.offer_data.line_offer_discount > 0 %}
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs text-[#8d846f] line-through">
+                                            ₹{{ item.offer_data.original_line_total }}
+                                        </span>
+
+                                        <span class="orbitron text-sm gold">
+                                            ₹{{ item.offer_data.final_line_total }}
+                                        </span>
+
+                                        <span class="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-[9px] text-green-300">
+                                            {{ item.offer_data.offer_title }}
+                                        </span>
+                                    </div>
+
+                                    <p class="mt-1 text-[10px] text-green-300">
+                                        You save ₹{{ item.offer_data.line_offer_discount }}
+                                    </p>
+                                {% else %}
+                                    <p class="orbitron text-sm gold">
+                                        ₹{{ item.offer_data.final_line_total }}
+                                    </p>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% endfor %}
@@ -310,17 +334,35 @@
 
                 <div class="space-y-3 mt-6 border-t border-[#f2ca50]/10 pt-5 text-sm">
                     <div class="flex justify-between">
-                        <span class="text-[#d0c5af]">SUBTOTAL</span>
+                        <span class="text-[#d0c5af]">ORIGINAL SUBTOTAL</span>
                         <span>₹{{ subtotal }}</span>
                     </div>
+
+                    <div class="flex justify-between text-green-300">
+                        <span>OFFER DISCOUNT</span>
+                        <span>-₹{{ offer_discount }}</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-[#d0c5af]">AFTER OFFER</span>
+                        <span>₹{{ subtotal_after_offer }}</span>
+                    </div>
+
+                    <div class="flex justify-between text-blue-300">
+                        <span>COUPON DISCOUNT</span>
+                        <span>-₹{{ coupon_discount }}</span>
+                    </div>
+
                     <div class="flex justify-between">
                         <span class="text-[#d0c5af]">SHIPPING CHARGE</span>
                         <span>₹{{ shipping }}</span>
                     </div>
+
                     <div class="flex justify-between">
-                        <span class="text-[#d0c5af]">DISCOUNT</span>
-                        <span>-₹{{ discount }}</span>
+                        <span class="text-[#d0c5af]">TOTAL SAVINGS</span>
+                        <span class="text-[#f2ca50]">-₹{{ discount }}</span>
                     </div>
+
                     <div class="flex justify-between orbitron gold text-lg border-t border-[#f2ca50]/10 pt-4">
                         <span>TOTAL</span>
                         <span>₹{{ grand_total }}</span>

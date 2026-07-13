@@ -41,6 +41,10 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from Wallet.models import Wallet, WalletTransaction
 
+from adminpanel.services.offers import (
+    build_cart_offer_summary,
+)
+
 
 
 
@@ -134,117 +138,253 @@ def checkout_add_address(request):
 
 @login_required
 def checkout(request):
-    cart_items = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).select_related(
-        "variant",
-        "variant__product"
-    ).prefetch_related(
-        "variant__images"
+    cart_items = list(
+        Cart.objects.filter(
+            user=request.user,
+            variant__is_active=True,
+            variant__is_deleted=False
+        )
+        .select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        )
+        .prefetch_related(
+            "variant__images"
+        )
     )
 
-    if not cart_items.exists():
-        messages.error(request, "Your cart is empty.")
+    if not cart_items:
+        messages.error(
+            request,
+            "Your cart is empty."
+        )
         return redirect("cart")
 
-    subtotal = sum(item.subtotal() for item in cart_items)
-    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
+    # Calculate product/category offers
+    offer_summary = build_cart_offer_summary(
+        cart_items
+    )
 
-    discount = Decimal("0.00")
+    original_subtotal = (
+        offer_summary["original_subtotal"]
+    )
+
+    offer_discount = (
+        offer_summary["offer_discount"]
+    )
+
+    subtotal_after_offer = (
+        offer_summary["subtotal_after_offer"]
+    )
+
+    # Attach offer data to each cart item
+    for line in offer_summary["lines"]:
+        cart_item = line["cart_item"]
+        cart_item.offer_data = line
+
+    shipping = (
+        Decimal("80.00")
+        if subtotal_after_offer > 0
+        else Decimal("0.00")
+    )
+
+    coupon_discount = Decimal("0.00")
     applied_coupon = None
-    coupon_code = request.session.get("applied_coupon_code")
+
+    coupon_code = request.session.get(
+        "applied_coupon_code"
+    )
 
     if coupon_code:
-        today = timezone.now().date()
+        today = timezone.localdate()
+
         applied_coupon = Coupon.objects.filter(
             code=coupon_code,
             is_active=True,
             is_deleted=False,
             valid_from__lte=today,
-            valid_till__gte=today
+            valid_till__gte=today,
         ).first()
 
         if applied_coupon:
-            if applied_coupon.usage_limit == 0 or applied_coupon.used_count < applied_coupon.usage_limit:
-                discount = calculate_coupon_discount(applied_coupon, subtotal)
+            usage_available = (
+                applied_coupon.usage_limit == 0
+                or
+                applied_coupon.used_count
+                < applied_coupon.usage_limit
+            )
+
+            if usage_available:
+                # Coupon is applied after offer discount
+                coupon_discount = (
+                    calculate_coupon_discount(
+                        applied_coupon,
+                        subtotal_after_offer,
+                    )
+                )
             else:
-                request.session.pop("applied_coupon_code", None)
+                request.session.pop(
+                    "applied_coupon_code",
+                    None
+                )
                 applied_coupon = None
+
         else:
-            request.session.pop("applied_coupon_code", None)
+            request.session.pop(
+                "applied_coupon_code",
+                None
+            )
 
-    grand_total = subtotal - discount + shipping
+    total_discount = (
+        offer_discount
+        + coupon_discount
+    )
 
-    addresses = Address.objects.filter(user=request.user).order_by("-is_default", "-created_at")
+    grand_total = (
+        original_subtotal
+        - offer_discount
+        - coupon_discount
+        + shipping
+    )
 
-    today = timezone.now().date()
+    if grand_total < 0:
+        grand_total = Decimal("0.00")
+
+    addresses = Address.objects.filter(
+        user=request.user
+    ).order_by(
+        "-is_default",
+        "-created_at"
+    )
+
+    today = timezone.localdate()
+
     available_coupons = Coupon.objects.filter(
         is_active=True,
         is_deleted=False,
         valid_from__lte=today,
-        valid_till__gte=today
+        valid_till__gte=today,
     ).order_by("-created_at")
+
+    wallet, created = Wallet.objects.get_or_create(
+        user=request.user
+    )
 
     context = {
         "cart_items": cart_items,
         "addresses": addresses,
-        "subtotal": subtotal,
-        "discount": discount,
+        "wallet": wallet,
+
+        "subtotal": original_subtotal,
+        "offer_discount": offer_discount,
+        "subtotal_after_offer": subtotal_after_offer,
+        "coupon_discount": coupon_discount,
+        "discount": total_discount,
+
         "shipping": shipping,
         "grand_total": grand_total,
-        "cart_count": cart_items.count(),
+
+        "cart_count": len(cart_items),
         "available_coupons": available_coupons,
         "applied_coupon": applied_coupon,
     }
 
-    return render(request, "orders/checkout.html", context)
-
+    return render(
+        request,
+        "orders/checkout.html",
+        context
+    )
 @login_required
 @require_POST
 def apply_coupon(request):
-    code = request.POST.get("coupon_code", "").strip().upper()
+    code = request.POST.get(
+        "coupon_code",
+        ""
+    ).strip().upper()
 
     if not code:
-        messages.error(request, "Please enter a coupon code.")
+        messages.error(
+            request,
+            "Please enter a coupon code."
+        )
         return redirect("checkout")
 
-    cart_items = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).select_related("variant", "variant__product")
+    cart_items = list(
+        Cart.objects.filter(
+            user=request.user,
+            variant__is_active=True,
+            variant__is_deleted=False
+        )
+        .select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        )
+    )
 
-    if not cart_items.exists():
-        messages.error(request, "Your cart is empty.")
+    if not cart_items:
+        messages.error(
+            request,
+            "Your cart is empty."
+        )
         return redirect("cart")
 
-    subtotal = sum(item.subtotal() for item in cart_items)
-    today = timezone.now().date()
+    offer_summary = build_cart_offer_summary(
+        cart_items
+    )
+
+    subtotal_after_offer = (
+        offer_summary["subtotal_after_offer"]
+    )
+
+    today = timezone.localdate()
 
     coupon = Coupon.objects.filter(
         code=code,
         is_active=True,
         is_deleted=False,
         valid_from__lte=today,
-        valid_till__gte=today
+        valid_till__gte=today,
     ).first()
 
     if not coupon:
-        messages.error(request, "Invalid or expired coupon.")
+        messages.error(
+            request,
+            "Invalid or expired coupon."
+        )
         return redirect("checkout")
 
-    if coupon.usage_limit > 0 and coupon.used_count >= coupon.usage_limit:
-        messages.error(request, "Coupon usage limit reached.")
+    if (
+        coupon.usage_limit > 0
+        and coupon.used_count >= coupon.usage_limit
+    ):
+        messages.error(
+            request,
+            "Coupon usage limit reached."
+        )
         return redirect("checkout")
 
-    if subtotal < coupon.min_cart_amount:
-        messages.error(request, f"Minimum cart amount ₹{coupon.min_cart_amount} required.")
+    if subtotal_after_offer < coupon.min_cart_amount:
+        messages.error(
+            request,
+            (
+                f"Minimum amount "
+                f"₹{coupon.min_cart_amount} "
+                f"is required after offer discount."
+            )
+        )
         return redirect("checkout")
 
-    request.session["applied_coupon_code"] = coupon.code
-    messages.success(request, f"Coupon {coupon.code} applied successfully.")
+    request.session[
+        "applied_coupon_code"
+    ] = coupon.code
+
+    messages.success(
+        request,
+        f"Coupon {coupon.code} applied successfully."
+    )
+
     return redirect("checkout")
 
 
@@ -272,18 +412,28 @@ def place_order(request):
     if request.method != "POST":
         return redirect("checkout")
 
-    cart_items = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).select_related("variant", "variant__product")
+    cart_items = list(
+        Cart.objects.filter(
+            user=request.user,
+            variant__is_active=True,
+            variant__is_deleted=False,
+        ).select_related(
+            "variant",
+            "variant__product",
+            "variant__product__category",
+        )
+    )
 
-    if not cart_items.exists():
+    if not cart_items:
         messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
     selected_address_id = request.POST.get("selected_address")
     payment_method = request.POST.get("payment_method", "COD")
+
+    if payment_method not in {"COD", "WALLET", "RAZORPAY", "UPI"}:
+        messages.error(request, "Invalid payment method.")
+        return redirect("checkout")
 
     if not selected_address_id:
         messages.error(request, "Please select a delivery address.")
@@ -292,94 +442,123 @@ def place_order(request):
     selected_address = get_object_or_404(
         Address,
         id=selected_address_id,
-        user=request.user
+        user=request.user,
     )
 
-    phone = selected_address.phone_number
-    postal_code = selected_address.pincode
+    phone = (selected_address.phone_number or "").strip()
+    postal_code = (selected_address.pincode or "").strip()
 
-    if not phone or not phone.isdigit() or len(phone) != 10:
+    if not phone.isdigit() or len(phone) != 10:
         messages.error(request, "Selected address has an invalid phone number.")
         return redirect("checkout")
 
-    if not postal_code or not postal_code.isdigit() or len(postal_code) != 6:
+    if not postal_code.isdigit() or len(postal_code) != 6:
         messages.error(request, "Selected address has an invalid pincode.")
         return redirect("checkout")
 
-    subtotal = Decimal("0.00")
-    updated_cart_items = []
+    locked_cart_items = []
 
-    for item in cart_items:
-        variant = ProductVariant.objects.select_for_update().get(id=item.variant.id)
+    for cart_item in cart_items:
+        variant = (
+            ProductVariant.objects
+            .select_for_update()
+            .select_related("product", "product__category")
+            .get(id=cart_item.variant_id)
+        )
 
-        if item.quantity > variant.stock:
+        if cart_item.quantity > variant.stock:
             messages.error(
                 request,
                 f"Only {variant.stock} unit(s) available for {variant.product.name}."
             )
             return redirect("cart")
 
-        item_price = variant.price
-        item_total = item_price * item.quantity
-        subtotal += item_total
+        cart_item.variant = variant
+        locked_cart_items.append(cart_item)
 
-        updated_cart_items.append({
-            "cart_item": item,
-            "variant": variant,
-            "item_price": item_price,
-            "item_total": item_total,
-        })
+    offer_summary = build_cart_offer_summary(locked_cart_items)
 
-    discount = Decimal("0.00")
+    original_subtotal = offer_summary["original_subtotal"]
+    offer_discount = offer_summary["offer_discount"]
+    subtotal_after_offer = offer_summary["subtotal_after_offer"]
+
+    coupon_discount = Decimal("0.00")
     applied_coupon = None
     coupon_code = request.session.get("applied_coupon_code")
 
     if coupon_code:
-        today = timezone.now().date()
+        today = timezone.localdate()
 
-        applied_coupon = Coupon.objects.select_for_update().filter(
-            code=coupon_code,
-            is_active=True,
-            is_deleted=False,
-            valid_from__lte=today,
-            valid_till__gte=today
-        ).first()
+        applied_coupon = (
+            Coupon.objects
+            .select_for_update()
+            .filter(
+                code=coupon_code,
+                is_active=True,
+                is_deleted=False,
+                valid_from__lte=today,
+                valid_till__gte=today,
+            )
+            .first()
+        )
 
         if not applied_coupon:
             request.session.pop("applied_coupon_code", None)
             messages.error(request, "Applied coupon is invalid or expired.")
             return redirect("checkout")
 
-        if applied_coupon.usage_limit > 0 and applied_coupon.used_count >= applied_coupon.usage_limit:
+        if (
+            applied_coupon.usage_limit > 0
+            and applied_coupon.used_count >= applied_coupon.usage_limit
+        ):
             request.session.pop("applied_coupon_code", None)
             messages.error(request, "Coupon usage limit reached.")
             return redirect("checkout")
 
-        if subtotal < applied_coupon.min_cart_amount:
+        if subtotal_after_offer < applied_coupon.min_cart_amount:
             messages.error(
                 request,
-                f"Minimum cart amount ₹{applied_coupon.min_cart_amount} required for this coupon."
+                f"Minimum amount ₹{applied_coupon.min_cart_amount} is required after offer discount."
             )
             return redirect("checkout")
 
-        discount = calculate_coupon_discount(applied_coupon, subtotal)
+        coupon_discount = calculate_coupon_discount(
+            applied_coupon,
+            subtotal_after_offer,
+        )
 
-    shipping = Decimal("80.00") if subtotal > 0 else Decimal("0.00")
-    grand_total = subtotal - discount + shipping
+    shipping_fee = (
+        Decimal("80.00")
+        if subtotal_after_offer > 0
+        else Decimal("0.00")
+    )
 
-    if grand_total < 0:
-        grand_total = Decimal("0.00")
+    total_discount = offer_discount + coupon_discount
+
+    grand_total = (
+        original_subtotal
+        - offer_discount
+        - coupon_discount
+        + shipping_fee
+    )
+
+    grand_total = max(
+        grand_total.quantize(Decimal("0.01")),
+        Decimal("0.00"),
+    )
 
     address_str = selected_address.address_line_1
+
     if selected_address.address_line_2:
         address_str += f", {selected_address.address_line_2}"
 
     order = Order.objects.create(
         user=request.user,
-        subtotal=subtotal,
-        discount=discount,
-        coupon_discount=discount,
-        shipping_charge=shipping,
+        subtotal=original_subtotal,
+        offer_discount=offer_discount,
+        coupon_discount=coupon_discount,
+        discount_amount=total_discount,
+        shipping_fee=shipping_fee,
         total_amount=grand_total,
         payment_method=payment_method,
         status="PENDING",
@@ -397,19 +576,25 @@ def place_order(request):
         postal_code=postal_code,
     )
 
-    for data in updated_cart_items:
-        variant = data["variant"]
-        cart_item = data["cart_item"]
+    for line in offer_summary["lines"]:
+        variant = line["variant"]
+        cart_item = line["cart_item"]
 
         OrderItem.objects.create(
             order=order,
+            product=variant.product,
             variant=variant,
             product_name=variant.product.name,
             variant_color=variant.color,
             variant_size=variant.size,
-            price=data["item_price"],
+            original_price=line["original_unit_price"],
+            offer_price=line["final_unit_price"],
+            offer_discount=line["unit_offer_discount"],
+            offer_name=line["offer_title"] or None,
+            offer_type=line["offer_type"] or None,
+            price=line["final_unit_price"],
             quantity=cart_item.quantity,
-            item_total=data["item_total"],
+            item_total=line["final_line_total"],
         )
 
     if applied_coupon:
@@ -419,25 +604,39 @@ def place_order(request):
         CouponUsage.objects.create(
             user=request.user,
             coupon=applied_coupon,
-            order=order
+            order=order,
         )
 
         request.session.pop("applied_coupon_code", None)
 
     return redirect("payment", order_id=order.id)
-
 @login_required
 def payment_view(request, order_id):
-    order = get_object_or_404(Order, id=order_id, user=request.user)
+    order = get_object_or_404(
+        Order.objects.prefetch_related(
+            "items",
+            "items__variant",
+            "items__variant__images",
+        ),
+        id=order_id,
+        user=request.user,
+    )
+
     address = OrderAddress.objects.filter(order=order).first()
     wallet, created = Wallet.objects.get_or_create(user=request.user)
 
-    razorpay_amount = int(order.total_amount * 100)
+    subtotal_after_offer = order.subtotal - order.offer_discount
+    total_savings = order.offer_discount + order.coupon_discount
+
+    razorpay_amount = int(order.total_amount * Decimal("100"))
     razorpay_order_id = None
 
-    if order.payment_method in ["RAZORPAY", "UPI"]:
+    if order.payment_method in {"RAZORPAY", "UPI"}:
         client = razorpay.Client(
-            auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
+            auth=(
+                settings.RAZORPAY_KEY_ID,
+                settings.RAZORPAY_KEY_SECRET,
+            )
         )
 
         if not order.razorpay_order_id:
@@ -445,26 +644,41 @@ def payment_view(request, order_id):
                 "amount": razorpay_amount,
                 "currency": "INR",
                 "payment_capture": 1,
+                "notes": {
+                    "order_id": order.order_id,
+                    "user_id": str(request.user.id),
+                },
             })
 
             order.razorpay_order_id = razorpay_order["id"]
-            order.save(update_fields=["razorpay_order_id"])
+            order.save(
+                update_fields=[
+                    "razorpay_order_id",
+                    "updated_at",
+                ]
+            )
 
         razorpay_order_id = order.razorpay_order_id
 
-    return render(request, "orders/payment.html", {
-        "order": order,
-        "address": address,
-        "subtotal": order.subtotal,
-        "discount": order.discount,
-        "shipping": order.shipping_charge,
-        "grand_total": order.total_amount,
-        "wallet": wallet,
-        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-        "razorpay_amount": razorpay_amount,
-        "razorpay_order_id": razorpay_order_id,
-    })
-
+    return render(
+        request,
+        "orders/payment.html",
+        {
+            "order": order,
+            "address": address,
+            "wallet": wallet,
+            "subtotal": order.subtotal,
+            "offer_discount": order.offer_discount,
+            "subtotal_after_offer": subtotal_after_offer,
+            "coupon_discount": order.coupon_discount,
+            "total_savings": total_savings,
+            "shipping": order.shipping_fee,
+            "grand_total": order.total_amount,
+            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+            "razorpay_amount": razorpay_amount,
+            "razorpay_order_id": razorpay_order_id,
+        },
+    )
 
 def confirm_order_after_payment(order):
     if order.status == "CONFIRMED":

@@ -6,12 +6,18 @@ import uuid
 
 
 class Cart(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL,
-                             on_delete=models.CASCADE, 
-                             related_name="cart_items")
-    variant = models.ForeignKey(ProductVariant,
-                                on_delete=models.CASCADE,
-                                related_name="cart_items")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="cart_items"
+    )
+
+    variant = models.ForeignKey(
+        ProductVariant,
+        on_delete=models.CASCADE,
+        related_name="cart_items"
+    )
+
     quantity = models.PositiveIntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 

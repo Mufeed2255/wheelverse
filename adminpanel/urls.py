@@ -24,6 +24,15 @@ from adminpanel.views.coupon_management import (
 )
 
 from .views.sales_report import export_sales_excel, export_sales_pdf, sales_report
+from .views.offer_management import (
+        add_offer,
+        admin_offers,
+        delete_offer,
+        delete_offer_confirm,
+        edit_offer,
+        toggle_offer_status,
+    )
+
 
 
 
@@ -81,6 +90,13 @@ urlpatterns = [
     path("sales-report/export/excel/",export_sales_excel,name="export_sales_excel"),
 
     path("sales-report/export/pdf/",export_sales_pdf ,name="export_sales_pdf"),
+
+    path("offers/", admin_offers, name="admin_offers"),
+    path("offers/add/", add_offer, name="add_offer"),
+    path("offers/<int:offer_id>/edit/", edit_offer, name="edit_offer"),
+    path("offers/<int:offer_id>/delete-confirm/",delete_offer_confirm,name="delete_offer_confirm",),
+    path("offers/<int:offer_id>/delete/",delete_offer,name="delete_offer",),
+    path("offers/<int:offer_id>/toggle/",toggle_offer_status,name="toggle_offer_status",),
 
 ]
     
