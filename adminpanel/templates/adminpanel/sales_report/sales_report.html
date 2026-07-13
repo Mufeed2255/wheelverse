@@ -1,0 +1,1398 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Sales Report | WheelVerse Admin</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+        rel="stylesheet"
+    >
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        wheelGold: "#f2ca50",
+                        wheelGoldDark: "#d4af37",
+                        wheelBlack: "#090909",
+                        wheelPanel: "#141414",
+                        wheelPanelLight: "#1b1b1b",
+                        wheelBorder: "#393322"
+                    },
+
+                    fontFamily: {
+                        orbitron: ["Orbitron", "sans-serif"],
+                        poppins: ["Poppins", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background:
+                radial-gradient(
+                    circle at 80% 0%,
+                    rgba(242, 202, 80, 0.08),
+                    transparent 28%
+                ),
+                linear-gradient(
+                    145deg,
+                    #0d0c08 0%,
+                    #050505 60%,
+                    #080704 100%
+                );
+            color: #ece6d7;
+            font-family: "Poppins", sans-serif;
+        }
+
+        input[type="date"]::-webkit-calendar-picker-indicator {
+            filter: invert(87%) sepia(91%) saturate(596%)
+                    hue-rotate(331deg) brightness(104%);
+            cursor: pointer;
+        }
+
+        .report-card {
+            background:
+                linear-gradient(
+                    145deg,
+                    rgba(28, 28, 28, 0.94),
+                    rgba(15, 15, 15, 0.96)
+                );
+            border: 1px solid rgba(242, 202, 80, 0.18);
+            box-shadow:
+                0 18px 45px rgba(0, 0, 0, 0.32),
+                inset 0 1px 0 rgba(255, 255, 255, 0.025);
+        }
+
+        .metric-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            position: absolute;
+            right: -35px;
+            top: -35px;
+            width: 100px;
+            height: 100px;
+            border-radius: 999px;
+            background: rgba(242, 202, 80, 0.05);
+            content: "";
+            filter: blur(3px);
+        }
+
+        .gold-text {
+            background: linear-gradient(
+                90deg,
+                #ffe78f,
+                #f2ca50,
+                #c79e25
+            );
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .gold-button {
+            background: linear-gradient(
+                135deg,
+                #ffe06f,
+                #f2ca50,
+                #d4af37
+            );
+            color: #171205;
+            box-shadow: 0 7px 20px rgba(242, 202, 80, 0.17);
+        }
+
+        .gold-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 28px rgba(242, 202, 80, 0.27);
+        }
+
+        .filter-control {
+            width: 100%;
+            min-height: 46px;
+            border: 1px solid rgba(242, 202, 80, 0.18);
+            border-radius: 7px;
+            outline: none;
+            background: #181612;
+            color: #eee7d9;
+            transition: 0.2s ease;
+        }
+
+        .filter-control:focus {
+            border-color: rgba(242, 202, 80, 0.65);
+            box-shadow: 0 0 0 3px rgba(242, 202, 80, 0.08);
+        }
+
+        .data-table {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead {
+            background: #29251b;
+        }
+
+        .data-table th {
+            color: #cec5af;
+            font-family: "Orbitron", sans-serif;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .data-table tbody tr {
+            transition: 0.2s ease;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(242, 202, 80, 0.045);
+        }
+
+        .data-table tbody tr:not(:last-child) td {
+            border-bottom: 1px solid rgba(242, 202, 80, 0.09);
+        }
+
+        .chart-wrapper {
+            position: relative;
+            min-height: 315px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b0b0b;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            border-radius: 10px;
+            background: #5b4d23;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #f2ca50;
+        }
+
+        @media (max-width: 1024px) {
+            .sales-main {
+                margin-left: 0 !important;
+                padding-top: 85px !important;
+            }
+        }
+    </style>
+</head>
+
+<body class="custom-scrollbar">
+
+    {% include 'adminpanel/includes/admin_sidebar.html' %}
+
+    {% include 'adminpanel/includes/admin_topbar.html' %}
+
+    {% include 'adminpanel/includes/messages.html' %}
+
+    <main
+        class="sales-main min-h-screen ml-[280px] pt-[92px] px-4 sm:px-6 xl:px-8 pb-12"
+    >
+        <div class="max-w-[1550px] mx-auto">
+
+            <!-- Header -->
+            <section
+                class="flex flex-col 2xl:flex-row 2xl:items-end
+                       2xl:justify-between gap-6 mb-7"
+            >
+                <div>
+                    <div class="flex items-center gap-3 mb-2">
+                        <span
+                            class="material-symbols-outlined text-wheelGold text-[34px]"
+                        >
+                            monitoring
+                        </span>
+
+                        <h1
+                            class="font-orbitron text-2xl md:text-[32px]
+                                   font-semibold uppercase leading-tight gold-text"
+                        >
+                            Sales Report & Performance
+                        </h1>
+                    </div>
+
+                    <p
+                        class="max-w-2xl text-sm text-[#9caf9f]
+                               flex items-start gap-2"
+                    >
+                        <span
+                            class="mt-[7px] w-2 h-2 rounded-full
+                                   bg-emerald-400 flex-shrink-0"
+                        ></span>
+
+                        Analyze revenue, completed orders, product sales,
+                        category performance and inventory balance.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <a
+                        href="{% url 'export_sales_excel' %}?{{ base_query }}"
+                        class="gold-button min-h-[46px] px-5 rounded-md
+                               inline-flex items-center justify-center gap-2
+                               font-orbitron text-xs font-semibold
+                               transition-all"
+                    >
+                        <span class="material-symbols-outlined text-lg">
+                            download
+                        </span>
+
+                        Download Excel
+                    </a>
+
+                    <a
+                        href="{% url 'export_sales_pdf' %}?{{ base_query }}"
+                        class="gold-button min-h-[46px] px-5 rounded-md
+                               inline-flex items-center justify-center gap-2
+                               font-orbitron text-xs font-semibold
+                               transition-all"
+                    >
+                        <span class="material-symbols-outlined text-lg">
+                            picture_as_pdf
+                        </span>
+
+                        Download PDF
+                    </a>
+                </div>
+            </section>
+
+            <!-- Filters -->
+            <section class="report-card rounded-lg p-5 mb-6">
+                <form
+                    method="get"
+                    action="{% url 'sales_report' %}"
+                    class="grid grid-cols-1 md:grid-cols-2
+                           xl:grid-cols-12 gap-4 items-end"
+                >
+                    <div class="xl:col-span-2">
+                        <label
+                            for="start_date"
+                            class="block mb-2 text-[10px] font-orbitron
+                                   uppercase tracking-widest text-[#aaa18d]"
+                        >
+                            Start Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="start_date"
+                            id="start_date"
+                            value="{{ start_date|date:'Y-m-d' }}"
+                            class="filter-control px-3 text-sm"
+                        >
+                    </div>
+
+                    <div class="xl:col-span-2">
+                        <label
+                            for="end_date"
+                            class="block mb-2 text-[10px] font-orbitron
+                                   uppercase tracking-widest text-[#aaa18d]"
+                        >
+                            End Date
+                        </label>
+
+                        <input
+                            type="date"
+                            name="end_date"
+                            id="end_date"
+                            value="{{ end_date|date:'Y-m-d' }}"
+                            class="filter-control px-3 text-sm"
+                        >
+                    </div>
+
+                    <div class="xl:col-span-2">
+                        <label
+                            for="category"
+                            class="block mb-2 text-[10px] font-orbitron
+                                   uppercase tracking-widest text-[#aaa18d]"
+                        >
+                            Category
+                        </label>
+
+                        <select
+                            name="category"
+                            id="category"
+                            class="filter-control px-3 text-sm"
+                        >
+                            <option value="all" {% if category_id == "all" %}selected{% endif %}>
+                                All Categories
+                            </option>
+
+                            {% for category in categories %}
+                                <option
+                                    value="{{ category.id }}"
+                                    {% if category_id == category.id|stringformat:"s" %}
+                                        selected
+                                    {% endif %}
+                                >
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="xl:col-span-2">
+                        <label
+                            for="sort"
+                            class="block mb-2 text-[10px] font-orbitron
+                                   uppercase tracking-widest text-[#aaa18d]"
+                        >
+                            Sort Report
+                        </label>
+
+                        <select
+                            name="sort"
+                            id="sort"
+                            class="filter-control px-3 text-sm"
+                        >
+                            <option
+                                value="revenue_high"
+                                {% if sort == "revenue_high" %}selected{% endif %}
+                            >
+                                Revenue: High to Low
+                            </option>
+
+                            <option
+                                value="revenue_low"
+                                {% if sort == "revenue_low" %}selected{% endif %}
+                            >
+                                Revenue: Low to High
+                            </option>
+
+                            <option
+                                value="quantity_high"
+                                {% if sort == "quantity_high" %}selected{% endif %}
+                            >
+                                Quantity: High to Low
+                            </option>
+
+                            <option
+                                value="quantity_low"
+                                {% if sort == "quantity_low" %}selected{% endif %}
+                            >
+                                Quantity: Low to High
+                            </option>
+
+                            <option
+                                value="name"
+                                {% if sort == "name" %}selected{% endif %}
+                            >
+                                Product Name
+                            </option>
+                        </select>
+                    </div>
+
+                    <div class="xl:col-span-2">
+                        <label
+                            for="search"
+                            class="block mb-2 text-[10px] font-orbitron
+                                   uppercase tracking-widest text-[#aaa18d]"
+                        >
+                            Search
+                        </label>
+
+                        <div class="relative">
+                            <span
+                                class="material-symbols-outlined absolute
+                                       left-3 top-1/2 -translate-y-1/2
+                                       text-lg text-[#817966]"
+                            >
+                                search
+                            </span>
+
+                            <input
+                                type="text"
+                                name="search"
+                                id="search"
+                                value="{{ search }}"
+                                placeholder="Product, SKU or order..."
+                                class="filter-control pl-10 pr-3 text-sm"
+                            >
+                        </div>
+                    </div>
+
+                    <div class="xl:col-span-2 flex gap-2">
+                        <button
+                            type="submit"
+                            class="gold-button flex-1 min-h-[46px]
+                                   rounded-md inline-flex items-center
+                                   justify-center gap-2 font-orbitron
+                                   text-[11px] font-semibold transition-all"
+                        >
+                            <span class="material-symbols-outlined text-lg">
+                                filter_alt
+                            </span>
+
+                            Apply
+                        </button>
+
+                        <a
+                            href="{% url 'sales_report' %}"
+                            title="Clear filters"
+                            class="w-[46px] min-h-[46px] rounded-md
+                                   border border-[#51482e] bg-[#17150f]
+                                   text-[#c9c0ac] inline-flex items-center
+                                   justify-center hover:text-wheelGold
+                                   hover:border-wheelGold transition"
+                        >
+                            <span class="material-symbols-outlined">
+                                refresh
+                            </span>
+                        </a>
+                    </div>
+                </form>
+            </section>
+
+            <!-- Summary Cards -->
+            <section
+                class="grid grid-cols-1 sm:grid-cols-2
+                       xl:grid-cols-4 gap-5 mb-6"
+            >
+                <!-- Revenue -->
+                <article class="report-card metric-card rounded-lg p-5">
+                    <div class="relative z-10">
+                        <div class="flex items-start justify-between">
+                            <span
+                                class="w-11 h-11 rounded-md bg-wheelGold/10
+                                       border border-wheelGold/25
+                                       flex items-center justify-center"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-wheelGold"
+                                >
+                                    payments
+                                </span>
+                            </span>
+
+                            <span
+                                class="px-2 py-1 rounded text-[10px]
+                                    {% if revenue_change >= 0 %}
+                                        bg-emerald-500/10 text-emerald-400
+                                    {% else %}
+                                        bg-red-500/10 text-red-400
+                                    {% endif %}"
+                            >
+                                {% if revenue_change >= 0 %}+{% endif %}
+                                {{ revenue_change|floatformat:1 }}%
+                            </span>
+                        </div>
+
+                        <p
+                            class="mt-5 text-[11px] font-orbitron uppercase
+                                   tracking-widest text-[#aaa18d]"
+                        >
+                            Total Revenue
+                        </p>
+
+                        <h2
+                            class="mt-2 text-3xl font-orbitron
+                                   font-medium text-[#f4eee2]"
+                        >
+                            ₹{{ total_revenue|floatformat:2 }}
+                        </h2>
+
+                        <div
+                            class="mt-4 h-[4px] rounded-full
+                                   bg-[#27241b] overflow-hidden"
+                        >
+                            <div
+                                class="h-full w-[72%] rounded-full
+                                       bg-wheelGold"
+                            ></div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Products Sold -->
+                <article class="report-card metric-card rounded-lg p-5">
+                    <div class="relative z-10">
+                        <div class="flex items-start justify-between">
+                            <span
+                                class="w-11 h-11 rounded-md bg-wheelGold/10
+                                       border border-wheelGold/25
+                                       flex items-center justify-center"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-wheelGold"
+                                >
+                                    inventory_2
+                                </span>
+                            </span>
+
+                            <span
+                                class="px-2 py-1 rounded text-[10px]
+                                    {% if product_change >= 0 %}
+                                        bg-emerald-500/10 text-emerald-400
+                                    {% else %}
+                                        bg-red-500/10 text-red-400
+                                    {% endif %}"
+                            >
+                                {% if product_change >= 0 %}+{% endif %}
+                                {{ product_change|floatformat:1 }}%
+                            </span>
+                        </div>
+
+                        <p
+                            class="mt-5 text-[11px] font-orbitron uppercase
+                                   tracking-widest text-[#aaa18d]"
+                        >
+                            Products Sold
+                        </p>
+
+                        <h2
+                            class="mt-2 text-3xl font-orbitron
+                                   font-medium text-[#f4eee2]"
+                        >
+                            {{ total_products_sold }}
+                        </h2>
+
+                        <div
+                            class="mt-4 h-[4px] rounded-full
+                                   bg-[#27241b] overflow-hidden"
+                        >
+                            <div
+                                class="h-full w-[58%] rounded-full
+                                       bg-wheelGold"
+                            ></div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Orders -->
+                <article class="report-card metric-card rounded-lg p-5">
+                    <div class="relative z-10">
+                        <div class="flex items-start justify-between">
+                            <span
+                                class="w-11 h-11 rounded-md bg-wheelGold/10
+                                       border border-wheelGold/25
+                                       flex items-center justify-center"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-wheelGold"
+                                >
+                                    verified
+                                </span>
+                            </span>
+
+                            <span
+                                class="px-2 py-1 rounded text-[10px]
+                                    {% if order_change >= 0 %}
+                                        bg-emerald-500/10 text-emerald-400
+                                    {% else %}
+                                        bg-red-500/10 text-red-400
+                                    {% endif %}"
+                            >
+                                {% if order_change >= 0 %}+{% endif %}
+                                {{ order_change|floatformat:1 }}%
+                            </span>
+                        </div>
+
+                        <p
+                            class="mt-5 text-[11px] font-orbitron uppercase
+                                   tracking-widest text-[#aaa18d]"
+                        >
+                            Orders Completed
+                        </p>
+
+                        <h2
+                            class="mt-2 text-3xl font-orbitron
+                                   font-medium text-[#f4eee2]"
+                        >
+                            {{ completed_orders }}
+                            <span class="block mt-1 text-[10px] text-[#8e8778]">
+                                Delivered orders
+                            </span>
+                        </h2>
+
+                        <div
+                            class="mt-4 h-[4px] rounded-full
+                                   bg-[#27241b] overflow-hidden"
+                        >
+                            <div
+                                class="h-full w-[82%] rounded-full
+                                       bg-wheelGold"
+                            ></div>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Average Order -->
+                <article class="report-card metric-card rounded-lg p-5">
+                    <div class="relative z-10">
+                        <div class="flex items-start justify-between">
+                            <span
+                                class="w-11 h-11 rounded-md bg-wheelGold/10
+                                       border border-wheelGold/25
+                                       flex items-center justify-center"
+                            >
+                                <span
+                                    class="material-symbols-outlined text-wheelGold"
+                                >
+                                    analytics
+                                </span>
+                            </span>
+
+                            <span
+                                class="px-2 py-1 rounded text-[10px]
+                                    {% if average_order_change >= 0 %}
+                                        bg-emerald-500/10 text-emerald-400
+                                    {% else %}
+                                        bg-red-500/10 text-red-400
+                                    {% endif %}"
+                            >
+                                {% if average_order_change >= 0 %}+{% endif %}
+                                {{ average_order_change|floatformat:1 }}%
+                            </span>
+                        </div>
+
+                        <p
+                            class="mt-5 text-[11px] font-orbitron uppercase
+                                   tracking-widest text-[#aaa18d]"
+                        >
+                            Average Order Value
+                        </p>
+
+                        <h2
+                            class="mt-2 text-3xl font-orbitron
+                                   font-medium text-[#f4eee2]"
+                        >
+                            ₹{{ average_order_value|floatformat:2 }}
+                        </h2>
+
+                        <div
+                            class="mt-4 h-[4px] rounded-full
+                                   bg-[#27241b] overflow-hidden"
+                        >
+                            <div
+                                class="h-full w-[64%] rounded-full
+                                       bg-[#ff485c]"
+                            ></div>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Charts -->
+            <section
+                class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6"
+            >
+                <!-- Sales Overview -->
+                <article class="report-card rounded-lg p-5 md:p-7">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center
+                               sm:justify-between gap-3 mb-6"
+                    >
+                        <div>
+                            <h2
+                                class="font-orbitron text-xl
+                                       text-wheelGold"
+                            >
+                                Sales Overview
+                            </h2>
+
+                            <p class="mt-1 text-xs text-[#aba390]">
+                                Revenue performance for the selected period
+                            </p>
+                        </div>
+
+                        <div
+                            class="px-3 py-2 rounded-md
+                                   bg-emerald-500/10
+                                   border border-emerald-500/15
+                                   text-xs text-emerald-400"
+                        >
+                            ₹{{ total_revenue|floatformat:2 }} total
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="salesOverviewChart"></canvas>
+                    </div>
+                </article>
+
+                <!-- Category Revenue -->
+                <article class="report-card rounded-lg p-5 md:p-7">
+                    <div
+                        class="flex flex-col sm:flex-row sm:items-center
+                               sm:justify-between gap-3 mb-6"
+                    >
+                        <div>
+                            <h2
+                                class="font-orbitron text-xl
+                                       text-wheelGold"
+                            >
+                                Revenue by Category
+                            </h2>
+
+                            <p class="mt-1 text-xs text-[#aba390]">
+                                {% if selected_category %}
+                                    Revenue for {{ selected_category.name }}
+                                {% else %}
+                                    Best performing product categories
+                                {% endif %}
+                            </p>
+                        </div>
+
+                        <span
+                            class="material-symbols-outlined
+                                   text-[#aaa18d]"
+                        >
+                            more_vert
+                        </span>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="categoryRevenueChart"></canvas>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Additional Summary -->
+            <section
+                class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6"
+            >
+                <article class="report-card rounded-lg p-5">
+                    <div class="flex items-center gap-4">
+                        <span
+                            class="w-12 h-12 rounded-md bg-amber-500/10
+                                   border border-amber-500/20
+                                   flex items-center justify-center"
+                        >
+                            <span
+                                class="material-symbols-outlined text-amber-400"
+                            >
+                                sell
+                            </span>
+                        </span>
+
+                        <div>
+                            <p
+                                class="text-[10px] font-orbitron
+                                       uppercase tracking-widest
+                                       text-[#aaa18d]"
+                            >
+                                Total Discount Given
+                            </p>
+
+                            <h3
+                                class="mt-1 text-2xl font-orbitron
+                                       text-[#f3eee4]"
+                            >
+                                ₹{{ total_discount|floatformat:2 }}
+                            </h3>
+                        </div>
+                    </div>
+                </article>
+
+                <article class="report-card rounded-lg p-5">
+                    <div class="flex items-center gap-4">
+                        <span
+                            class="w-12 h-12 rounded-md bg-blue-500/10
+                                   border border-blue-500/20
+                                   flex items-center justify-center"
+                        >
+                            <span
+                                class="material-symbols-outlined text-blue-400"
+                            >
+                                calendar_month
+                            </span>
+                        </span>
+
+                        <div>
+                            <p
+                                class="text-[10px] font-orbitron
+                                       uppercase tracking-widest
+                                       text-[#aaa18d]"
+                            >
+                                Selected Report Period
+                            </p>
+
+                            <h3
+                                class="mt-1 text-base md:text-lg
+                                       font-orbitron text-[#f3eee4]"
+                            >
+                                {{ start_date|date:"d M Y" }}
+                                -
+                                {{ end_date|date:"d M Y" }}
+                            </h3>
+                        </div>
+                    </div>
+                </article>
+            </section>
+
+            <!-- Detailed Table -->
+            <section class="report-card rounded-lg overflow-hidden">
+                <div
+                    class="px-5 md:px-7 py-5 border-b
+                           border-wheelGold/15 flex flex-col
+                           md:flex-row md:items-center
+                           md:justify-between gap-3"
+                >
+                    <div>
+                        <h2
+                            class="font-orbitron text-xl
+                                   text-wheelGold"
+                        >
+                            Detailed Sales Report
+                        </h2>
+
+                        <p class="mt-1 text-xs text-[#999180]">
+                            Product sales, revenue, current stock and last sale.
+                        </p>
+                    </div>
+
+                    <div
+                        class="text-xs text-[#a69d89]
+                               bg-[#1c1912] px-3 py-2 rounded
+                               border border-wheelGold/10"
+                    >
+                        {{ page_obj.paginator.count }} report item{{ page_obj.paginator.count|pluralize }}
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto custom-scrollbar">
+                    <table class="data-table w-full min-w-[1050px]">
+                        <thead>
+                            <tr>
+                                <th class="px-5 py-4 text-left">
+                                    Product ID
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Product Model
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Category
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Avg. Price
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Quantity Sold
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Total Revenue
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Balance Qty
+                                </th>
+
+                                <th class="px-5 py-4 text-left">
+                                    Last Sale Date
+                                </th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for report in page_obj %}
+                                <tr>
+                                    <td class="px-5 py-5">
+                                        <div
+                                            class="font-orbitron text-xs
+                                                   text-wheelGold"
+                                        >
+                                            #WV-
+                                            {% if report.report_product_id %}
+                                                {{ report.report_product_id|stringformat:"05d" }}
+                                            {% else %}
+                                                -----
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="mt-1 text-[10px] text-[#736c5e]">
+                                            {{ report.report_product_sku|default:"NO-SKU" }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-5 py-5">
+                                        <div
+                                            class="font-medium text-sm
+                                                   text-[#f0ebe2]"
+                                        >
+                                            {{ report.report_product_name|default:"Deleted Product" }}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-5 py-5">
+                                        <span
+                                            class="px-2.5 py-1 rounded
+                                                   bg-wheelGold/10
+                                                   border border-wheelGold/20
+                                                   text-[10px]
+                                                   text-wheelGold"
+                                        >
+                                            {{ report.report_category_name|default:"Uncategorized" }}
+                                        </span>
+                                    </td>
+
+                                    <td
+                                        class="px-5 py-5 text-sm
+                                               text-[#e8e0d1]"
+                                    >
+                                        ₹{{ report.average_price|floatformat:2 }}
+                                    </td>
+
+                                    <td
+                                        class="px-5 py-5 text-sm
+                                               text-[#e8e0d1]"
+                                    >
+                                        {{ report.quantity_sold }}
+                                    </td>
+
+                                    <td
+                                        class="px-5 py-5 font-semibold
+                                               text-sm text-[#f5f0e7]"
+                                    >
+                                        ₹{{ report.gross_revenue|floatformat:2 }}
+                                    </td>
+
+                                    <td class="px-5 py-5">
+                                        {% if report.report_total_stock > 10 %}
+                                            <div
+                                                class="inline-flex items-center
+                                                       gap-2 text-xs
+                                                       text-emerald-400"
+                                            >
+                                                <span
+                                                    class="w-2 h-2 rounded-full
+                                                           bg-emerald-400"
+                                                ></span>
+
+                                                {{ report.report_total_stock }}
+                                                units
+                                            </div>
+
+                                        {% elif report.report_total_stock > 0 %}
+                                            <div
+                                                class="inline-flex items-center
+                                                       gap-2 text-xs
+                                                       text-amber-400"
+                                            >
+                                                <span
+                                                    class="w-2 h-2 rounded-full
+                                                           bg-amber-400"
+                                                ></span>
+
+                                                {{ report.report_total_stock }}
+                                                units
+                                            </div>
+
+                                        {% else %}
+                                            <div
+                                                class="inline-flex items-center
+                                                       gap-2 text-xs
+                                                       text-red-400"
+                                            >
+                                                <span
+                                                    class="w-2 h-2 rounded-full
+                                                           bg-red-400"
+                                                ></span>
+
+                                                Out of stock
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td
+                                        class="px-5 py-5 text-xs
+                                               text-[#aaa18f]"
+                                    >
+                                        {% if report.last_sale_date %}
+                                            {{ report.last_sale_date|date:"d M Y" }}
+
+                                            <div class="mt-1 text-[10px] text-[#70695d]">
+                                                {{ report.last_sale_date|time:"h:i A" }}
+                                            </div>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                </tr>
+
+                            {% empty %}
+                                <tr>
+                                    <td
+                                        colspan="8"
+                                        class="px-6 py-20 text-center"
+                                    >
+                                        <span
+                                            class="material-symbols-outlined
+                                                   text-6xl text-wheelGold/30"
+                                        >
+                                            query_stats
+                                        </span>
+
+                                        <h3
+                                            class="mt-4 font-orbitron
+                                                   text-lg text-[#d8d0c0]"
+                                        >
+                                            No sales data found
+                                        </h3>
+
+                                        <p class="mt-2 text-sm text-[#80796b]">
+                                            Change the date, category or search filters.
+                                        </p>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {% if page_obj.paginator.num_pages > 1 %}
+                    <div
+                        class="px-5 md:px-7 py-5 border-t
+                               border-wheelGold/10 flex flex-col
+                               sm:flex-row sm:items-center
+                               sm:justify-between gap-4"
+                    >
+                        <p class="text-xs text-[#898272]">
+                            Showing
+                            {{ page_obj.start_index }}
+                            -
+                            {{ page_obj.end_index }}
+                            of
+                            {{ page_obj.paginator.count }}
+                            reports
+                        </p>
+
+                        <nav class="flex items-center gap-2">
+                            {% if page_obj.has_previous %}
+                                <a
+                                    href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.previous_page_number }}"
+                                    class="w-9 h-9 rounded border
+                                           border-[#403a29] bg-[#17150f]
+                                           inline-flex items-center
+                                           justify-center text-[#aaa18f]
+                                           hover:border-wheelGold
+                                           hover:text-wheelGold transition"
+                                >
+                                    <span class="material-symbols-outlined text-lg">
+                                        chevron_left
+                                    </span>
+                                </a>
+                            {% else %}
+                                <span
+                                    class="w-9 h-9 rounded border
+                                           border-[#24221c] bg-[#111]
+                                           inline-flex items-center
+                                           justify-center text-[#3e3a30]"
+                                >
+                                    <span class="material-symbols-outlined text-lg">
+                                        chevron_left
+                                    </span>
+                                </span>
+                            {% endif %}
+
+                            {% for page_number in page_obj.paginator.page_range %}
+                                {% if page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
+                                    <a
+                                        href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_number }}"
+                                        class="w-9 h-9 rounded border
+                                            inline-flex items-center
+                                            justify-center font-orbitron
+                                            text-xs transition
+                                            {% if page_obj.number == page_number %}
+                                                bg-wheelGold
+                                                border-wheelGold
+                                                text-[#171205]
+                                            {% else %}
+                                                border-[#403a29]
+                                                bg-[#17150f]
+                                                text-[#aaa18f]
+                                                hover:border-wheelGold
+                                                hover:text-wheelGold
+                                            {% endif %}"
+                                    >
+                                        {{ page_number }}
+                                    </a>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <a
+                                    href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.next_page_number }}"
+                                    class="w-9 h-9 rounded border
+                                           border-[#403a29] bg-[#17150f]
+                                           inline-flex items-center
+                                           justify-center text-[#aaa18f]
+                                           hover:border-wheelGold
+                                           hover:text-wheelGold transition"
+                                >
+                                    <span class="material-symbols-outlined text-lg">
+                                        chevron_right
+                                    </span>
+                                </a>
+                            {% else %}
+                                <span
+                                    class="w-9 h-9 rounded border
+                                           border-[#24221c] bg-[#111]
+                                           inline-flex items-center
+                                           justify-center text-[#3e3a30]"
+                                >
+                                    <span class="material-symbols-outlined text-lg">
+                                        chevron_right
+                                    </span>
+                                </span>
+                            {% endif %}
+                        </nav>
+                    </div>
+                {% endif %}
+            </section>
+        </div>
+    </main>
+
+    {{ monthly_labels|json_script:"monthly-labels" }}
+    {{ monthly_revenue|json_script:"monthly-revenue" }}
+    {{ monthly_orders|json_script:"monthly-orders" }}
+
+    {{ category_labels|json_script:"category-labels" }}
+    {{ category_revenue|json_script:"category-revenue" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const monthlyLabels = JSON.parse(
+            document.getElementById("monthly-labels").textContent
+        );
+
+        const monthlyRevenue = JSON.parse(
+            document.getElementById("monthly-revenue").textContent
+        );
+
+        const monthlyOrders = JSON.parse(
+            document.getElementById("monthly-orders").textContent
+        );
+
+        const categoryLabels = JSON.parse(
+            document.getElementById("category-labels").textContent
+        );
+
+        const categoryRevenue = JSON.parse(
+            document.getElementById("category-revenue").textContent
+        );
+
+        Chart.defaults.color = "#9e9686";
+        Chart.defaults.font.family = "Poppins";
+
+        const salesCanvas = document.getElementById("salesOverviewChart");
+        const salesContext = salesCanvas.getContext("2d");
+
+        const salesGradient = salesContext.createLinearGradient(0, 0, 0, 320);
+        salesGradient.addColorStop(0, "rgba(242, 202, 80, 0.35)");
+        salesGradient.addColorStop(1, "rgba(242, 202, 80, 0.00)");
+
+        new Chart(salesContext, {
+            type: "line",
+            data: {
+                labels: monthlyLabels,
+                datasets: [
+                    {
+                        label: "Revenue",
+                        data: monthlyRevenue,
+                        borderColor: "#f2ca50",
+                        backgroundColor: salesGradient,
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: "#f2ca50",
+                        pointBorderColor: "#17150f",
+                        pointBorderWidth: 2,
+                        tension: 0.42,
+                        fill: true,
+                        yAxisID: "revenueAxis"
+                    },
+                    {
+                        label: "Orders",
+                        data: monthlyOrders,
+                        borderColor: "#58c999",
+                        backgroundColor: "transparent",
+                        borderWidth: 2,
+                        pointRadius: 3,
+                        pointHoverRadius: 6,
+                        pointBackgroundColor: "#58c999",
+                        tension: 0.35,
+                        yAxisID: "orderAxis"
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: "index", intersect: false },
+                plugins: {
+                    legend: {
+                        position: "top",
+                        labels: { color: "#bbb3a4", usePointStyle: true, boxWidth: 8, padding: 20 }
+                    },
+                    tooltip: {
+                        backgroundColor: "#15130e",
+                        borderColor: "rgba(242, 202, 80, 0.35)",
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function (context) {
+                                if (context.dataset.yAxisID === "revenueAxis") {
+                                    return " Revenue: \u20b9" + Number(context.raw).toLocaleString("en-IN");
+                                }
+                                return " Orders: " + context.raw;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { color: "rgba(255,255,255,0.035)" },
+                        ticks: { color: "#817a6d" }
+                    },
+                    revenueAxis: {
+                        position: "left",
+                        grid: { color: "rgba(255,255,255,0.045)" },
+                        ticks: {
+                            color: "#817a6d",
+                            callback: function (value) {
+                                return "\u20b9" + Number(value).toLocaleString("en-IN");
+                            }
+                        }
+                    },
+                    orderAxis: {
+                        position: "right",
+                        grid: { drawOnChartArea: false },
+                        ticks: { color: "#58c999", precision: 0 }
+                    }
+                }
+            }
+        });
+
+        const categoryCanvas = document.getElementById("categoryRevenueChart");
+
+        new Chart(categoryCanvas, {
+            type: "bar",
+            data: {
+                labels: categoryLabels,
+                datasets: [
+                    {
+                        label: "Revenue",
+                        data: categoryRevenue,
+                        backgroundColor: "#f2ca50",
+                        hoverBackgroundColor: "#ffe27a",
+                        borderColor: "#d4af37",
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                        barPercentage: 0.68,
+                        categoryPercentage: 0.75
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: "#15130e",
+                        borderColor: "rgba(242, 202, 80, 0.35)",
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: function (context) {
+                                return " Revenue: \u20b9" + Number(context.raw).toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: "#aaa18f" }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: "rgba(255,255,255,0.045)" },
+                        ticks: {
+                            color: "#817a6d",
+                            callback: function (value) {
+                                return "\u20b9" + Number(value).toLocaleString("en-IN");
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // ---- Auto-submit filters (no Apply button needed) ----
+        const filterForm = document.querySelector("form[action*='sales_report']");
+        if (filterForm) {
+            const applyButton = filterForm.querySelector("button[type='submit']");
+            if (applyButton) {
+                applyButton.style.display = "none";
+            }
+
+            const instantFields = filterForm.querySelectorAll("#start_date, #end_date, #category, #sort");
+            instantFields.forEach(function (field) {
+                field.addEventListener("change", function () {
+                    filterForm.submit();
+                });
+            });
+
+            const searchField = filterForm.querySelector("#search");
+            if (searchField) {
+                let debounceTimer;
+                searchField.addEventListener("input", function () {
+                    clearTimeout(debounceTimer);
+                    debounceTimer = setTimeout(function () {
+                        filterForm.submit();
+                    }, 600);
+                });
+            }
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,3 +1,10 @@
+Library
+/
+admin_dashboard_fixed.html
+
+
+
+
 {% load static %}
 <!DOCTYPE html>
 <html class="dark" lang="en">
@@ -5,360 +12,745 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>WHEELVERSE COMMAND CENTER</title>
+
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
                 extend: {
-                    "colors": {
+                    colors: {
                         "secondary": "#c9c6c5",
-                        "tertiary-container": "#b4b2b2",
-                        "on-secondary-fixed-variant": "#474646",
-                        "on-error-container": "#ffdad6",
-                        "on-secondary-fixed": "#1c1b1b",
-                        "on-tertiary-fixed-variant": "#474746",
-                        "inverse-surface": "#eae1d4",
-                        "on-tertiary-container": "#454544",
                         "outline": "#99907c",
-                        "error-container": "#93000a",
-                        "tertiary-fixed-dim": "#c8c6c5",
-                        "tertiary-fixed": "#e5e2e1",
-                        "tertiary": "#d0cdcd",
-                        "surface-dim": "#16130b",
                         "surface": "#16130b",
-                        "on-primary-fixed-variant": "#574500",
-                        "on-primary-container": "#554300",
-                        "inverse-primary": "#735c00",
-                        "error": "#ffb4ab",
-                        "surface-container-high": "#2d2a21",
-                        "on-secondary": "#313030",
-                        "primary-fixed": "#ffe088",
-                        "primary-container": "#d4af37",
-                        "on-primary": "#3c2f00",
-                        "on-error": "#690005",
-                        "on-background": "#eae1d4",
-                        "surface-bright": "#3d392f",
-                        "secondary-fixed-dim": "#c9c6c5",
-                        "inverse-on-surface": "#343027",
                         "background": "#16130b",
                         "surface-container": "#231f17",
-                        "on-tertiary": "#313030",
-                        "secondary-fixed": "#e5e2e1",
-                        "primary-fixed-dim": "#e9c349",
-                        "on-surface-variant": "#d0c5af",
                         "surface-container-lowest": "#110e07",
-                        "outline-variant": "#4d4635",
                         "surface-container-low": "#1f1b13",
-                        "secondary-container": "#4a4949",
-                        "on-secondary-container": "#bab8b7",
-                        "on-surface": "#eae1d4",
                         "surface-variant": "#38342b",
+                        "on-surface": "#eae1d4",
+                        "on-surface-variant": "#d0c5af",
+                        "outline-variant": "#4d4635",
                         "primary": "#f2ca50",
-                        "on-tertiary-fixed": "#1c1b1b",
-                        "on-primary-fixed": "#241a00",
-                        "surface-tint": "#e9c349",
-                        "surface-container-highest": "#38342b"
+                        "on-primary": "#3c2f00"
                     },
-                    "borderRadius": {
-                        "DEFAULT": "0.125rem",
-                        "lg": "0.25rem",
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
-                    },
-                    "spacing": {
-                        "unit": "8px",
-                        "margin-desktop": "80px",
+                    spacing: {
                         "gutter": "24px",
-                        "margin-mobile": "20px",
                         "container-max": "1440px"
                     },
-                    "fontFamily": {
+                    fontFamily: {
                         "headline-md": ["Orbitron"],
                         "label-caps": ["Orbitron"],
                         "body-md": ["Poppins"],
-                        "body-lg": ["Poppins"],
-                        "display-lg-mobile": ["Orbitron"],
                         "display-lg": ["Orbitron"]
                     },
-                    "fontSize": {
-                        "headline-md": ["32px", {"lineHeight": "40px", "letterSpacing": "0.03em", "fontWeight": "600"}],
-                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500"}],
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "0.05em", "fontWeight": "700"}],
-                        "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                    fontSize: {
+                        "headline-md": [
+                            "32px",
+                            {
+                                "lineHeight": "40px",
+                                "letterSpacing": "0.03em",
+                                "fontWeight": "600"
+                            }
+                        ],
+                        "label-caps": [
+                            "12px",
+                            {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.1em",
+                                "fontWeight": "500"
+                            }
+                        ]
                     }
-                },
-            },
+                }
+            }
         }
     </script>
+
     <style>
         body {
-            background-color: #0A0A0A;
-            background-image: radial-gradient(circle at 2px 2px, rgba(242, 202, 80, 0.05) 1px, transparent 0);
+            background-color: #0a0a0a;
+            background-image:
+                radial-gradient(
+                    circle at 2px 2px,
+                    rgba(242, 202, 80, 0.05) 1px,
+                    transparent 0
+                );
             background-size: 40px 40px;
         }
+
         .glass-card {
-            background: rgba(26, 26, 26, 0.7);
+            background: rgba(26, 26, 26, 0.78);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(242, 202, 80, 0.15);
-            box-shadow: inset 0 0 10px rgba(242, 202, 80, 0.05);
+            box-shadow:
+                inset 0 0 10px rgba(242, 202, 80, 0.05),
+                0 18px 40px rgba(0, 0, 0, 0.24);
         }
+
         .neon-glow-gold {
             box-shadow: 0 0 15px rgba(242, 202, 80, 0.2);
         }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
+            height: 4px;
         }
+
         .custom-scrollbar::-webkit-scrollbar-track {
-            background: rgba(0,0,0,0.1);
+            background: rgba(0, 0, 0, 0.1);
         }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #f2ca50;
             border-radius: 10px;
         }
+
+        .chart-container {
+            position: relative;
+            min-height: 300px;
+        }
     </style>
 </head>
-<body class="text-on-surface font-body-md h-screen overflow-hidden flex">
 
-    <div id="statusToast" class="fixed top-6 right-6 z-50 transform translate-x-[450px] transition-all duration-500 ease-out max-w-sm w-80 glass-card p-4 rounded border-l-4 border-l-primary flex items-center gap-4 shadow-xl">
-        <div class="flex items-center justify-center bg-primary/10 p-2 rounded text-primary">
-            <span class="material-symbols-outlined">verified</span>
-        </div>
-        <div class="flex-1">
-            <h4 class="font-label-caps text-xs text-primary font-bold tracking-wider">SYSTEM UPDATE</h4>
-            <p id="toastMessage" class="text-xs text-on-surface-variant mt-0.5">Session synchronized successfully.</p>
-        </div>
-    </div>
+<body class="text-on-surface font-body-md h-screen overflow-hidden flex">
 
     {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-    <div class="flex-1 pl-[240px] pt-[70px] flex flex-col h-screen overflow-hidden">
-
+    <div class="flex-1 min-w-0 pt-[70px] flex flex-col h-screen overflow-hidden">
         {% include 'adminpanel/includes/admin_topbar.html' %}
 
-        <main class="flex-1 overflow-y-auto custom-scrollbar bg-background p-8">
-            <div class="max-w-container-max mx-auto space-y-gutter">
+       <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar bg-background p-6 lg:p-8">
+
+            <div class="w-full max-w-[1440px] mx-auto space-y-gutter">
+
                 {% include 'adminpanel/includes/messages.html' %}
-                
-                <div class="flex justify-between items-end mb-4">
+
+                <div class="flex flex-col xl:flex-row xl:items-end xl:justify-between gap-5 mb-4">
                     <div>
-                        <h2 class="font-headline-md text-headline-md text-on-surface">Welcome, Admin</h2>
-                        <p class="text-on-surface-variant font-body-md">Here, What Happening With Your Store Today</p>
+                        <h2 class="font-headline-md text-headline-md text-on-surface">
+                            Welcome, Admin
+                        </h2>
+                        <p class="text-on-surface-variant font-body-md">
+                            Here is what is happening with your store today.
+                        </p>
                     </div>
-                    <div class="flex gap-4">
-                        <button class="px-6 py-2 border border-primary/30 text-primary font-label-caps text-label-caps hover:bg-primary/5 transition-all">SYSTEM DIAGNOSTIC</button>
-                        <button class="px-6 py-2 bg-primary text-on-primary font-label-caps text-label-caps font-bold neon-glow-gold">NEW ACQUISITION</button>
+
+                    <div class="flex flex-wrap gap-3">
+                        <a
+                            href="{% url 'sales_report' %}"
+                            class="px-6 py-2 border border-primary/30 text-primary font-label-caps text-label-caps hover:bg-primary/5 transition-all"
+                        >
+                            View Sales Report
+                        </a>
+
+                        <a
+                            href="{% url 'admin_orders' %}"
+                            class="px-6 py-2 bg-primary text-on-primary font-label-caps text-label-caps font-bold neon-glow-gold"
+                        >
+                            View Orders
+                        </a>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-gutter">
-                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 relative">
-                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Total Customers</p>
+                <!-- Dashboard cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-gutter">
+
+                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300">
+                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                            Total Customers
+                        </p>
+
                         <div class="flex items-end justify-between mt-4">
-                            <span class="font-display-lg text-4xl text-primary">{{ total_users }}</span>
-                            <span class="material-symbols-outlined text-primary/40 text-4xl">groups</span>
+                            <span class="font-display-lg text-4xl text-primary">
+                                {{ total_users }}
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary/40 text-4xl">
+                                groups
+                            </span>
                         </div>
+
                         <div class="mt-4 flex items-center gap-1 text-[10px] text-primary">
-                            <span class="material-symbols-outlined text-[12px]">person</span>
+                            <span class="material-symbols-outlined text-[12px]">
+                                person
+                            </span>
                             <span>REGISTERED COLLECTORS</span>
                         </div>
                     </div>
-                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 relative">
-                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Active Users</p>
+
+                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300">
+                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                            Active Users
+                        </p>
+
                         <div class="flex items-end justify-between mt-4">
-                            <span class="font-display-lg text-4xl text-primary">{{ active_users }}</span>
-                            <span class="material-symbols-outlined text-primary/40 text-4xl">hub</span>
+                            <span class="font-display-lg text-4xl text-primary">
+                                {{ active_users }}
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary/40 text-4xl">
+                                person_check
+                            </span>
                         </div>
+
                         <div class="mt-4 flex items-center gap-1 text-[10px] text-primary">
-                            <span class="material-symbols-outlined text-[12px]">check_circle</span>
-                            <span>SYSTEM INTEGRITY: 99.9%</span>
+                            <span class="material-symbols-outlined text-[12px]">
+                                check_circle
+                            </span>
+                            <span>ACTIVE CUSTOMER ACCOUNTS</span>
                         </div>
                     </div>
-                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 relative">
-                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Inactive Users</p>
+
+                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300">
+                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                            Inactive Users
+                        </p>
+
                         <div class="flex items-end justify-between mt-4">
-                            <span class="font-display-lg text-4xl text-primary">{{ inactive_users }}</span>
-                            <span class="material-symbols-outlined text-primary/40 text-4xl">person_off</span>
+                            <span class="font-display-lg text-4xl text-primary">
+                                {{ inactive_users }}
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary/40 text-4xl">
+                                person_off
+                            </span>
                         </div>
+
                         <div class="mt-4 flex items-center gap-1 text-[10px] text-primary">
-                            <span class="material-symbols-outlined text-[12px]">block</span>
+                            <span class="material-symbols-outlined text-[12px]">
+                                block
+                            </span>
                             <span>DEACTIVATED ACCOUNTS</span>
                         </div>
                     </div>
-                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 relative">
-                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">Total Orders</p>
+
+                    <div class="glass-card p-6 rounded-lg group hover:border-primary/50 transition-all duration-300">
+                        <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                            Total Orders
+                        </p>
+
                         <div class="flex items-end justify-between mt-4">
-                            <span class="font-display-lg text-4xl text-primary">—</span>
-                            <span class="material-symbols-outlined text-primary/40 text-4xl">sync_alt</span>
+                            <span class="font-display-lg text-4xl text-primary">
+                                {{ total_orders }}
+                            </span>
+
+                            <span class="material-symbols-outlined text-primary/40 text-4xl">
+                                receipt_long
+                            </span>
                         </div>
-                        <div class="mt-4 flex items-center gap-1 text-[10px] text-primary">
-                            <span class="material-symbols-outlined text-[12px]">bolt</span>
-                            <span>ORDER MODULE PENDING</span>
+
+                        <div class="mt-4 flex items-center gap-3 text-[10px]">
+                            <span class="text-green-400">
+                                {{ completed_orders }} delivered
+                            </span>
+                            <span class="text-amber-400">
+                                {{ pending_orders }} active
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-                    <div class="lg:col-span-2 glass-card p-8 rounded-lg flex flex-col">
-                        <div class="flex justify-between items-center mb-8">
+                <!-- Performance charts -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+
+                    <div class="xl:col-span-2 glass-card p-8 rounded-lg">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+
                             <div>
-                                <h3 class="font-headline-md text-xl text-on-surface">Market Performance</h3>
-                                <p class="text-on-surface-variant text-sm">Real-time asset valuation telemetry (24h Window)</p>
+                                <h3 class="font-headline-md text-xl text-on-surface">
+                                    {{ performance_title }}
+                                </h3>
+
+                                <p class="text-on-surface-variant text-sm">
+                                    {{ performance_subtitle }}
+                                </p>
                             </div>
+
                             <div class="flex gap-2">
-                                <span class="px-3 py-1 bg-primary/10 text-primary border border-primary/20 rounded text-xs font-label-caps">LIVE</span>
-                                <span class="px-3 py-1 bg-surface-variant text-on-surface-variant rounded text-xs font-label-caps">MONTHLY</span>
+                                <a
+                                    href="?performance=weekly"
+                                    class="px-3 py-2 rounded text-xs font-label-caps transition-all
+                                    {% if performance_period == 'weekly' %}
+                                        bg-primary text-on-primary
+                                    {% else %}
+                                        bg-primary/10 text-primary border border-primary/20
+                                    {% endif %}"
+                                >
+                                    Weekly
+                                </a>
+
+                                <a
+                                    href="?performance=monthly"
+                                    class="px-3 py-2 rounded text-xs font-label-caps transition-all
+                                    {% if performance_period == 'monthly' %}
+                                        bg-primary text-on-primary
+                                    {% else %}
+                                        bg-primary/10 text-primary border border-primary/20
+                                    {% endif %}"
+                                >
+                                    Monthly
+                                </a>
                             </div>
                         </div>
-                        <div class="flex-1 min-h-[300px] relative flex items-end justify-between px-4 pb-4 border-b border-primary/10">
-                            <div class="absolute inset-0 flex flex-col justify-between py-4 pointer-events-none">
-                                <div class="w-full border-t border-white/5"></div>
-                                <div class="w-full border-t border-white/5"></div>
-                                <div class="w-full border-t border-white/5"></div>
-                            </div>
-                            <div class="h-[60%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                            <div class="h-[45%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                            <div class="h-[80%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                            <div class="h-[30%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                            <div class="h-[95%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                            <div class="h-[70%] w-1 bg-primary/20 relative group"><div class="absolute -top-2 left-1/2 -translate-x-1/2 w-4 h-4 rounded-full border-2 border-primary bg-background shadow-lg shadow-primary/50"></div></div>
-                        </div>
-                        <div class="flex justify-between mt-4 text-[10px] font-label-caps text-on-surface-variant uppercase tracking-widest px-4">
-                            <span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span>
+
+                        <div class="chart-container">
+                            <canvas id="marketPerformanceChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="glass-card p-8 rounded-lg flex flex-col">
-                        <h3 class="font-label-caps text-sm text-on-surface-variant uppercase tracking-widest mb-1">Revenue by Category</h3>
-                        <p class="text-[10px] text-primary/60 mb-8 uppercase">Last 30 Days Status</p>
-                        <div class="flex-1 flex items-end justify-between gap-4 h-full px-2">
-                            <div class="flex flex-col items-center gap-2 w-full">
-                                <div class="w-full bg-primary/10 rounded-t h-32 flex items-end"><div class="w-full bg-primary/80 rounded-t" style="height: 60%;"></div></div>
-                                <span class="font-label-caps text-[9px] text-on-surface-variant">RARE</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-2 w-full">
-                                <div class="w-full bg-primary/10 rounded-t h-32 flex items-end"><div class="w-full bg-primary/80 rounded-t" style="height: 45%;"></div></div>
-                                <span class="font-label-caps text-[9px] text-on-surface-variant">LEGENDARY</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-2 w-full">
-                                <div class="w-full bg-primary/10 rounded-t h-32 flex items-end"><div class="w-full bg-primary/80 rounded-t" style="height: 85%;"></div></div>
-                                <span class="font-label-caps text-[9px] text-on-surface-variant">COMMON</span>
-                            </div>
-                            <div class="flex flex-col items-center gap-2 w-full">
-                                <div class="w-full bg-primary/10 rounded-t h-32 flex items-end"><div class="w-full bg-primary/80 rounded-t" style="height: 30%;"></div></div>
-                                <span class="font-label-caps text-[9px] text-on-surface-variant">ULTRA RARE</span>
-                            </div>
+                    <div class="glass-card p-8 rounded-lg">
+                        <div class="mb-8">
+                            <h3 class="font-label-caps text-sm text-on-surface-variant uppercase tracking-widest mb-1">
+                                Revenue by Category
+                            </h3>
+
+                            <p class="text-[10px] text-primary/60 uppercase">
+                                Delivered sales — last 30 days
+                            </p>
+                        </div>
+
+                        <div class="chart-container">
+                            <canvas id="categoryPerformanceChart"></canvas>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
-                    <div class="lg:col-span-2 glass-card rounded-lg overflow-hidden">
+                <!-- Recent orders and recent customers -->
+                <div class="grid grid-cols-1 xl:grid-cols-3 gap-gutter">
+
+                    <div class="xl:col-span-2 glass-card rounded-lg overflow-hidden">
                         <div class="p-6 border-b border-primary/10 flex justify-between items-center">
-                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">Recent Order Table</h3>
-                            <button class="text-[11px] text-on-surface-variant hover:text-primary uppercase tracking-wider">View Full Ledger</button>
+                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
+                                Recent Order Table
+                            </h3>
+
+                            <a
+                                href="{% url 'admin_orders' %}"
+                                class="text-[11px] text-on-surface-variant hover:text-primary uppercase tracking-wider"
+                            >
+                                View Full Ledger
+                            </a>
                         </div>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left">
+
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full min-w-[760px] text-left">
                                 <thead class="bg-surface-variant/20 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest">
                                     <tr>
                                         <th class="px-6 py-4">Transaction ID</th>
                                         <th class="px-6 py-4">Collector</th>
                                         <th class="px-6 py-4">Asset Model</th>
+                                        <th class="px-6 py-4">Amount</th>
                                         <th class="px-6 py-4">Status</th>
                                         <th class="px-6 py-4">Timestamp</th>
                                     </tr>
                                 </thead>
+
                                 <tbody class="divide-y divide-primary/5 text-xs">
-                                    <tr class="hover:bg-primary/5 transition-all">
-                                        <td class="px-6 py-4 font-label-caps text-primary">#WV-90210</td>
-                                        <td class="px-6 py-4 text-on-surface">Vikram Rathore</td>
-                                        <td class="px-6 py-4 text-on-surface-variant">Phantom X-1</td>
-                                        <td class="px-6 py-4"><span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-sm text-[9px] uppercase font-bold">Delivered</span></td>
-                                        <td class="px-6 py-4 text-on-surface-variant text-[11px]">OCT 24, 14:22</td>
-                                    </tr>
-                                    <tr class="hover:bg-primary/5 transition-all">
-                                        <td class="px-6 py-4 font-label-caps text-primary">#WV-88341</td>
-                                        <td class="px-6 py-4 text-on-surface">Elena K.</td>
-                                        <td class="px-6 py-4 text-on-surface-variant">Apex GT Carbon</td>
-                                        <td class="px-6 py-4"><span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-sm text-[9px] uppercase font-bold">Shipped</span></td>
-                                        <td class="px-6 py-4 text-on-surface-variant text-[11px]">OCT 24, 13:05</td>
-                                    </tr>
-                                    <tr class="hover:bg-primary/5 transition-all">
-                                        <td class="px-6 py-4 font-label-caps text-primary">#WV-77290</td>
-                                        <td class="px-6 py-4 text-on-surface">Marcus Thorne</td>
-                                        <td class="px-6 py-4 text-on-surface-variant">Midnight Drifter</td>
-                                        <td class="px-6 py-4"><span class="px-3 py-1 bg-amber-500/10 text-amber-400 rounded-sm text-[9px] uppercase font-bold">Pending</span></td>
-                                        <td class="px-6 py-4 text-on-surface-variant text-[11px]">OCT 24, 12:48</td>
-                                    </tr>
+                                    {% for order in recent_orders %}
+                                        <tr class="hover:bg-primary/5 transition-all">
+                                            <td class="px-6 py-4">
+                                                <a
+                                                    href="{% url 'admin_order_detail' order.id %}"
+                                                    class="font-label-caps text-primary hover:underline"
+                                                >
+                                                    {{ order.order_id }}
+                                                </a>
+                                            </td>
+
+                                            <td class="px-6 py-4 text-on-surface">
+                                                {{ order.dashboard_customer_name }}
+                                            </td>
+
+                                            <td class="px-6 py-4 text-on-surface-variant">
+                                                {{ order.dashboard_product_names }}
+                                            </td>
+
+                                            <td class="px-6 py-4 text-on-surface">
+                                                ₹{{ order.total_amount|floatformat:2 }}
+                                            </td>
+
+                                            <td class="px-6 py-4">
+                                                {% if order.status == "DELIVERED" %}
+                                                    <span class="px-3 py-1 bg-green-500/10 text-green-400 rounded-sm text-[9px] uppercase font-bold">
+                                                        Delivered
+                                                    </span>
+
+                                                {% elif order.status == "CANCELLED" or order.status == "RETURNED" %}
+                                                    <span class="px-3 py-1 bg-red-500/10 text-red-400 rounded-sm text-[9px] uppercase font-bold">
+                                                        {{ order.get_status_display }}
+                                                    </span>
+
+                                                {% elif order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
+                                                    <span class="px-3 py-1 bg-blue-500/10 text-blue-400 rounded-sm text-[9px] uppercase font-bold">
+                                                        {{ order.get_status_display }}
+                                                    </span>
+
+                                                {% else %}
+                                                    <span class="px-3 py-1 bg-amber-500/10 text-amber-400 rounded-sm text-[9px] uppercase font-bold">
+                                                        {{ order.get_status_display }}
+                                                    </span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="px-6 py-4 text-on-surface-variant text-[11px]">
+                                                {{ order.ordered_at|date:"M d, Y" }}
+                                                <div class="text-[9px] text-primary/50">
+                                                    {{ order.ordered_at|time:"h:i A" }}
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">
+                                                No orders have been placed yet.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
                     <div class="glass-card rounded-lg p-6 space-y-6">
-                        <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest border-b border-primary/10 pb-4">Recent Customer Signups</h3>
+                        <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest border-b border-primary/10 pb-4">
+                            Recent Customer Signups
+                        </h3>
+
                         <div class="space-y-4">
                             {% for signup_user in recent_signups %}
-                            <div class="flex items-center justify-between group">
-                                <div class="flex items-center gap-3">
-                                    <div class="w-10 h-10 rounded-full border border-primary/20 overflow-hidden bg-surface-variant flex items-center justify-center">
-                                        {% if signup_user.profile_picture %}
-                                            <img class="w-full h-full object-cover grayscale" src="{{ signup_user.profile_picture.url }}" alt="{{ signup_user.username }}">
-                                        {% else %}
-                                            <span class="font-label-caps text-xs text-primary">{{ signup_user.username|slice:":2"|upper }}</span>
-                                        {% endif %}
+                                <div class="flex items-center justify-between group">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 rounded-full border border-primary/20 overflow-hidden bg-surface-variant flex items-center justify-center">
+                                            {% if signup_user.profile_picture %}
+                                                <img
+                                                    class="w-full h-full object-cover grayscale"
+                                                    src="{{ signup_user.profile_picture.url }}"
+                                                    alt="{{ signup_user.username }}"
+                                                >
+                                            {% else %}
+                                                <span class="font-label-caps text-xs text-primary">
+                                                    {{ signup_user.username|slice:":2"|upper }}
+                                                </span>
+                                            {% endif %}
+                                        </div>
+
+                                        <div>
+                                            <h4 class="font-label-caps text-xs text-on-surface">
+                                                {% if signup_user.get_full_name %}
+                                                    {{ signup_user.get_full_name }}
+                                                {% else %}
+                                                    {{ signup_user.username }}
+                                                {% endif %}
+                                            </h4>
+
+                                            <p class="text-[9px] text-primary/70">
+                                                {{ signup_user.date_joined|date:"M d, Y" }}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <h4 class="font-label-caps text-xs text-on-surface">{{ signup_user.full_name }}</h4>
-                                        <p class="text-[9px] text-primary/70">{{ signup_user.date_joined|date:"M d, Y" }}</p>
-                                    </div>
+
+                                    <a
+                                        href="{% url 'view_user' signup_user.id %}"
+                                        class="text-[9px] font-label-caps text-on-surface-variant hover:text-primary transition-colors"
+                                    >
+                                        #WV-{{ signup_user.id }}
+                                    </a>
                                 </div>
-                                <a href="{% url 'view_user' signup_user.id %}" class="text-[9px] font-label-caps text-on-surface-variant hover:text-primary transition-colors">#WV-{{ signup_user.id }}</a>
-                            </div>
                             {% empty %}
-                            <div class="text-center py-6">
-                                <span class="material-symbols-outlined text-primary/20 text-4xl">person_off</span>
-                                <p class="text-[11px] text-on-surface-variant mt-2">No customer signups yet.</p>
-                            </div>
+                                <div class="text-center py-6">
+                                    <span class="material-symbols-outlined text-primary/20 text-4xl">
+                                        person_off
+                                    </span>
+
+                                    <p class="text-[11px] text-on-surface-variant mt-2">
+                                        No customer signups yet.
+                                    </p>
+                                </div>
                             {% endfor %}
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
 
-    <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px] -z-10 pointer-events-none"></div>
-    <div class="fixed bottom-0 left-64 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
+    {{ performance_labels|json_script:"performance-labels" }}
+    {{ performance_revenue|json_script:"performance-revenue" }}
+    {{ performance_orders|json_script:"performance-orders" }}
+
+    {{ category_labels|json_script:"category-labels" }}
+    {{ category_revenue|json_script:"category-revenue" }}
+    {{ category_quantity|json_script:"category-quantity" }}
 
     <script>
-        function showTimedToast(message) {
-            const toast = document.getElementById('statusToast');
-            const toastMsg = document.getElementById('toastMessage');
-            
-            if (message) {
-                toastMsg.textContent = message;
-            }
+        document.addEventListener("DOMContentLoaded", function () {
+            const performanceLabels = JSON.parse(
+                document.getElementById("performance-labels").textContent
+            );
 
-            setTimeout(() => {
-                toast.classList.remove('translate-x-[450px]');
-                toast.classList.add('translate-x-0');
-            }, 500);
+            const performanceRevenue = JSON.parse(
+                document.getElementById("performance-revenue").textContent
+            );
 
-            setTimeout(() => {
-                toast.classList.remove('translate-x-0');
-                toast.classList.add('translate-x-[450px]');
-            }, 3000);
-        }
+            const performanceOrders = JSON.parse(
+                document.getElementById("performance-orders").textContent
+            );
 
-        window.addEventListener('DOMContentLoaded', () => {
-            showTimedToast("Welcome back, {{ request.user.username }}! Session active.");
+            const categoryLabels = JSON.parse(
+                document.getElementById("category-labels").textContent
+            );
+
+            const categoryRevenue = JSON.parse(
+                document.getElementById("category-revenue").textContent
+            );
+
+            const categoryQuantity = JSON.parse(
+                document.getElementById("category-quantity").textContent
+            );
+
+            Chart.defaults.color = "#d0c5af";
+            Chart.defaults.font.family = "Poppins";
+
+            const marketCanvas = document.getElementById(
+                "marketPerformanceChart"
+            );
+
+            const marketContext = marketCanvas.getContext("2d");
+
+            const marketGradient = marketContext.createLinearGradient(
+                0,
+                0,
+                0,
+                300
+            );
+
+            marketGradient.addColorStop(
+                0,
+                "rgba(242, 202, 80, 0.32)"
+            );
+
+            marketGradient.addColorStop(
+                1,
+                "rgba(242, 202, 80, 0.01)"
+            );
+
+            new Chart(marketContext, {
+                type: "line",
+
+                data: {
+                    labels: performanceLabels,
+
+                    datasets: [
+                        {
+                            label: "Revenue",
+                            data: performanceRevenue,
+                            borderColor: "#f2ca50",
+                            backgroundColor: marketGradient,
+                            fill: true,
+                            tension: 0.38,
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            pointHoverRadius: 7,
+                            pointBackgroundColor: "#f2ca50",
+                            pointBorderColor: "#16130b",
+                            pointBorderWidth: 2,
+                            yAxisID: "revenueAxis"
+                        },
+
+                        {
+                            label: "Orders",
+                            data: performanceOrders,
+                            borderColor: "#5ad39b",
+                            backgroundColor: "transparent",
+                            fill: false,
+                            tension: 0.32,
+                            borderWidth: 2,
+                            pointRadius: 3,
+                            pointBackgroundColor: "#5ad39b",
+                            yAxisID: "ordersAxis"
+                        }
+                    ]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    interaction: {
+                        mode: "index",
+                        intersect: false
+                    },
+
+                    plugins: {
+                        legend: {
+                            labels: {
+                                usePointStyle: true,
+                                padding: 18
+                            }
+                        },
+
+                        tooltip: {
+                            backgroundColor: "#15130e",
+                            borderColor: "rgba(242, 202, 80, 0.35)",
+                            borderWidth: 1,
+
+                            callbacks: {
+                                label: function (context) {
+                                    if (
+                                        context.dataset.yAxisID ===
+                                        "revenueAxis"
+                                    ) {
+                                        return (
+                                            " Revenue: ₹" +
+                                            Number(context.raw).toLocaleString(
+                                                "en-IN"
+                                            )
+                                        );
+                                    }
+
+                                    return " Orders: " + context.raw;
+                                }
+                            }
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            grid: {
+                                color: "rgba(255,255,255,0.04)"
+                            }
+                        },
+
+                        revenueAxis: {
+                            beginAtZero: true,
+                            position: "left",
+
+                            grid: {
+                                color: "rgba(255,255,255,0.05)"
+                            },
+
+                            ticks: {
+                                callback: function (value) {
+                                    return (
+                                        "₹" +
+                                        Number(value).toLocaleString("en-IN")
+                                    );
+                                }
+                            }
+                        },
+
+                        ordersAxis: {
+                            beginAtZero: true,
+                            position: "right",
+
+                            grid: {
+                                drawOnChartArea: false
+                            },
+
+                            ticks: {
+                                precision: 0
+                            }
+                        }
+                    }
+                }
+            });
+
+            const categoryCanvas = document.getElementById(
+                "categoryPerformanceChart"
+            );
+
+            new Chart(categoryCanvas, {
+                type: "bar",
+
+                data: {
+                    labels: categoryLabels,
+
+                    datasets: [
+                        {
+                            label: "Revenue",
+                            data: categoryRevenue,
+                            backgroundColor: "#f2ca50",
+                            hoverBackgroundColor: "#ffe481",
+                            borderColor: "#d4af37",
+                            borderWidth: 1,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }
+                    ]
+                },
+
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+
+                        tooltip: {
+                            backgroundColor: "#15130e",
+                            borderColor: "rgba(242, 202, 80, 0.35)",
+                            borderWidth: 1,
+
+                            callbacks: {
+                                label: function (context) {
+                                    const index = context.dataIndex;
+
+                                    return [
+                                        "Revenue: ₹" +
+                                        Number(context.raw).toLocaleString(
+                                            "en-IN"
+                                        ),
+
+                                        "Quantity sold: " +
+                                        Number(categoryQuantity[index] || 0)
+                                    ];
+                                }
+                            }
+                        }
+                    },
+
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+
+                            ticks: {
+                                maxRotation: 35,
+                                minRotation: 0,
+                                font: {
+                                    size: 9
+                                }
+                            }
+                        },
+
+                        y: {
+                            beginAtZero: true,
+
+                            grid: {
+                                color: "rgba(255,255,255,0.05)"
+                            },
+
+                            ticks: {
+                                callback: function (value) {
+                                    return (
+                                        "₹" +
+                                        Number(value).toLocaleString("en-IN")
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         });
     </script>
 </body>

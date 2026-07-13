@@ -73,6 +73,7 @@ class Order(models.Model):
         choices=STATUS_CHOICES,
         default="PENDING"
     )
+    
 
     cancel_reason = models.TextField(blank=True, null=True)
     return_reason = models.TextField(blank=True, null=True)
@@ -258,3 +259,4 @@ class ProductReviewImage(models.Model):
     review = models.ForeignKey(ProductReview, on_delete=models.CASCADE, related_name="images")
     image = models.ImageField(upload_to="product_reviews/")
     created_at = models.DateTimeField(auto_now_add=True)
+    

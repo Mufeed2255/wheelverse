@@ -23,6 +23,9 @@ from adminpanel.views.coupon_management import (
     delete_coupon,
 )
 
+from .views.sales_report import export_sales_excel, export_sales_pdf, sales_report
+
+
 
 
 urlpatterns = [
@@ -73,6 +76,11 @@ urlpatterns = [
     path("coupons/edit/<int:coupon_id>/", edit_coupon, name="edit_coupon"),
     path("coupons/delete-confirm/<int:coupon_id>/", delete_coupon_confirm, name="delete_coupon_confirm"),
     path("coupons/delete/<int:coupon_id>/", delete_coupon, name="delete_coupon"),
+    path("sales-report/",sales_report,name="sales_report"),
+
+    path("sales-report/export/excel/",export_sales_excel,name="export_sales_excel"),
+
+    path("sales-report/export/pdf/",export_sales_pdf ,name="export_sales_pdf"),
 
 ]
     
