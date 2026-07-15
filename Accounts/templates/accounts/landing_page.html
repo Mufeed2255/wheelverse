@@ -1,1026 +1,523 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>WheelVerse | Cinematic Performance</title>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<script>
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        "primary": "#f2ca50",
-        "on-primary": "#3c2f00",
-        "surface": "#16130b",
-        "surface-dim": "#16130b",
-        "surface-container-lowest": "#110e07",
-        "surface-container-low": "#1f1b13",
-        "surface-container": "#231f17",
-        "surface-container-high": "#2d2a21",
-        "surface-container-highest": "#38342b",
-        "surface-bright": "#3d392f",
-        "surface-variant": "#38342b",
-        "on-surface": "#eae1d4",
-        "on-surface-variant": "#d0c5af",
-        "background": "#16130b",
-        "on-background": "#eae1d4",
-        "outline": "#99907c",
-        "outline-variant": "#4d4635",
-        "secondary": "#c9c6c5",
-        "secondary-container": "#4a4949",
-        "on-secondary-container": "#bab8b7",
-        "primary-container": "#d4af37",
-        "primary-fixed": "#ffe088",
-        "primary-fixed-dim": "#e9c349",
-        "error": "#ffb4ab",
-        "error-container": "#93000a",
-        "on-error": "#690005",
-        "inverse-surface": "#eae1d4",
-        "inverse-on-surface": "#343027",
-        "inverse-primary": "#735c00",
-        "surface-tint": "#e9c349",
-        "tertiary": "#d0cdcd",
-        "tertiary-container": "#b4b2b2",
-        "on-tertiary": "#313030",
-        "on-tertiary-container": "#454544",
-      },
-      fontFamily: {
-        "orbitron": ["Orbitron", "sans-serif"],
-        "poppins": ["Poppins", "sans-serif"],
-      },
-      borderRadius: {
-        DEFAULT: "0.125rem",
-        lg: "0.25rem",
-        xl: "0.5rem",
-        full: "0.75rem",
-      }
-    }
-  }
-}
-</script>
-<style>
-  * { box-sizing: border-box; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WheelVerse | Collector Showroom</title>
 
-  .material-symbols-outlined {
-    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-  }
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: #110e07; }
-  ::-webkit-scrollbar-thumb { background: #38342b; border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: #f2ca50; }
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        gold: "#f2ca50",
+                        ink: "#070604",
+                        cream: "#eee6d7",
+                        smoke: "#a79e8c",
+                        panel: "#14110c",
+                        "panel-light": "#211c14"
+                    },
+                    fontFamily: {
+                        orbitron: ["Orbitron", "sans-serif"],
+                        poppins: ["Poppins", "sans-serif"]
+                    }
+                }
+            }
+        };
+    </script>
 
-  /* Carbon dot pattern */
-  .carbon-pattern {
-    background-image: radial-gradient(circle at 1.5px 1.5px, rgba(255,255,255,0.04) 1px, transparent 0);
-    background-size: 20px 20px;
-    background-color: #0d0b06;
-  }
+    <style>
+        :root {
+            --gold: #f2ca50;
+            --ink: #070604;
+            --cream: #eee6d7;
+            --smoke: #a79e8c;
+        }
 
-  /* Glass */
-  .glass {
-    background: rgba(35,31,23,0.55);
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    border: 1px solid rgba(242,202,80,0.13);
-  }
-  .glass-light {
-    background: rgba(255,255,255,0.025);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255,255,255,0.06);
-  }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body { margin: 0; overflow-x: hidden; background: var(--ink); color: var(--cream); font-family: "Poppins", sans-serif; }
+        ::selection { background: var(--gold); color: #211700; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #080705; }
+        ::-webkit-scrollbar-thumb { background: #5a4923; border-radius: 20px; }
 
-  /* Gold glow */
-  .gold-glow { box-shadow: 0 0 32px rgba(242,202,80,0.22); }
-  .gold-glow:hover { box-shadow: 0 0 60px rgba(242,202,80,0.42); }
-  .text-glow { text-shadow: 0 0 18px rgba(242,202,80,0.55); }
+        .showroom-grid {
+            background-image:
+                linear-gradient(rgba(242,202,80,.035) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(242,202,80,.035) 1px, transparent 1px);
+            background-size: 68px 68px;
+        }
 
-  /* Animations */
-  @keyframes float {
-    0%,100% { transform: translateY(0); }
-    50% { transform: translateY(-14px); }
-  }
-  .floating { animation: float 4.5s ease-in-out infinite; }
+        .grain::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: .18;
+            mix-blend-mode: soft-light;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 220 220' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='.42'/%3E%3C/svg%3E");
+        }
 
-  @keyframes pulse-ring {
-    0% { transform: scale(0.8); opacity: 0.7; }
-    100% { transform: scale(1.6); opacity: 0; }
-  }
-  .pulse-ring::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 50%;
-    border: 1px solid rgba(242,202,80,0.5);
-    animation: pulse-ring 1.8s ease-out infinite;
-  }
+        .glass {
+            background: linear-gradient(145deg, rgba(33,28,20,.84), rgba(10,8,5,.90));
+            border: 1px solid rgba(242,202,80,.14);
+            backdrop-filter: blur(18px);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 24px 70px rgba(0,0,0,.35);
+        }
 
-  @keyframes scanline {
-    0% { transform: translateY(-100%); }
-    100% { transform: translateY(100vh); }
-  }
-  .scanline {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, rgba(242,202,80,0.08), transparent);
-    pointer-events: none;
-    z-index: 9999;
-    animation: scanline 6s linear infinite;
-  }
+        .section-kicker { font-family: "Orbitron", sans-serif; font-size: 10px; letter-spacing: .28em; color: var(--gold); text-transform: uppercase; }
+        .section-title { font-family: "Orbitron", sans-serif; font-size: clamp(2rem, 5vw, 4rem); line-height: .98; letter-spacing: -.03em; text-transform: uppercase; }
+        .gold-text { color: var(--gold); text-shadow: 0 0 28px rgba(242,202,80,.30); }
 
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-  .shimmer-text {
-    background: linear-gradient(90deg, #f2ca50 0%, #fff9e6 40%, #f2ca50 60%, #d4af37 100%);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: shimmer 3s linear infinite;
-  }
+        .btn-gold {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            overflow: hidden;
+            background: var(--gold);
+            color: #261b00;
+            font-family: "Orbitron", sans-serif;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: .16em;
+            transition: transform .28s ease, box-shadow .28s ease;
+        }
+        .btn-gold::before { content: ""; position: absolute; top: 0; bottom: 0; left: -45%; width: 30%; transform: skewX(-25deg); background: rgba(255,255,255,.45); transition: left .55s ease; }
+        .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 18px 45px rgba(242,202,80,.28); }
+        .btn-gold:hover::before { left: 120%; }
 
-  @keyframes gradient-shift {
-    0%,100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
+        .btn-outline {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--cream);
+            border: 1px solid rgba(238,230,215,.22);
+            font-family: "Orbitron", sans-serif;
+            font-size: 10px;
+            letter-spacing: .16em;
+            transition: .28s ease;
+        }
+        .btn-outline:hover { color: var(--gold); border-color: rgba(242,202,80,.60); background: rgba(242,202,80,.05); }
 
-  @keyframes reveal-up {
-    from { opacity: 0; transform: translateY(40px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .reveal { opacity: 0; }
-  .reveal.visible { animation: reveal-up 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+        .nav-link { position: relative; color: rgba(238,230,215,.68); font-family: "Orbitron", sans-serif; font-size: 10px; letter-spacing: .14em; transition: color .25s ease; }
+        .nav-link::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -7px; height: 1px; background: var(--gold); transition: right .30s ease; }
+        .nav-link:hover { color: var(--gold); }
+        .nav-link:hover::after { right: 0; }
 
-  @keyframes reveal-left {
-    from { opacity: 0; transform: translateX(-40px); }
-    to { opacity: 1; transform: translateX(0); }
-  }
-  .reveal-left { opacity: 0; }
-  .reveal-left.visible { animation: reveal-left 0.7s cubic-bezier(0.22,1,0.36,1) forwards; }
+        @keyframes showroom-camera {
+            0% { transform: scale(1.03) translate3d(-1.2%, 0, 0); }
+            45% { transform: scale(1.11) translate3d(1.5%, -1.2%, 0); }
+            100% { transform: scale(1.06) translate3d(-.4%, .5%, 0); }
+        }
+        .hero-car { animation: showroom-camera 14s ease-in-out infinite alternate; will-change: transform; }
 
-  @keyframes count-up {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
+        @keyframes headlight-blink {
+            0%, 7%, 10%, 42%, 45%, 100% { opacity: 0; transform: scale(.7); }
+            8%, 9%, 43%, 44% { opacity: 1; transform: scale(1.15); }
+        }
+        @keyframes headlight-glow {
+            0%, 7%, 10%, 42%, 45%, 100% { opacity: 0; }
+            8%, 9%, 43%, 44% { opacity: .85; }
+        }
+        .headlight-core { animation: headlight-blink 7s linear infinite; }
+        .headlight-beam { animation: headlight-glow 7s linear infinite; }
 
-  @keyframes border-spin {
-    to { transform: rotate(360deg); }
-  }
+        @keyframes flicker {
+            0%,100% { opacity: .10; }
+            15% { opacity: .15; }
+            16% { opacity: .08; }
+            60% { opacity: .13; }
+            61% { opacity: .07; }
+        }
+        .projector-flicker { animation: flicker .32s infinite; }
 
-  /* Hero grain overlay */
-  .grain::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    pointer-events: none;
-    opacity: 0.35;
-    mix-blend-mode: overlay;
-  }
+        @keyframes sweep {
+            from { transform: translateX(-120%) skewX(-12deg); }
+            to { transform: translateX(220%) skewX(-12deg); }
+        }
+        .light-sweep { animation: sweep 8s ease-in-out infinite; }
 
-  /* No scrollbar utility */
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-  .no-scrollbar::-webkit-scrollbar { display: none; }
+        @keyframes reveal-up {
+            from { opacity: 0; transform: translateY(36px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hero-reveal-1 { animation: reveal-up .9s .15s both; }
+        .hero-reveal-2 { animation: reveal-up .95s .32s both; }
+        .hero-reveal-3 { animation: reveal-up 1s .50s both; }
+        .hero-reveal-4 { animation: reveal-up 1s .68s both; }
 
-  /* Auction timer red */
-  .urgent { color: #ffb4ab; }
+        .reveal { opacity: 0; transform: translateY(28px); transition: opacity .75s cubic-bezier(.22,1,.36,1), transform .75s cubic-bezier(.22,1,.36,1); }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
 
-  /* Hover card lift */
-  .card-hover { transition: transform 0.4s cubic-bezier(0.22,1,0.36,1), box-shadow 0.4s ease; }
-  .card-hover:hover { transform: translateY(-8px); box-shadow: 0 24px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(242,202,80,0.2); }
+        .category-card { min-height: 420px; position: relative; overflow: hidden; border: 1px solid rgba(242,202,80,.10); }
+        .category-card img { transition: transform 1s cubic-bezier(.22,1,.36,1), filter .8s ease; filter: grayscale(.78) brightness(.48); }
+        .category-card:hover img { transform: scale(1.10); filter: grayscale(0) brightness(.78); }
+        .category-card::after { content: ""; position: absolute; inset: 0; border: 1px solid transparent; transition: border-color .35s ease; pointer-events: none; }
+        .category-card:hover::after { border-color: rgba(242,202,80,.45); }
 
-  /* CTA button */
-  .btn-primary {
-    position: relative;
-    overflow: hidden;
-    background: #f2ca50;
-    color: #3c2f00;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    transition: all 0.35s ease;
-  }
-  .btn-primary::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
-  }
-  .btn-primary:hover::before { transform: translateX(100%); }
-  .btn-primary:hover { box-shadow: 0 0 50px rgba(242,202,80,0.45); }
+        .product-card { transition: transform .38s cubic-bezier(.22,1,.36,1), border-color .38s ease, box-shadow .38s ease; }
+        .product-card:hover { transform: translateY(-10px); border-color: rgba(242,202,80,.42); box-shadow: 0 32px 80px rgba(0,0,0,.46); }
+        .product-image { transition: transform .85s cubic-bezier(.22,1,.36,1); }
+        .product-card:hover .product-image { transform: scale(1.10); }
 
-  /* Outlined button */
-  .btn-outline {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.14em;
-    border: 1px solid rgba(210,196,175,0.25);
-    color: #eae1d4;
-    transition: all 0.3s ease;
-  }
-  .btn-outline:hover { border-color: rgba(242,202,80,0.5); color: #f2ca50; background: rgba(242,202,80,0.04); }
+        @keyframes showroom-rotate {
+            from { transform: rotateY(-7deg) rotateX(2deg); }
+            to { transform: rotateY(7deg) rotateX(-1deg); }
+        }
+        .expensive-showcase { perspective: 1300px; }
+        .expensive-showcase img { animation: showroom-rotate 7s ease-in-out infinite alternate; transform-style: preserve-3d; }
 
-  /* Section label */
-  .section-label {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
-    letter-spacing: 0.22em;
-    color: #f2ca50;
-    display: block;
-    margin-bottom: 8px;
-  }
-  .section-title {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 32px;
-    line-height: 1.2;
-    letter-spacing: 0.03em;
-    font-weight: 600;
-    color: #eae1d4;
-    text-transform: uppercase;
-  }
-
-  /* Refer banner */
-  @keyframes slide-in-banner {
-    from { transform: translateY(-100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-  }
-  .refer-banner { animation: slide-in-banner 0.6s 1.2s cubic-bezier(0.22,1,0.36,1) both; }
-
-  /* Hero text reveal */
-  @keyframes hero-reveal {
-    from { clip-path: inset(0 100% 0 0); opacity: 0; }
-    to { clip-path: inset(0 0% 0 0); opacity: 1; }
-  }
-  .hero-text { animation: reveal-up 1s 0.3s cubic-bezier(0.22,1,0.36,1) both; }
-  .hero-text-2 { animation: reveal-up 1s 0.5s cubic-bezier(0.22,1,0.36,1) both; }
-  .hero-text-3 { animation: reveal-up 1s 0.7s cubic-bezier(0.22,1,0.36,1) both; }
-  .hero-cta { animation: reveal-up 1s 0.9s cubic-bezier(0.22,1,0.36,1) both; }
-
-  /* Category card */
-  .cat-card { position: relative; overflow: hidden; }
-  .cat-card .cat-img { transition: filter 1s ease, transform 1s ease; filter: grayscale(1) brightness(0.4); }
-  .cat-card:hover .cat-img { filter: grayscale(0) brightness(0.85); transform: scale(1.1); }
-  .cat-card .cat-cta { max-height: 0; opacity: 0; overflow: hidden; transition: max-height 0.5s ease, opacity 0.5s ease; }
-  .cat-card:hover .cat-cta { max-height: 40px; opacity: 1; }
-
-  /* Countdown flicker */
-  @keyframes flicker {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.75; }
-  }
-  .countdown-num { animation: count-up 0.4s ease both; }
-
-  /* Product card image zoom */
-  .prod-img { transition: transform 1s cubic-bezier(0.22,1,0.36,1); }
-  .prod-card:hover .prod-img { transform: scale(1.12); }
-
-  /* Auction card */
-  .auction-card { transition: border-color 0.4s ease; }
-  .auction-card:hover { border-color: rgba(242,202,80,0.35); }
-  .auction-img { transition: filter 0.8s ease, transform 0.8s ease; filter: grayscale(1); }
-  .auction-card:hover .auction-img { filter: grayscale(0); transform: scale(1.06); }
-
-  /* Pre-order progress bar pulse */
-  @keyframes progress-pulse {
-    0%,100% { opacity: 1; }
-    50% { opacity: 0.65; }
-  }
-  .prog-bar { animation: progress-pulse 2.5s ease-in-out infinite; }
-
-  /* Diagonal accent line */
-  .diag-line {
-    position: absolute;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, rgba(242,202,80,0.4), transparent);
-  }
-
-  /* Nav */
-  .nav-link {
-    font-family: 'Orbitron', sans-serif;
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    transition: color 0.25s ease;
-  }
-  .nav-link.active { color: #f2ca50; border-bottom: 2px solid #f2ca50; padding-bottom: 4px; }
-  .nav-link:not(.active) { color: #d0c5af; }
-  .nav-link:not(.active):hover { color: #f2ca50; }
-
-  /* Rotating border for limited drop */
-  @keyframes rotate-border {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Ambient glow orb */
-  .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    pointer-events: none;
-  }
-
-  /* Footer */
-  .footer-link { font-family: 'Orbitron', sans-serif; font-size: 10px; letter-spacing: 0.1em; color: #99907c; transition: color 0.25s; }
-  .footer-link:hover { color: #f2ca50; }
-</style>
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; transition-duration: .01ms !important; }
+        }
+    </style>
 </head>
-<body class="bg-background text-on-background font-poppins overflow-x-hidden">
 
-<!-- Scanline effect -->
-<div class="scanline"></div>
+<body class="bg-ink text-cream">
+{% include "adminpanel/includes/messages.html" %}
 
-<!-- Refer a Friend Banner -->
-<div class="refer-banner fixed top-0 left-0 right-0 z-[200] flex justify-center py-2 bg-primary/10 border-b border-primary/20 backdrop-blur-sm">
-  <span class="font-orbitron text-[10px] tracking-[0.18em] text-primary flex items-center gap-3">
-    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse inline-block"></span>
-    REFER A FRIEND &amp; EARN COLLECTOR CREDITS
-    <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse inline-block"></span>
-  </span>
-</div>
-
-<header id="navbar" class="fixed top-8 left-0 right-0 z-[100] transition-all duration-500">
-  <nav class="flex justify-between items-center px-6 md:px-20 py-4 max-w-[1440px] mx-auto">
-    <div class="flex items-center gap-10">
-      <div class="flex items-center gap-3">
-        <div class="w-7 h-7 relative">
-          <div class="absolute inset-0 rounded-full border border-primary/60 flex items-center justify-center">
-            <span class="material-symbols-outlined text-primary" style="font-size:14px">settings</span>
-          </div>
-        </div>
-        <span class="font-orbitron text-[22px] font-bold text-primary tracking-tighter leading-none shimmer-text select-none">WheelVerse</span>
-      </div>
-      <div class="hidden lg:flex items-center gap-8">
-        <a class="nav-link active" href="{% url 'landing_page' %}">Home</a>
-        <a class="nav-link" href="{% url 'collections' %}">Collections</a>
-        <a class="nav-link" href="{% url 'cart' %}">Cart</a>
-        <a class="nav-link" href="">Orders</a>
-        <a class="nav-link" href="{% url 'wishlist' %}">Wishlist</a>
-      </div>
-    </div>
-    
-    
-
-      
-      <a href="{% url 'cart' %}"
-        class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5 relative">
-          
-          shopping_cart
-
-          {% if cart_count %}
-          <span class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-black text-[10px] rounded-full flex items-center justify-center font-bold not-italic">
-              {{ cart_count }}
-          </span>
-          {% endif %}
-
-      </a>
-
-    {% if user.is_authenticated %}
-        <div class="flex items-center gap-2 group">
-          <a href="{% url 'profile_view' %}" class="flex items-center gap-1.5 transition-all">
-            <button class="material-symbols-outlined text-primary transition-colors p-2 rounded-full hover:bg-primary/5" title="View Collector Profile">
-              account_circle
-            </button>
-            <span class="text-sm font-poppins text-on-surface hover:text-primary transition-colors hidden xl:inline pr-1">
-              {{ user.user_name }}
+<header id="navbar" class="fixed top-0 left-0 right-0 z-[100] transition-all duration-500">
+    <nav class="max-w-[1500px] mx-auto px-5 md:px-10 xl:px-16 py-5 flex items-center justify-between gap-6">
+        <a href="{% url 'landing_page' %}" class="flex items-center gap-3 shrink-0">
+            <span class="w-11 h-11 rounded-full border border-gold/35 bg-black/30 flex items-center justify-center">
+                <span class="material-symbols-outlined text-gold">settings</span>
             </span>
-          </a>
-          
-          <a href="{% url 'logout' %}" class="flex items-center" title="Logout Session">
-            <button class="material-symbols-outlined text-error/60 hover:text-error transition-colors p-2 rounded-full hover:bg-error/5">
-              logout
-            </button>
-          </a>
-        </div>
-      {% else %}
-        <a href="{% url 'login' %}" title="Login or Register">
-          <button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/5">
-            account_circle
-          </button>
+            <span class="font-orbitron text-xl md:text-2xl font-black tracking-[-.07em] text-gold">WHEELVERSE</span>
         </a>
-      {% endif %}
 
-      <a href="{% url 'collections' %}" class="btn-primary px-6 py-2.5 rounded-sm inline-block text-center">
-          EXPLORE COLLECTION
-      </a>
-    </div>
-  </nav>
+        <div class="hidden lg:flex items-center gap-9">
+            <a href="{% url 'landing_page' %}" class="nav-link text-gold">HOME</a>
+            <a href="{% url 'collections' %}" class="nav-link">COLLECTIONS</a>
+            <a href="{% url 'my_orders' %}" class="nav-link">ORDERS</a>
+            <a href="{% url 'wishlist' %}" class="nav-link">WISHLIST</a>
+        </div>
+
+        <div class="flex items-center gap-1 md:gap-3">
+            <a href="{% url 'wishlist' %}" class="relative w-10 h-10 flex items-center justify-center rounded-full text-smoke hover:text-gold hover:bg-gold/5 transition">
+                <span class="material-symbols-outlined">favorite</span>
+                {% if wishlist_count %}
+                <span class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-gold text-black text-[9px] font-bold flex items-center justify-center">{{ wishlist_count }}</span>
+                {% endif %}
+            </a>
+
+            <a href="{% url 'cart' %}" class="relative w-10 h-10 flex items-center justify-center rounded-full text-smoke hover:text-gold hover:bg-gold/5 transition">
+                <span class="material-symbols-outlined">shopping_bag</span>
+                {% if cart_count %}
+                <span class="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-gold text-black text-[9px] font-bold flex items-center justify-center">{{ cart_count }}</span>
+                {% endif %}
+            </a>
+
+            {% if user.is_authenticated %}
+                <a href="{% url 'profile_view' %}" class="hidden sm:flex items-center gap-2 px-3 py-2 rounded-full border border-white/10 hover:border-gold/35 transition">
+                    {% if user.profile_picture %}
+                        <img src="{{ user.profile_picture.url }}" alt="{{ user.username }}" class="w-7 h-7 rounded-full object-cover">
+                    {% else %}
+                        <span class="material-symbols-outlined text-gold">account_circle</span>
+                    {% endif %}
+                    <span class="text-xs text-cream">{{ user.username }}</span>
+                </a>
+                <a href="{% url 'logout' %}" class="w-10 h-10 flex items-center justify-center rounded-full text-red-300/70 hover:text-red-300 hover:bg-red-500/5 transition">
+                    <span class="material-symbols-outlined">logout</span>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-outline px-5 py-3">SIGN IN</a>
+            {% endif %}
+        </div>
+    </nav>
 </header>
 
+<main>
+    <section class="relative min-h-[100svh] overflow-hidden grain showroom-grid">
+        <div class="absolute inset-0">
+            {% if hero_product and hero_product.landing_image_url %}
+                <img src="{{ hero_product.landing_image_url }}" alt="{{ hero_product.name }}" class="hero-car absolute inset-0 w-full h-full object-cover">
+            {% else %}
+                <div class="absolute inset-0 bg-gradient-to-br from-[#2b2111] via-[#090806] to-black"></div>
+            {% endif %}
 
-<main class="pt-0">
-
-<!-- ============================
-     HERO SECTION
-============================= -->
-<section class="relative min-h-screen flex items-center overflow-hidden grain">
-
-  <!-- Background Image -->
-  <div class="absolute inset-0 z-0">
-    <img class="w-full h-full object-cover brightness-[0.35] scale-105 transition-transform duration-[8000ms]" id="hero-bg"
-      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAS9tcCj0dZ4jTLrOiK9z1gguGNg8ji7L3SgAf_b1DkQ1Izqv8GoX8WuZIqLBoJVSRCtM4Do8PZvT8Rc39T9I8YPclj1K1SMx0F8jNsnp9Pp4ZW2NJNeQ9urokx8WFJap8kBmnUGeMQYbkoyrlZF545H8oCPkr6QAMJqHisoX__manIPKEjYegbrzNe9mBIaJtZcoz8g1XHWujEOiq63n5Shl7K5NTFyovdUH2hCHr6VQztQt1cx0tglrbxIX0XSwP61U4SHGZmOX4"
-      alt="Hero car"/>
-    <div class="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-background/60"></div>
-    <div class="absolute inset-0 bg-gradient-to-r from-background via-transparent to-transparent"></div>
-    <div class="absolute inset-0 bg-gradient-to-b from-background/0 via-transparent to-background"></div>
-  </div>
-
-  <!-- Ambient orbs -->
-  <div class="orb w-96 h-96 bg-primary/8 top-1/4 right-1/4"></div>
-  <div class="orb w-64 h-64 bg-primary/5 bottom-1/3 right-1/3"></div>
-
-  <!-- Diagonal accent lines -->
-  <div class="diag-line h-40 top-32 right-1/3"></div>
-  <div class="diag-line h-24 bottom-40 right-1/4"></div>
-
-  <div class="relative z-10 px-6 md:px-20 max-w-[1440px] mx-auto w-full pt-32">
-    <div class="max-w-3xl">
-
-      <!-- Badge -->
-      <div class="hero-text inline-flex items-center gap-2 px-4 py-1.5 mb-8 border border-primary/30 bg-primary/5 font-orbitron text-[9px] tracking-[0.22em] text-primary rounded-full">
-        <span class="w-1.5 h-1.5 bg-primary rounded-full animate-pulse relative pulse-ring"></span>
-        EST. 2024 &nbsp;•&nbsp; CINEMATIC PERFORMANCE
-      </div>
-
-      <!-- Headline -->
-      <h1 class="hero-text-2 font-orbitron text-[56px] md:text-[72px] text-on-surface uppercase leading-[0.92] tracking-tight mb-8">
-        ENTER THE <br/>
-        <span class="text-primary text-glow">UNIVERSE</span> OF<br/>
-        WHEELS
-      </h1>
-
-      <!-- Subtext -->
-      <p class="hero-text-3 font-poppins text-lg text-on-surface-variant/80 mb-12 max-w-xl leading-relaxed">
-        Discover rare collectibles, iconic racers, limited editions, and premium die-cast legends crafted for the modern automotive enthusiast.
-      </p>
-
-      <!-- CTAs -->
-      <div class="hero-cta flex flex-wrap gap-5">
-        <button class="btn-primary group relative px-10 py-5 rounded-sm flex items-center gap-0 hover:gap-3 overflow-hidden transition-all duration-300 gold-glow">
-          <span>EXPLORE COLLECTION</span>
-          <span class="material-symbols-outlined text-sm opacity-0 group-hover:opacity-100 w-0 group-hover:w-5 overflow-hidden transition-all duration-300">arrow_forward</span>
-        </button>
-        <button class="btn-outline px-10 py-5 rounded-sm backdrop-blur-sm">
-          LIMITED DROPS
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Scroll indicator -->
-  <div class="absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 opacity-40">
-    <span class="font-orbitron text-[8px] tracking-[0.35em] uppercase text-on-surface-variant">Drive Down</span>
-    <div class="w-px h-16 bg-gradient-to-b from-primary to-transparent"></div>
-  </div>
-</section>
-
-
-<section class="py-24 bg-surface-container-lowest">
-  <div class="px-6 md:px-20 max-w-[1440px] mx-auto">
-
-    <div class="flex justify-between items-end mb-16 reveal">
-      <div>
-        <span class="section-label">WheelVerse</span>
-        <h2 class="section-title">Collections</h2>
-      </div>
-      <a href="{% url 'collections' %}"
-        class="font-orbitron text-[10px] tracking-widest text-primary flex items-center gap-2 hover:gap-4 transition-all group no-underline">
-
-          VIEW COLLECTIONS
-
-          <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform">
-              arrow_right_alt
-          </span>
-
-      </a>
-    </div>
-
-    <!-- Horizontal scroll cards -->
-    <div class="flex gap-6 overflow-x-auto pb-12 snap-x no-scrollbar">
-
-      <!-- Category cards -->
-      <div class="cat-card snap-start flex-shrink-0 w-72 glass rounded-sm p-1 reveal" style="animation-delay:0.1s">
-        <div class="relative aspect-[3/4] overflow-hidden rounded-sm">
-          <img class="cat-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8LPL9-rqM3TIfNuinQJFCf7BCRMG6AES0YyYqqQgLqPRvJ_9iRyp3MLPqtEUKISgUOPbP4mqpM9rp1Z_FZhdlVvAKSeF_87UHGWcYKS1GrIWOrps-ixzLXGTRCezCZIl_geKN2UCC6watxUS8iIvWDNV83q0H-4tGyX6sMaXbi_z8--6uNBWQ5ohEbX_DRuWeukxudvrLrqmvz4bqBablxoAMhy4mc55glyS5lYhH1znl4ky-aq7r4sZtPTXtePCeSI1gOUFlHYA" alt="JDM"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-        </div>
-        <div class="absolute bottom-8 left-7 right-7">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-orbitron text-[9px] text-primary tracking-widest">ARCHIVE // 01</span>
-            <span class="w-8 h-px bg-primary/30"></span>
-          </div>
-          <h3 class="font-orbitron text-xl text-on-surface mb-3">JDM LEGENDS</h3>
-          <div class="cat-cta">
-            <button class="text-primary font-orbitron text-[9px] tracking-widest flex items-center gap-1">ENTER SHOWROOM <span class="material-symbols-outlined text-xs">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="cat-card snap-start flex-shrink-0 w-72 glass rounded-sm p-1 reveal" style="animation-delay:0.2s">
-        <div class="relative aspect-[3/4] overflow-hidden rounded-sm">
-          <img class="cat-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDSaKXwr9YBf80p_xIBR2Rlvi6nihpEr5JoD8-xOUAxvH0-HOHWYUKv1Mb_tpjlFbvBD8mgujeeEnSa4OnyI5RhfTsB8Zz3vl9X3TjU65PohUO1d2ZGBS14HjGjCBmX1wUX2kF1diJY-oBQX_JYFe1wgMy7zB3J8ar-JfsBKLSUGWztjwzkaxp8KFV0foYz-eh08AktE1vltLJ4hYow4LR_j8fz0vpTByqO8nUaweLkEuMKf75kw256SAj-qNFw7yzO863hb3eYeKg" alt="Hypercars"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-        </div>
-        <div class="absolute bottom-8 left-7 right-7">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-orbitron text-[9px] text-primary tracking-widest">ARCHIVE // 02</span>
-            <span class="w-8 h-px bg-primary/30"></span>
-          </div>
-          <h3 class="font-orbitron text-xl text-on-surface mb-3">HYPERCARS</h3>
-          <div class="cat-cta">
-            <button class="text-primary font-orbitron text-[9px] tracking-widest flex items-center gap-1">ENTER SHOWROOM <span class="material-symbols-outlined text-xs">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="cat-card snap-start flex-shrink-0 w-72 glass rounded-sm p-1 reveal" style="animation-delay:0.3s">
-        <div class="relative aspect-[3/4] overflow-hidden rounded-sm">
-          <img class="cat-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6fw-1oY-Nfm39o_JPvqo3fpWPTCy0fJPzK2QCXL_1Jt5gWFxE1L3zII-v00DCNmDbrobeCjkhP5AkGhCPpJXA-CWU8ZB3Om0ZunWgN0CZutJzGyt3oDRLigu1udJLETo6-qjiv32Uij8egntTtK9xgNwa4AIwirN5rf5rZsGnSimsu_EpLJdmC0nByxsqDAXt6oZDIIyD0CuilZGJH9eB5ViUdzl1E5vcu6CglGUQw7dugp9Fudx8K5aDsqkb0aBLZBfl30PgO3E" alt="Muscle"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-        </div>
-        <div class="absolute bottom-8 left-7 right-7">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-orbitron text-[9px] text-primary tracking-widest">ARCHIVE // 03</span>
-            <span class="w-8 h-px bg-primary/30"></span>
-          </div>
-          <h3 class="font-orbitron text-xl text-on-surface mb-3">MUSCLE CLASSICS</h3>
-          <div class="cat-cta">
-            <button class="text-primary font-orbitron text-[9px] tracking-widest flex items-center gap-1">ENTER SHOWROOM <span class="material-symbols-outlined text-xs">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="cat-card snap-start flex-shrink-0 w-72 glass rounded-sm p-1 reveal" style="animation-delay:0.4s">
-        <div class="relative aspect-[3/4] overflow-hidden rounded-sm">
-          <img class="cat-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBKBviYsEnGAffRNINf1RMGn9l2-As2ijLiRwpMXY_X1j0n1X8mg12ni5RkwpAjpjG5V36MqyEeGSVSUjXXVENA09WwcVmgv289fJRuORvEMnfzkVWdMnElSRFIReT6p8FDZ4Z-EO_uLkiuA36-EmwJHX1g33iGjf4XXefjan6CqEKPFcnq9GiccwkcYSjtmvDuhHqRlex1-6TiY_dMPwnzGbcUyIaIxdp6l3HnmuR0w8ocdZlFJUZZTIrprQVEdTL9ycf-sKm2LA" alt="Formula"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-        </div>
-        <div class="absolute bottom-8 left-7 right-7">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-orbitron text-[9px] text-primary tracking-widest">ARCHIVE // 04</span>
-            <span class="w-8 h-px bg-primary/30"></span>
-          </div>
-          <h3 class="font-orbitron text-xl text-on-surface mb-3">FORMULA RACERS</h3>
-          <div class="cat-cta">
-            <button class="text-primary font-orbitron text-[9px] tracking-widest flex items-center gap-1">ENTER SHOWROOM <span class="material-symbols-outlined text-xs">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
-
-      <div class="cat-card snap-start flex-shrink-0 w-72 glass rounded-sm p-1 reveal" style="animation-delay:0.5s">
-        <div class="relative aspect-[3/4] overflow-hidden rounded-sm">
-          <img class="cat-img w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmY5CtQEIB70w_MmZIhiKJ2v3zPPFAquXYZ5h3LiykPm5cG4nyEXmbEUh8CHcfEG0pTwKULHx7wvoCFTcnl43kW7mk-Wz6TFPD4ikxx-0boZ2YTNb9Ry1q_VQAj2Ow0BgzBehEksanMU52QT_ToE_1CFA8FfVkM8lxk1A0aW8eaRsvNaGBQBhcb1c_b-6rdCVj32ZcHylPuoKl3POxIDlOeF3NPHpcxZ32nbbDpkKceGjIGxr3a1V19XxeXs_fkW2-lnEq1BykCsQ" alt="Vintage"/>
-          <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-        </div>
-        <div class="absolute bottom-8 left-7 right-7">
-          <div class="flex justify-between items-center mb-2">
-            <span class="font-orbitron text-[9px] text-primary tracking-widest">ARCHIVE // 05</span>
-            <span class="w-8 h-px bg-primary/30"></span>
-          </div>
-          <h3 class="font-orbitron text-xl text-on-surface mb-3">VINTAGE EDITIONS</h3>
-          <div class="cat-cta">
-            <button class="text-primary font-orbitron text-[9px] tracking-widest flex items-center gap-1">ENTER SHOWROOM <span class="material-symbols-outlined text-xs">chevron_right</span></button>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- ============================
-     LIMITED DROP LIVE
-============================= -->
-<section class="relative py-28 carbon-pattern border-y border-primary/10 overflow-hidden">
-
-  <!-- Ambient glow -->
-  <div class="orb w-[500px] h-[500px] bg-primary/6 top-1/2 -translate-y-1/2 right-0"></div>
-  <div class="orb w-64 h-64 bg-primary/4 top-1/4 left-1/4"></div>
-
-  <!-- Floating particles -->
-  <div class="absolute inset-0 opacity-50 pointer-events-none">
-    <div class="absolute top-1/4 left-1/5 w-1 h-1 bg-primary rounded-full animate-pulse"></div>
-    <div class="absolute top-2/3 right-1/3 w-1 h-1 bg-primary rounded-full animate-pulse" style="animation-delay:0.7s"></div>
-    <div class="absolute bottom-1/4 right-1/4 w-1.5 h-1.5 bg-primary/50 rounded-full animate-ping" style="animation-delay:1.2s"></div>
-    <div class="absolute top-1/2 left-1/3 w-1 h-1 bg-primary/40 rounded-full animate-pulse" style="animation-delay:0.4s"></div>
-  </div>
-
-  <div class="px-6 md:px-20 max-w-[1440px] mx-auto relative z-10">
-    <div class="grid lg:grid-cols-2 gap-20 items-center">
-
-      <!-- Left: content -->
-      <div class="order-2 lg:order-1 reveal-left">
-        <div class="flex items-center gap-4 mb-8">
-          <span class="bg-primary text-on-primary font-orbitron text-[9px] px-3 py-1.5 font-bold tracking-widest rounded-sm">ULTRA RARE</span>
-          <div class="flex items-center gap-2 text-primary font-orbitron text-[9px] tracking-widest">
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-            </span>
-            LIVE DROP UNLOCKED
-          </div>
+            <div class="absolute inset-0 bg-gradient-to-r from-black via-black/65 to-black/10"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-ink via-transparent to-black/65"></div>
+            <div class="absolute inset-0 projector-flicker bg-amber-200/5"></div>
+            <div class="light-sweep absolute top-0 bottom-0 left-[-25%] w-[30%] bg-gradient-to-r from-transparent via-gold/10 to-transparent blur-xl"></div>
+            <div class="headlight-beam absolute right-[18%] md:right-[22%] bottom-[35%] w-[260px] md:w-[420px] h-24 bg-gradient-to-r from-gold/35 to-transparent blur-2xl rotate-[-7deg] origin-left"></div>
+            <div class="headlight-core absolute right-[23%] md:right-[27%] bottom-[39%] w-5 h-5 rounded-full bg-white shadow-[0_0_20px_8px_rgba(255,235,170,.95),0_0_70px_35px_rgba(242,202,80,.45)]"></div>
+            <div class="headlight-core absolute right-[11%] md:right-[15%] bottom-[39%] w-5 h-5 rounded-full bg-white shadow-[0_0_20px_8px_rgba(255,235,170,.95),0_0_70px_35px_rgba(242,202,80,.45)]" style="animation-delay:.08s"></div>
         </div>
 
-        <h2 class="font-orbitron text-[52px] text-on-surface mb-8 uppercase leading-[1.05] tracking-tight">
-          GOLDEN APEX <br/><span class="text-primary text-glow">SERIES 01</span>
-        </h2>
+        <div class="relative z-10 max-w-[1500px] min-h-[100svh] mx-auto px-5 md:px-10 xl:px-16 pt-36 pb-16 flex items-center">
+            <div class="max-w-4xl">
+                <div class="hero-reveal-1 inline-flex items-center gap-3 px-4 py-2 rounded-full border border-gold/30 bg-black/35 backdrop-blur-md mb-8">
+                    <span class="relative flex w-2 h-2">
+                        <span class="absolute inset-0 rounded-full bg-gold animate-ping"></span>
+                        <span class="relative w-2 h-2 rounded-full bg-gold"></span>
+                    </span>
+                    <span class="font-orbitron text-[9px] tracking-[.24em] text-gold">PRIVATE VINTAGE COLLECTION SHOWROOM</span>
+                </div>
 
-        <p class="font-poppins text-lg text-on-surface-variant/80 mb-12 max-w-lg">
-          Masterpiece engineering featuring hand-applied 24k gold leaf accents and aerospace-grade carbon composite. Strictly limited to 50 certified units worldwide.
-        </p>
+                <h1 class="hero-reveal-2 font-orbitron text-[clamp(3.2rem,8.2vw,8.7rem)] leading-[.82] font-black uppercase tracking-[-.075em]">
+                    TIMELESS
+                    <span class="block gold-text">MACHINES</span>
+                </h1>
 
-        <!-- Countdown -->
-        <div class="grid grid-cols-4 gap-3 mb-12 max-w-sm">
-          <div class="p-5 glass text-center border-b-2 border-primary">
-            <span class="block font-orbitron text-4xl text-primary countdown-num" id="cd-days">02</span>
-            <span class="font-orbitron text-[8px] text-on-surface-variant/50 uppercase mt-1 block tracking-widest">Days</span>
-          </div>
-          <div class="p-5 glass text-center border-b-2 border-primary">
-            <span class="block font-orbitron text-4xl text-primary countdown-num" id="cd-hrs">14</span>
-            <span class="font-orbitron text-[8px] text-on-surface-variant/50 uppercase mt-1 block tracking-widest">Hrs</span>
-          </div>
-          <div class="p-5 glass text-center border-b-2 border-primary">
-            <span class="block font-orbitron text-4xl text-primary countdown-num" id="cd-min">59</span>
-            <span class="font-orbitron text-[8px] text-on-surface-variant/50 uppercase mt-1 block tracking-widest">Min</span>
-          </div>
-          <div class="p-5 glass text-center border-b-2 border-primary">
-            <span class="block font-orbitron text-4xl text-primary animate-pulse countdown-num" id="cd-sec">42</span>
-            <span class="font-orbitron text-[8px] text-on-surface-variant/50 uppercase mt-1 block tracking-widest">Sec</span>
-          </div>
+                <div class="hero-reveal-3 mt-9 max-w-2xl flex items-start gap-5">
+                    <span class="w-px h-20 bg-gradient-to-b from-gold to-transparent shrink-0"></span>
+                    <div>
+                        {% if hero_product %}
+                            <p class="font-orbitron text-xs text-gold tracking-[.22em] mb-3">FEATURED: {{ hero_product.name|upper }}</p>
+                        {% endif %}
+                        <p class="text-sm md:text-lg leading-8 text-cream/70">{{ hero_product.description}}</p>
+                    </div>
+                </div>
+
+                <div class="hero-reveal-4 flex flex-wrap gap-4 mt-11">
+                    <a href="{% url 'collections' %}" class="btn-gold px-9 py-5">
+                        ENTER THE SHOWROOM
+                        <span class="material-symbols-outlined text-base">arrow_forward</span>
+                    </a>
+                    {% if hero_product %}
+                    <a href="{% url 'product_detail' product_id=hero_product.id %}" class="btn-outline px-9 py-5">
+                        VIEW FEATURED CAR
+                        <span class="material-symbols-outlined text-base">play_arrow</span>
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
 
-        <div class="flex items-center gap-10">
-          <button class="btn-primary px-12 py-5 rounded-sm font-bold shadow-[0_0_40px_rgba(242,202,80,0.25)] hover:shadow-[0_0_70px_rgba(242,202,80,0.5)] transition-all duration-500 uppercase tracking-widest text-sm">
-            Reserve Your Legend
-          </button>
-          <div class="flex flex-col">
-            <span class="text-on-surface-variant/50 font-orbitron text-[9px] mb-1 tracking-widest">AVAILABILITY</span>
-            <span class="text-primary font-orbitron text-xl text-glow">08 / 50 LEFT</span>
-          </div>
+        <div class="absolute z-20 bottom-7 right-5 md:right-12 xl:right-20 hidden md:block">
+            <div class="glass p-5 min-w-[260px]">
+                <p class="section-kicker mb-3">COLLECTION STATUS</p>
+                <div class="flex items-center justify-between gap-5 text-xs">
+                    <span class="text-smoke">Collection Rarity</span>
+                    <span class="text-green-300 font-orbitron text-[10px]">{{hero_product.rarity}}</span>
+                </div>
+                {% if hero_product %}
+                <div class="flex items-center justify-between gap-5 text-xs mt-3 pt-3 border-t border-white/5">
+                    <span class="text-smoke">Featured value</span>
+                    <span class="text-gold font-orbitron text-[10px]">₹{{ hero_product.max_price|floatformat:2 }}</span>
+                </div>
+                {% endif %}
+            </div>
         </div>
-      </div>
+    </section>
 
-      <!-- Right: floating car -->
-      <div class="order-1 lg:order-2 relative aspect-square reveal">
-        <div class="absolute inset-0 bg-primary/15 blur-[140px] rounded-full scale-75 animate-pulse"></div>
-        <!-- Platform shadow -->
-        <div class="absolute bottom-8 left-1/2 -translate-x-1/2 w-[110%] h-10 bg-black/50 backdrop-blur-xl border border-primary/15 rounded-[100%]" style="transform: translateX(-50%) rotateX(60deg);"></div>
-        <div class="relative z-20 w-full floating">
-          <img class="w-full h-auto drop-shadow-[0_40px_100px_rgba(242,202,80,0.4)]"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7WDx1bmea3hC3rBlu2SNOn6IPBezer3XMm87Y8j-WMozs9xsKwXDe17rJnmbxXTllMqH1zZsxsJqqFxahzH84uAScUA0w54iujAOp8seGKo1Xjpl_MrnLO4QFXj_Xwj5u5RiG0mwuLy0YxxXbge3T54OjzVdkQUs_LRHTqGOc90bfng8JGn4ABdCXj-YKXf9n0NxbLlT13rovmZACLAjxHgQ7GA1GGnHNak27JqhaRmReHJj7cv9wpS_YesgHkoXNrp2ULap30AY"
-            alt="Golden Apex Series 01"/>
+    <section class="relative py-24 bg-[#0a0906]">
+        <div class="absolute inset-0 showroom-grid opacity-30"></div>
+        <div class="relative z-10 max-w-[1500px] mx-auto px-5 md:px-10 xl:px-16">
+            <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-14">
+                <div>
+                    <span class="section-kicker">Explore by heritage</span>
+                    <h2 class="section-title mt-3">EXPLORE <span class="gold-text">CATEGORIES</span></h2>
+                </div>
+            </div>
+
+            {% if categories %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
+                {% for category in categories %}
+                <a href="{% url 'collections' %}?category={{ category.id }}" class="category-card reveal group">
+                    {% if category.landing_image_url %}
+                        <img src="{{ category.landing_image_url }}" alt="{{ category.name }}" class="absolute inset-0 w-full h-full object-cover">
+                    {% else %}
+                        <div class="absolute inset-0 bg-gradient-to-br from-[#3a2b12] via-[#14110c] to-black"></div>
+                    {% endif %}
+                    <div class="absolute inset-0 bg-gradient-to-t from-black via-black/35 to-black/20"></div>
+                    <div class="absolute inset-x-0 bottom-0 p-7">
+                        <div class="flex items-center justify-between gap-4 mb-4">
+                            <span class="font-orbitron text-[9px] tracking-[.22em] text-gold">CATEGORY {{ forloop.counter }}</span>
+                            <span class="text-xs text-cream/50">{{ category.product_count }} cars</span>
+                        </div>
+                        <h3 class="font-orbitron text-2xl uppercase text-white">{{ category.name }}</h3>
+                        {% if category.description %}
+                        <p class="mt-3 text-xs leading-6 text-cream/60 line-clamp-2">{{ category.description }}</p>
+                        {% endif %}
+                        <div class="mt-6 inline-flex items-center gap-2 font-orbitron text-[9px] tracking-[.16em] text-gold">
+                            ENTER  COLLECTIONS
+                            <span class="material-symbols-outlined text-sm group-hover:translate-x-2 transition-transform">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="glass p-12 text-center"><p class="text-smoke">Add active categories and products to display collection archives.</p></div>
+            {% endif %}
         </div>
-        <!-- Spec panel -->
-        <div class="absolute top-8 right-0 glass p-5 border-l-4 border-primary max-w-[190px]">
-          <p class="font-orbitron text-[9px] text-primary mb-3 tracking-widest">COLLECTOR SPEC</p>
-          <ul class="space-y-2.5">
-            <li class="flex justify-between text-[10px] border-b border-white/5 pb-1.5">
-              <span class="text-on-surface-variant font-poppins">Finish</span>
-              <span class="text-on-surface font-orbitron text-[9px]">24K Gold</span>
-            </li>
-            <li class="flex justify-between text-[10px] border-b border-white/5 pb-1.5">
-              <span class="text-on-surface-variant font-poppins">Scale</span>
-              <span class="text-on-surface font-orbitron text-[9px]">1:18</span>
-            </li>
-            <li class="flex justify-between text-[10px]">
-              <span class="text-on-surface-variant font-poppins">Auth</span>
-              <span class="text-on-surface font-orbitron text-[9px]">Blockchain</span>
-            </li>
-          </ul>
+    </section>
+
+    <section class="py-24 bg-panel">
+        <div class="max-w-[1500px] mx-auto px-5 md:px-10 xl:px-16">
+            <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-14">
+                <div>
+                    <span class="section-kicker">Freshly entered into inventory</span>
+                    <h2 class="section-title mt-3">NEW <span class="gold-text">ARRIVALS</span></h2>
+                </div>
+                <a href="{% url 'collections' %}?sort_by=newest" class="btn-outline px-7 py-4">
+                    VIEW ALL NEW ARRIVALS
+                    <span class="material-symbols-outlined text-base">north_east</span>
+                </a>
+            </div>
+
+            {% if latest_products %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
+                {% for product in latest_products %}
+                <a href="{% url 'product_detail' product_id=product.id %}" class="product-card reveal glass overflow-hidden">
+                    <div class="relative aspect-[4/3] overflow-hidden bg-black">
+                        {% if product.landing_image_url %}
+                            <img src="{{ product.landing_image_url }}" alt="{{ product.name }}" class="product-image w-full h-full object-cover">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center"><span class="material-symbols-outlined text-gold/40 text-6xl">directions_car</span></div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/10"></div>
+                        <span class="absolute top-4 left-4 px-3 py-1 bg-black/65 border border-gold/20 text-gold font-orbitron text-[8px] tracking-[.18em]">{{ product.rarity|default:"COLLECTOR" }}</span>
+                        <span class="absolute bottom-4 right-4 w-10 h-10 rounded-full bg-gold text-black flex items-center justify-center"><span class="material-symbols-outlined text-lg">arrow_outward</span></span>
+                    </div>
+                    <div class="p-6">
+                        <p class="font-orbitron text-[9px] tracking-[.18em] text-gold mb-3">{{ product.category.name|upper }}</p>
+                        <h3 class="font-orbitron text-lg uppercase leading-snug text-white">{{ product.name }}</h3>
+                        <div class="h-px my-5 bg-gradient-to-r from-transparent via-gold/50 to-transparent"></div>
+                        <div class="flex items-end justify-between gap-4">
+                            <div>
+                                <p class="text-[10px] text-smoke uppercase tracking-widest">Starting from</p>
+                                <p class="font-orbitron text-xl text-gold mt-1">₹{{ product.min_price|floatformat:2 }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] text-smoke uppercase tracking-widest">Stock</p>
+                                <p class="text-xs mt-1 {% if product.total_stock > 0 %}text-green-300{% else %}text-red-300{% endif %}">{{ product.total_stock }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="glass p-12 text-center"><p class="text-smoke">New active products will appear here automatically.</p></div>
+            {% endif %}
         </div>
-      </div>
+    </section>
 
-    </div>
-  </div>
-</section>
+    <section class="relative py-28 bg-[#090806] overflow-hidden">
+        <div class="absolute -top-20 -right-20 w-[520px] h-[520px] rounded-full bg-gold/5 blur-[120px]"></div>
+        <div class="max-w-[1500px] mx-auto px-5 md:px-10 xl:px-16 relative z-10">
+            <div class="reveal flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-14">
+                <div>
+                    <span class="section-kicker">Highest-value inventory</span>
+                    <h2 class="section-title mt-3">EXPENSIVE <span class="gold-text">WHEELS</span></h2>
+                </div>
+                <a href="{% url 'collections' %}?sort_by=price-high" class="btn-outline px-7 py-4">
+                    VIEW PREMIUM INVENTORY
+                    <span class="material-symbols-outlined text-base">trending_up</span>
+                </a>
+            </div>
 
-<!-- ============================
-     NEW ARRIVALS
-============================= -->
-<section class="py-24 bg-surface-dim">
-  <div class="px-6 md:px-20 max-w-[1440px] mx-auto">
-    <div class="flex justify-between items-end mb-4 reveal">
-      <div>
-        <span class="section-label">FRESHLY UNBOXED</span>
-        <h2 class="section-title">NEW ARRIVALS</h2>
-        <p class="font-poppins text-sm text-on-surface-variant/60 mt-2">Freshly unboxed icons from the global circuit.</p>
-      </div>
-      <div class="flex gap-2">
-        <button class="p-3 border border-outline-variant/30 hover:border-primary text-on-surface transition-all backdrop-blur-sm rounded-sm">
-          <span class="material-symbols-outlined">chevron_left</span>
-        </button>
-        <button class="p-3 border border-outline-variant/30 hover:border-primary text-on-surface transition-all backdrop-blur-sm rounded-sm">
-          <span class="material-symbols-outlined">chevron_right</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-      <!-- Product 1 -->
-      <div class="prod-card glass p-5 rounded-sm card-hover cursor-pointer reveal" style="animation-delay:0.1s">
-        <div class="relative aspect-[4/3] overflow-hidden mb-5 bg-black/25 rounded-sm">
-          <img class="prod-img w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtp3x87bmP9p2l7ZmHRdf9rt3EXeJpzmFJKvnxP8-zXcfIyflsI9_dzK6Pyj4sB_U-yM6LnQGDe4OsFns9uv1-1yTubY19l3bummoaEo8AtkW1TRqy11BXiMFZDwBpm8yQmiJkb8TNC_oR4IyER4Eds7DDsfWS6WVUt-BapM4dx3Z3NSg_ihz7rA6a_eiiW2Tw7PcnpbV-Ip_1ehye97mVAflPIyhk2nS4Eqw7oMx11mpS9yULg4g1slS4pxoOXDtyjauB3-2-zKo"
-            alt="Stuttgart Phantom"/>
-          <div class="absolute top-3 left-3 flex gap-2">
-            <span class="bg-primary text-on-primary font-orbitron text-[8px] px-2 py-1 rounded-sm font-bold">NEW</span>
-            <span class="bg-white/10 backdrop-blur-md text-on-surface font-orbitron text-[8px] px-2 py-1 rounded-sm border border-white/10">9.8 SCORE</span>
-          </div>
-          <button class="absolute bottom-3 right-3 p-2 bg-black/60 backdrop-blur-md text-white hover:text-primary rounded-full transition-all opacity-0 group-hover:opacity-100 hover:opacity-100">
-            <span class="material-symbols-outlined text-sm">favorite</span>
-          </button>
+            {% if expensive_products %}
+            <div class="space-y-7">
+                {% for product in expensive_products %}
+                <a href="{% url 'product_detail' product_id=product.id %}" class="reveal expensive-showcase glass grid grid-cols-1 lg:grid-cols-12 gap-0 overflow-hidden group">
+                    <div class="lg:col-span-6 relative min-h-[330px] overflow-hidden bg-black">
+                        {% if product.landing_image_url %}
+                            <img src="{{ product.landing_image_url }}" alt="{{ product.name }}" class="absolute inset-0 w-full h-full object-cover">
+                        {% else %}
+                            <div class="absolute inset-0 flex items-center justify-center"><span class="material-symbols-outlined text-gold/40 text-8xl">directions_car</span></div>
+                        {% endif %}
+                        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-transparent to-black/60"></div>
+                        <div class="absolute top-5 left-5 px-4 py-2 bg-black/65 border border-gold/20"><span class="font-orbitron text-[9px] text-gold tracking-[.18em]">VALUE RANK {{ forloop.counter }}</span></div>
+                    </div>
+                    <div class="lg:col-span-6 p-8 md:p-11 flex flex-col justify-center">
+                        <div class="flex flex-wrap items-center gap-3 mb-5">
+                            <span class="font-orbitron text-[9px] tracking-[.18em] text-gold">{{ product.category.name|upper }}</span>
+                            <span class="w-12 h-px bg-gold/30"></span>
+                            <span class="text-[10px] text-smoke">{{ product.rarity|default:"PREMIUM" }}</span>
+                        </div>
+                        <h3 class="font-orbitron text-3xl md:text-5xl uppercase leading-[1.05] group-hover:text-gold transition-colors">{{ product.name }}</h3>
+                        {% if product.description %}<p class="mt-5 text-sm leading-7 text-smoke line-clamp-3">{{ product.description }}</p>{% endif %}
+                        <div class="mt-8 grid grid-cols-2 gap-5 max-w-lg">
+                            <div class="border-l border-gold/30 pl-4">
+                                <p class="text-[10px] text-smoke uppercase tracking-widest">Highest Variant</p>
+                                <p class="font-orbitron text-2xl text-gold mt-2">₹{{ product.max_price|floatformat:2 }}</p>
+                            </div>
+                            <div class="border-l border-white/10 pl-4">
+                                <p class="text-[10px] text-smoke uppercase tracking-widest">Total Stock</p>
+                                <p class="font-orbitron text-2xl text-cream mt-2">{{ product.total_stock }}</p>
+                            </div>
+                        </div>
+                        <div class="mt-9 inline-flex items-center gap-3 font-orbitron text-[10px] tracking-[.18em] text-gold">
+                            INSPECT THIS MACHINE
+                            <span class="material-symbols-outlined group-hover:translate-x-3 transition-transform">arrow_forward</span>
+                        </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+            {% else %}
+                <div class="glass p-12 text-center"><p class="text-smoke">Highest-priced active products will appear here automatically.</p></div>
+            {% endif %}
         </div>
-        <h3 class="font-orbitron text-sm text-on-surface mb-1">STUTTGART PHANTOM</h3>
-        <p class="font-poppins text-on-surface-variant/60 text-[10px] mb-5 uppercase tracking-widest">Limited Edition Prototype #04</p>
-        <div class="flex items-center justify-between pt-4 border-t border-white/5">
-          <span class="font-orbitron text-lg text-primary">$299.00</span>
-          <button class="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest text-on-surface hover:text-primary transition-colors">
-            ADD TO GARAGE <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
-          </button>
-        </div>
-      </div>
+    </section>
 
-      <!-- Product 2 -->
-      <div class="prod-card glass p-5 rounded-sm card-hover cursor-pointer reveal" style="animation-delay:0.2s">
-        <div class="relative aspect-[4/3] overflow-hidden mb-5 bg-black/25 rounded-sm">
-          <img class="prod-img w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcaFZIWt27zTHQMnBn_0orSjgjRx8RZvhnbbab8SriumRHkx_nLIXDgkttVsvMJle3WtbWuvOJHRgOEiSwtrfoWMchEJ0h3HJ3HZGaE9l-Iw2TNzW2fMTXzC3OEJneoIhY4m9HIcIr81B4ulUaouCC0WuSahZnRFynmVH3GywChJ3bIapuVxSpTkHkHpTFDoYE0HYdd9GYbbYrOss1a_tJPu5IXhp2X651OBbKXrQdQ4cYqXClusvqvxFjWPXxh0fMgHw1RNfYKvg"
-            alt="Maranello"/>
-          <div class="absolute top-3 left-3 flex gap-2">
-            <span class="bg-red-600 text-white font-orbitron text-[8px] px-2 py-1 rounded-sm font-bold">HOT</span>
-          </div>
+    <section class="relative py-28 overflow-hidden bg-panel">
+        <div class="absolute inset-0 showroom-grid opacity-35"></div>
+        <div class="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black"></div>
+        <div class="relative z-10 max-w-5xl mx-auto px-5 text-center reveal">
+            <span class="section-kicker">Your private garage awaits</span>
+            <h2 class="section-title mt-4">BUILD A COLLECTION <span class="block gold-text">WORTH REMEMBERING</span></h2>
+            <p class="max-w-2xl mx-auto mt-7 text-sm md:text-base leading-8 text-smoke">Browse the complete WheelVerse inventory, compare premium variants and reserve the legends that belong in your personal showroom.</p>
+            <a href="{% url 'collections' %}" class="btn-gold px-10 py-5 mt-10">
+                EXPLORE ALL COLLECTIONS
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
         </div>
-        <h3 class="font-orbitron text-sm text-on-surface mb-1">MARANELLO VELOCITY</h3>
-        <p class="font-poppins text-on-surface-variant/60 text-[10px] mb-5 uppercase tracking-widest">2023 GT3 Championship Livery</p>
-        <div class="flex items-center justify-between pt-4 border-t border-white/5">
-          <span class="font-orbitron text-lg text-primary">$450.00</span>
-          <button class="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest text-on-surface hover:text-primary transition-colors">
-            ADD TO GARAGE <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Product 3 -->
-      <div class="prod-card glass p-5 rounded-sm card-hover cursor-pointer reveal" style="animation-delay:0.3s">
-        <div class="relative aspect-[4/3] overflow-hidden mb-5 bg-black/25 rounded-sm">
-          <img class="prod-img w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2nyWS8QEF5y_FhKMrjhVArgSZObJrCUT70hpM9tWpE9l09PJVFKUaOAlw6k_YuzxIe6I82zb0JZyJcqXDhYXZLo89aa4D2reNzb7-xIizBnv844NTPm1f8jQbSd1Zw0H-fn9tIAD1ozt3pHCZ2ma4BNYeCnPjqzrWxhTD8TRiVEL3VRQ1SSSKdepFHhfcM2feFfYJyLrxdlAehJGTfgyIUa0vPEAoDjZoiU9v6UAwju4kj5N8bw00MXMWt4_7wD6Zn6mD21X_Azc"
-            alt="British Heritage"/>
-          <div class="absolute top-3 left-3 flex gap-2">
-            <span class="bg-primary/20 text-primary border border-primary/40 font-orbitron text-[8px] px-2 py-1 rounded-sm font-bold">VINTAGE</span>
-          </div>
-        </div>
-        <h3 class="font-orbitron text-sm text-on-surface mb-1">BRITISH HERITAGE V12</h3>
-        <p class="font-poppins text-on-surface-variant/60 text-[10px] mb-5 uppercase tracking-widest">Authentic 1964 Casting Reissue</p>
-        <div class="flex items-center justify-between pt-4 border-t border-white/5">
-          <span class="font-orbitron text-lg text-primary">$195.00</span>
-          <button class="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest text-on-surface hover:text-primary transition-colors">
-            ADD TO GARAGE <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Product 4 -->
-      <div class="prod-card glass p-5 rounded-sm card-hover cursor-pointer reveal" style="animation-delay:0.4s">
-        <div class="relative aspect-[4/3] overflow-hidden mb-5 bg-black/25 rounded-sm">
-          <img class="prod-img w-full h-full object-cover"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgb_aHRTuj8KaLc4rK5ukk-YpAr3jQXyTogpsIUgQqpvVYwLolC87MwODkP8vWPcz7wxf_XIaEGFfuTL6a9-Ye9gjDTU-bpjxMBu4vs6I4aDGyhlE8NRoO_7N2wEqyTgVuo7jYRzjH4drQNjEsD2AXrFFjE3Va8RiSoCuPz1D8LAMluVww7b9_pLgOPDLaOJDwqsiAIZO7ainsk-iMyJhO657LKXDtiTIHkU7t1xU1BbSdfcwYjw2Hx9pJbZq4UafItCR9tD1NVyA"
-            alt="E-Titan Protocol"/>
-          <div class="absolute top-3 left-3 flex gap-2">
-            <span class="bg-primary text-on-primary font-orbitron text-[8px] px-2 py-1 rounded-sm font-bold">NEW</span>
-          </div>
-        </div>
-        <h3 class="font-orbitron text-sm text-on-surface mb-1">E-TITAN PROTOCOL</h3>
-        <p class="font-poppins text-on-surface-variant/60 text-[10px] mb-5 uppercase tracking-widest">Sustainable Composite Edition</p>
-        <div class="flex items-center justify-between pt-4 border-t border-white/5">
-          <span class="font-orbitron text-lg text-primary">$210.00</span>
-          <button class="flex items-center gap-1.5 font-orbitron text-[9px] tracking-widest text-on-surface hover:text-primary transition-colors">
-            ADD TO GARAGE <span class="material-symbols-outlined text-sm">add_shopping_cart</span>
-          </button>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ============================
-     UPCOMING LEGENDS
-============================= -->
-<section class="py-24 bg-surface-container-low border-t border-white/5">
-  <div class="px-6 md:px-20 max-w-[1440px] mx-auto">
-    <div class="flex justify-between items-end mb-16 reveal">
-      <div>
-        <span class="section-label">FUTURE RELEASES</span>
-        <h2 class="section-title">UPCOMING WHEELS</h2>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-
-      <!-- Pre-order 1 -->
-      <div class="group glass p-6 rounded-sm hover:border-primary/30 transition-all duration-500 card-hover reveal" style="animation-delay:0.1s">
-        <div class="aspect-video mb-6 overflow-hidden rounded-sm bg-black/40">
-          <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtp3x87bmP9p2l7ZmHRdf9rt3EXeJpzmFJKvnxP8-zXcfIyflsI9_dzK6Pyj4sB_U-yM6LnQGDe4OsFns9uv1-1yTubY19l3bummoaEo8AtkW1TRqy11BXiMFZDwBpm8yQmiJkb8TNC_oR4IyER4Eds7DDsfWS6WVUt-BapM4dx3Z3NSg_ihz7rA6a_eiiW2Tw7PcnpbV-Ip_1ehye97mVAflPIyhk2nS4Eqw7oMx11mpS9yULg4g1slS4pxoOXDtyjauB3-2-zKo"
-            alt="Silver Phantom"/>
-        </div>
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-orbitron text-base text-on-surface">SILVER PHANTOM</h3>
-          <span class="text-primary font-orbitron text-[10px] tracking-widest">JUN 2025</span>
-        </div>
-        <div class="mb-7">
-          <div class="flex justify-between font-orbitron text-[9px] text-on-surface-variant/50 mb-2 tracking-widest">
-            <span>87% RESERVED</span>
-            <span>13 UNITS LEFT</span>
-          </div>
-          <div class="w-full h-1 bg-white/8 rounded-full overflow-hidden">
-            <div class="h-full bg-primary prog-bar rounded-full" style="width:87%"></div>
-          </div>
-        </div>
-        <button class="w-full py-4 border border-primary/35 text-primary font-orbitron text-[10px] hover:bg-primary hover:text-on-primary transition-all uppercase font-bold tracking-widest rounded-sm">
-          Add to Cart
-        </button>
-      </div>
-
-      <!-- Pre-order 2 -->
-      <div class="group glass p-6 rounded-sm hover:border-primary/30 transition-all duration-500 card-hover reveal" style="animation-delay:0.2s">
-        <div class="aspect-video mb-6 overflow-hidden rounded-sm bg-black/40">
-          <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuB2nyWS8QEF5y_FhKMrjhVArgSZObJrCUT70hpM9tWpE9l09PJVFKUaOAlw6k_YuzxIe6I82zb0JZyJcqXDhYXZLo89aa4D2reNzb7-xIizBnv844NTPm1f8jQbSd1Zw0H-fn9tIAD1ozt3pHCZ2ma4BNYeCnPjqzrWxhTD8TRiVEL3VRQ1SSSKdepFHhfcM2feFfYJyLrxdlAehJGTfgyIUa0vPEAoDjZoiU9v6UAwju4kj5N8bw00MXMWt4_7wD6Zn6mD21X_Azc"
-            alt="E-Titan"/>
-        </div>
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-orbitron text-base text-on-surface">E-TITAN PROTOCOL</h3>
-          <span class="text-primary font-orbitron text-[10px] tracking-widest">JUN 2025</span>
-        </div>
-        <div class="mb-7">
-          <div class="flex justify-between font-orbitron text-[9px] text-on-surface-variant/50 mb-2 tracking-widest">
-            <span>62% RESERVED</span>
-            <span>38 UNITS LEFT</span>
-          </div>
-          <div class="w-full h-1 bg-white/8 rounded-full overflow-hidden">
-            <div class="h-full bg-primary prog-bar rounded-full" style="width:62%; animation-delay:0.5s"></div>
-          </div>
-        </div>
-        <button class="w-full py-4 border border-primary/35 text-primary font-orbitron text-[10px] hover:bg-primary hover:text-on-primary transition-all uppercase font-bold tracking-widest rounded-sm">
-          Add to Cart
-        </button>
-      </div>
-
-      <!-- Pre-order 3 -->
-      <div class="group glass p-6 rounded-sm hover:border-primary/30 transition-all duration-500 card-hover reveal" style="animation-delay:0.3s">
-        <div class="aspect-video mb-6 overflow-hidden rounded-sm bg-black/40">
-          <img class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuAcaFZIWt27zTHQMnBn_0orSjgjRx8RZvhnbbab8SriumRHkx_nLIXDgkttVsvMJle3WtbWuvOJHRgOEiSwtrfoWMchEJ0h3HJ3HZGaE9l-Iw2TNzW2fMTXzC3OEJneoIhY4m9HIcIr81B4ulUaouCC0WuSahZnRFynmVH3GywChJ3bIapuVxSpTkHkHpTFDoYE0HYdd9GYbbYrOss1a_tJPu5IXhp2X651OBbKXrQdQ4cYqXClusvqvxFjWPXxh0fMgHw1RNfYKvg"
-            alt="Velocity GT3"/>
-        </div>
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="font-orbitron text-base text-on-surface">VELOCITY GT3</h3>
-          <span class="text-primary font-orbitron text-[10px] tracking-widest">JUN 2025</span>
-        </div>
-        <div class="mb-7">
-          <div class="flex justify-between font-orbitron text-[9px] text-on-surface-variant/50 mb-2 tracking-widest">
-            <span>45% RESERVED</span>
-            <span>55 UNITS LEFT</span>
-          </div>
-          <div class="w-full h-1 bg-white/8 rounded-full overflow-hidden">
-            <div class="h-full bg-primary prog-bar rounded-full" style="width:45%; animation-delay:1s"></div>
-          </div>
-        </div>
-        <button class="w-full py-4 border border-primary/35 text-primary font-orbitron text-[10px] hover:bg-primary hover:text-on-primary transition-all uppercase font-bold tracking-widest rounded-sm">
-          Add to Cart
-        </button>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-
-<!-- ============================
-     FOOTER
-============================= -->
-<footer class="py-16 bg-surface-container-lowest border-t border-white/5">
-  <div class="px-6 md:px-20 max-w-[1440px] mx-auto">
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-10 mb-16">
-      <div class="col-span-2">
-        <span class="font-orbitron text-2xl font-bold text-primary shimmer-text select-none block mb-4">WheelVerse</span>
-        <p class="font-poppins text-sm text-on-surface-variant/60 max-w-xs leading-relaxed">
-          The world's premier destination for authenticated die-cast collectibles, rare racers, and limited automotive legends.
-        </p>
-        <div class="flex gap-3 mt-6">
-          <button class="w-9 h-9 rounded-full border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:border-primary hover:text-primary transition-all">
-            <span class="material-symbols-outlined text-sm">language</span>
-          </button>
-          <button class="w-9 h-9 rounded-full border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:border-primary hover:text-primary transition-all">
-            <span class="material-symbols-outlined text-sm">mail</span>
-          </button>
-          <button class="w-9 h-9 rounded-full border border-outline-variant/30 flex items-center justify-center text-on-surface-variant hover:border-primary hover:text-primary transition-all">
-            <span class="material-symbols-outlined text-sm">rss_feed</span>
-          </button>
-        </div>
-      </div>
-      <div>
-        <h4 class="font-orbitron text-[10px] tracking-[0.2em] text-primary mb-5">SHOWROOM</h4>
-        <ul class="space-y-3">
-          <li><a href="#" class="footer-link">New Arrivals</a></li>
-          <li><a href="#" class="footer-link">JDM Legends</a></li>
-          <li><a href="#" class="footer-link">Hypercars</a></li>
-          <li><a href="#" class="footer-link">Formula Racers</a></li>
-          <li><a href="#" class="footer-link">Vintage Editions</a></li>
-        </ul>
-      </div>
-      <div>
-        <h4 class="font-orbitron text-[10px] tracking-[0.2em] text-primary mb-5">COLLECTORS</h4>
-        <ul class="space-y-3">
-
-          <li><a href="{% url 'cart' %}" class="footer-link">Cart</a></li>
-
-        </ul>
-      </div>
-      <div>
-        <h4 class="font-orbitron text-[10px] tracking-[0.2em] text-primary mb-5">COMPANY</h4>
-        <ul class="space-y-3">
-          <li><a href="#" class="footer-link">About Us</a></li>
-          <li><a href="#" class="footer-link">Authentication</a></li>
-          <li><a href="#" class="footer-link">Blockchain</a></li>
-          <li><a href="#" class="footer-link">Press</a></li>
-          <li><a href="#" class="footer-link">Contact</a></li>
-        </ul>
-      </div>
-    </div>
-    <div class="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-white/5 gap-4">
-      <span class="font-orbitron text-[9px] tracking-widest text-on-surface-variant/40 uppercase">© 2024 WheelVerse. All rights reserved.</span>
-      <div class="flex gap-6">
-        <a href="#" class="footer-link">Privacy Policy</a>
-        <a href="#" class="footer-link">Terms of Service</a>
-        <a href="#" class="footer-link">Cookie Settings</a>
-      </div>
-    </div>
-  </div>
-</footer>
-
+    </section>
 </main>
 
+
 <script>
-// ---- Navbar scroll effect ----
-const navbar = document.getElementById('navbar');
-window.addEventListener('scroll', () => {
-  if (window.scrollY > 80) {
-    navbar.style.background = 'rgba(22,19,11,0.88)';
-    navbar.style.backdropFilter = 'blur(24px)';
-    navbar.style.borderBottom = '1px solid rgba(242,202,80,0.1)';
-    navbar.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
-  } else {
-    navbar.style.background = 'transparent';
-    navbar.style.backdropFilter = 'none';
-    navbar.style.borderBottom = 'none';
-    navbar.style.boxShadow = 'none';
-  }
-});
+    const navbar = document.getElementById("navbar");
 
-// ---- Hero bg subtle zoom ----
-const heroBg = document.getElementById('hero-bg');
-setTimeout(() => { if (heroBg) heroBg.style.transform = 'scale(1)'; }, 100);
+    function updateNavbar() {
+        if (window.scrollY > 35) {
+            navbar.classList.add("bg-black/85", "backdrop-blur-xl", "border-b", "border-gold/10", "shadow-2xl");
+        } else {
+            navbar.classList.remove("bg-black/85", "backdrop-blur-xl", "border-b", "border-gold/10", "shadow-2xl");
+        }
+    }
 
-// ---- Intersection Observer for reveals ----
-const revealEls = document.querySelectorAll('.reveal, .reveal-left');
-const io = new IntersectionObserver((entries) => {
-  entries.forEach(e => {
-    if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); }
-  });
-}, { threshold: 0.12 });
-revealEls.forEach(el => io.observe(el));
+    window.addEventListener("scroll", updateNavbar);
+    updateNavbar();
 
+    const observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                entry.target.classList.add("visible");
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.12 });
 
+    document.querySelectorAll(".reveal").forEach(function (element) {
+        observer.observe(element);
+    });
 
-// ---- Cursor glow (desktop) ----
-if (window.innerWidth > 768) {
-  const cursor = document.createElement('div');
-  cursor.style.cssText = 'position:fixed;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(242,202,80,0.04) 0%,transparent 70%);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:left 0.15s ease,top 0.15s ease;';
-  document.body.appendChild(cursor);
-  document.addEventListener('mousemove', e => {
-    cursor.style.left = e.clientX + 'px';
-    cursor.style.top = e.clientY + 'px';
-  });
-}
+    const heroCar = document.querySelector(".hero-car");
+
+    window.addEventListener("mousemove", function (event) {
+        if (!heroCar || window.innerWidth < 900) return;
+
+        const x = (event.clientX / window.innerWidth - 0.5) * 10;
+        const y = (event.clientY / window.innerHeight - 0.5) * 6;
+
+        heroCar.style.marginLeft = `${x}px`;
+        heroCar.style.marginTop = `${y}px`;
+    });
 </script>
 </body>
 </html>

@@ -316,8 +316,16 @@
 
                         <div class="danger-zone p-5">
                             <div class="flex items-center gap-3 mb-4">
-                                <span class="material-symbols-outlined text-error">report</span>
-                                <h4 class="font-label-caps text-xs text-error">DANGER ZONE</h4>
+                                <span class="material-symbols-outlined text-error">
+                                    {% if item.cancelled_quantity > 0 %}inventory_2{% else %}report{% endif %}
+                                </span>
+                                <h4 class="font-label-caps text-xs text-error">
+                                    {% if item.cancelled_quantity > 0 %}
+                                        CANCELLATION DETAILS
+                                    {% else %}
+                                        ITEM ACTIONS
+                                    {% endif %}
+                                </h4>
                             </div>
 
                             {% if item.cancelled_quantity > 0 %}
@@ -344,19 +352,6 @@
                                         Reason: {{ item.return_reason }}
                                     </p>
                                 {% endif %}
-
-                            {% elif has_cancelled_item %}
-                                <div class="text-center">
-                                    <p class="text-error font-label-caps text-xs">
-                                        ITEM CANCELLATION LIMIT REACHED
-                                    </p>
-                                    <p class="text-on-surface-variant text-xs mt-2">
-                                        Only one item can be cancelled from each order.
-                                        {% if cancelled_item %}
-                                            {{ cancelled_item.product_name }} was already cancelled.
-                                        {% endif %}
-                                    </p>
-                                </div>
 
                             {% elif order.status == "PENDING" or order.status == "CONFIRMED" or order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
                                 <a href="{% url 'cancel_order_item' item.id %}"

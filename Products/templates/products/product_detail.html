@@ -84,6 +84,175 @@
             border-color: #f2ca50;
             background: rgba(242,202,80,.1);
         }
+
+
+        /* Professional product image gallery */
+        .gallery-shell {
+            display: grid;
+            grid-template-columns: 92px minmax(0, 1fr);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .thumbnail-rail {
+            max-height: 650px;
+            overflow-y: auto;
+            padding-right: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: #f2ca50 #17130c;
+        }
+
+        .thumbnail-rail::-webkit-scrollbar { width: 4px; }
+        .thumbnail-rail::-webkit-scrollbar-track { background: #17130c; }
+        .thumbnail-rail::-webkit-scrollbar-thumb { background: #f2ca50; border-radius: 20px; }
+
+        .gallery-thumb {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 2px solid transparent;
+            background: #17130c;
+            cursor: pointer;
+            opacity: .62;
+            transition: opacity .25s ease, border-color .25s ease, transform .25s ease, box-shadow .25s ease;
+        }
+
+        .gallery-thumb:hover {
+            opacity: 1;
+            transform: translateY(-2px);
+            border-color: rgba(242,202,80,.55);
+        }
+
+        .gallery-thumb.active {
+            opacity: 1;
+            border-color: #f2ca50;
+            box-shadow: 0 0 0 1px rgba(242,202,80,.2);
+        }
+
+        .gallery-stage {
+            position: relative;
+            min-height: 650px;
+            overflow: hidden;
+            border-radius: 26px;
+            background: radial-gradient(circle at center, rgba(242,202,80,.07), transparent 55%), linear-gradient(145deg, #25221b, #11100c);
+            border: 1px solid rgba(242,202,80,.16);
+        }
+
+        .gallery-main-image {
+            width: 100%;
+            height: 100%;
+            min-height: 650px;
+            object-fit: contain;
+            padding: 30px;
+            user-select: none;
+            transition: opacity .18s ease;
+        }
+
+        .gallery-arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 20;
+            width: 58px;
+            height: 58px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,.92);
+            color: #17130c;
+            border: 1px solid rgba(0,0,0,.06);
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            transition: transform .25s ease, background .25s ease, color .25s ease;
+        }
+
+        .gallery-arrow:hover {
+            background: #f2ca50;
+            color: #120f08;
+            transform: translateY(-50%) scale(1.06);
+        }
+
+        .gallery-arrow.prev { left: 18px; }
+        .gallery-arrow.next { right: 18px; }
+
+        .gallery-counter {
+            position: absolute;
+            right: 22px;
+            bottom: 20px;
+            z-index: 20;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: rgba(0,0,0,.65);
+            border: 1px solid rgba(242,202,80,.22);
+            color: #f2ca50;
+            font-family: Orbitron, sans-serif;
+            font-size: 10px;
+            letter-spacing: .12em;
+            backdrop-filter: blur(10px);
+        }
+
+        .zoom-lens {
+            position: absolute;
+            z-index: 25;
+            display: none;
+            width: 190px;
+            height: 150px;
+            border: 2px solid rgba(242,202,80,.85);
+            background: rgba(242,202,80,.08);
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,.35), 0 0 30px rgba(242,202,80,.22);
+            pointer-events: none;
+        }
+
+        .zoom-preview {
+            position: absolute;
+            z-index: 40;
+            top: 0;
+            left: calc(100% + 22px);
+            width: min(520px, 42vw);
+            height: 520px;
+            display: none;
+            overflow: hidden;
+            border-radius: 18px;
+            background-color: #16130b;
+            background-repeat: no-repeat;
+            border: 1px solid rgba(242,202,80,.28);
+            box-shadow: 0 30px 80px rgba(0,0,0,.6);
+        }
+
+        .gallery-empty {
+            min-height: 650px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: rgba(242,202,80,.45);
+        }
+
+        @media (max-width: 1280px) {
+            .zoom-preview, .zoom-lens { display: none !important; }
+        }
+
+        @media (max-width: 760px) {
+            .gallery-shell { grid-template-columns: 1fr; }
+            .thumbnail-rail {
+                order: 2;
+                max-height: none;
+                display: flex;
+                overflow-x: auto;
+                overflow-y: hidden;
+                gap: 10px;
+                padding: 4px 0 8px;
+            }
+            .thumbnail-rail .variant-thumbnails { display: flex; gap: 10px; }
+            .gallery-thumb { flex: 0 0 78px; width: 78px; }
+            .gallery-stage, .gallery-main-image, .gallery-empty { min-height: 420px; }
+            .gallery-main-image { padding: 18px; }
+            .gallery-arrow { width: 46px; height: 46px; }
+            .gallery-arrow.prev { left: 10px; }
+            .gallery-arrow.next { right: 10px; }
+        }
+
     </style>
 
     <script>
@@ -132,41 +301,79 @@
 
     <section class="grid grid-cols-1 lg:grid-cols-[1fr_430px] gap-8 items-start">
 
-        <div>
-            <div class="glass rounded-xl min-h-[520px] flex items-center justify-center p-10 overflow-hidden">
-                {% if first_variant and first_variant.image %}
-                    <img id="mainImage"
-                         src="{{ first_variant.image.url }}"
-                         alt="{{ product.name }}"
-                         class="w-full max-h-[470px] object-contain cursor-zoom-in transition duration-700 hover:scale-105">
-                {% else %}
-                    <div class="text-center text-[#f2ca50]/50">
-                        <span class="material-symbols-outlined text-8xl">directions_car</span>
-                        <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
-                    </div>
-                {% endif %}
+        <div class="relative">
+            <div class="gallery-shell">
+                <div class="thumbnail-rail">
+                    {% for variant in variants %}
+                        <div class="variant-thumbnails space-y-3 {% if not forloop.first %}hidden{% endif %}"
+                             data-variant-thumb="{{ variant.id }}">
+
+                            {% for img in variant.images.all %}
+                                <button type="button" class="block w-full" aria-label="View image {{ forloop.counter }}">
+                                    <img src="{{ img.image.url }}"
+                                         data-image="{{ img.image.url }}"
+                                         data-index="{{ forloop.counter0 }}"
+                                         alt="{{ product.name }} image {{ forloop.counter }}"
+                                         class="gallery-thumb thumb-img {% if forloop.first %}active{% endif %}">
+                                </button>
+                            {% empty %}
+                                {% if variant.image %}
+                                    <button type="button" class="block w-full" aria-label="View product image">
+                                        <img src="{{ variant.image.url }}"
+                                             data-image="{{ variant.image.url }}"
+                                             data-index="0"
+                                             alt="{{ product.name }}"
+                                             class="gallery-thumb thumb-img active">
+                                    </button>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div id="galleryStage" class="gallery-stage">
+                    {% if first_variant %}
+                        {% with first_gallery_image=first_variant.images.first %}
+                            {% if first_gallery_image %}
+                                <img id="mainImage"
+                                     src="{{ first_gallery_image.image.url }}"
+                                     alt="{{ product.name }}"
+                                     draggable="false"
+                                     class="gallery-main-image cursor-crosshair">
+                            {% elif first_variant.image %}
+                                <img id="mainImage"
+                                     src="{{ first_variant.image.url }}"
+                                     alt="{{ product.name }}"
+                                     draggable="false"
+                                     class="gallery-main-image cursor-crosshair">
+                            {% else %}
+                                <div class="gallery-empty">
+                                    <span class="material-symbols-outlined text-8xl">directions_car</span>
+                                    <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    {% else %}
+                        <div class="gallery-empty">
+                            <span class="material-symbols-outlined text-8xl">directions_car</span>
+                            <p class="orbitron text-xs mt-4">NO PRODUCT IMAGE</p>
+                        </div>
+                    {% endif %}
+
+                    <button type="button" id="previousImage" class="gallery-arrow prev" aria-label="Previous image">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                    </button>
+
+                    <button type="button" id="nextImage" class="gallery-arrow next" aria-label="Next image">
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </button>
+
+                    <div id="zoomLens" class="zoom-lens"></div>
+                    <div id="imageCounter" class="gallery-counter">1 / 1</div>
+                </div>
             </div>
 
-           <div class="mt-5">
-
-                {% for variant in variants %}
-
-                    <div class="variant-thumbnails grid grid-cols-3 gap-3 {% if not forloop.first %}hidden{% endif %}"
-                         data-variant-thumb="{{ variant.id }}">
-
-                        {% for img in variant.images.all %}
-
-                            <img src="{{ img.image.url }}"
-                                 data-image="{{ img.image.url }}"
-                                 class="thumb-img h-24 w-full object-cover rounded-lg cursor-pointer border-2 {% if forloop.first %}border-[#f2ca50]{% else %}border-transparent{% endif %} hover:border-[#f2ca50] transition">
-
-                        {% endfor %}
-
-                    </div>
-
-                {% endfor %}
-
-            </div>
+            <div id="zoomPreview" class="zoom-preview"></div>
         </div>
 
         <aside class="glass rounded-xl p-8 sticky top-28">
@@ -674,6 +881,170 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+});
+</script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const mainImage = document.getElementById("mainImage");
+    const galleryStage = document.getElementById("galleryStage");
+    const previousImageButton = document.getElementById("previousImage");
+    const nextImageButton = document.getElementById("nextImage");
+    const imageCounter = document.getElementById("imageCounter");
+    const zoomLens = document.getElementById("zoomLens");
+    const zoomPreview = document.getElementById("zoomPreview");
+
+    let currentImages = [];
+    let currentImageIndex = 0;
+
+    function activeGroup() {
+        return document.querySelector(".variant-thumbnails:not(.hidden)");
+    }
+
+    function visibleThumbnails() {
+        const group = activeGroup();
+        return group ? Array.from(group.querySelectorAll(".thumb-img")) : [];
+    }
+
+    function refreshImages() {
+        currentImages = visibleThumbnails().map(function (thumb) {
+            return thumb.dataset.image;
+        }).filter(Boolean);
+
+        const currentSrc = mainImage ? mainImage.getAttribute("src") : "";
+        const foundIndex = currentImages.indexOf(currentSrc);
+        currentImageIndex = foundIndex >= 0 ? foundIndex : 0;
+        updateGalleryUI();
+    }
+
+    function updateGalleryUI() {
+        const thumbs = visibleThumbnails();
+
+        thumbs.forEach(function (thumb, index) {
+            thumb.classList.toggle("active", index === currentImageIndex);
+        });
+
+        if (imageCounter) {
+            imageCounter.textContent = currentImages.length
+                ? `${currentImageIndex + 1} / ${currentImages.length}`
+                : "0 / 0";
+        }
+
+        const disabled = currentImages.length <= 1;
+        [previousImageButton, nextImageButton].forEach(function (button) {
+            if (!button) return;
+            button.disabled = disabled;
+            button.classList.toggle("opacity-40", disabled);
+        });
+
+        if (zoomPreview && mainImage) {
+            zoomPreview.style.backgroundImage = `url("${mainImage.src}")`;
+        }
+    }
+
+    function showImage(index) {
+        if (!mainImage || currentImages.length === 0) return;
+
+        if (index < 0) index = currentImages.length - 1;
+        if (index >= currentImages.length) index = 0;
+
+        currentImageIndex = index;
+        mainImage.style.opacity = ".35";
+
+        setTimeout(function () {
+            mainImage.src = currentImages[currentImageIndex];
+            mainImage.style.opacity = "1";
+            updateGalleryUI();
+        }, 100);
+    }
+
+    document.addEventListener("click", function (event) {
+        const thumb = event.target.closest(".thumb-img");
+        if (!thumb) return;
+
+        refreshImages();
+        const index = visibleThumbnails().indexOf(thumb);
+        if (index >= 0) showImage(index);
+    });
+
+    if (previousImageButton) {
+        previousImageButton.addEventListener("click", function () {
+            refreshImages();
+            showImage(currentImageIndex - 1);
+        });
+    }
+
+    if (nextImageButton) {
+        nextImageButton.addEventListener("click", function () {
+            refreshImages();
+            showImage(currentImageIndex + 1);
+        });
+    }
+
+    document.querySelectorAll(".variant-btn").forEach(function (button) {
+        button.addEventListener("click", function () {
+            setTimeout(function () {
+                refreshImages();
+                if (currentImages.length && mainImage) {
+                    mainImage.src = currentImages[0];
+                    currentImageIndex = 0;
+                    updateGalleryUI();
+                }
+            }, 20);
+        });
+    });
+
+    if (galleryStage && mainImage && zoomLens && zoomPreview) {
+        function hideZoom() {
+            zoomLens.style.display = "none";
+            zoomPreview.style.display = "none";
+        }
+
+        galleryStage.addEventListener("mouseenter", function () {
+            if (window.innerWidth < 1280 || !mainImage.src) return;
+            zoomLens.style.display = "block";
+            zoomPreview.style.display = "block";
+            zoomPreview.style.backgroundImage = `url("${mainImage.src}")`;
+        });
+
+        galleryStage.addEventListener("mouseleave", hideZoom);
+
+        galleryStage.addEventListener("mousemove", function (event) {
+            if (window.innerWidth < 1280) {
+                hideZoom();
+                return;
+            }
+
+            const stageRect = galleryStage.getBoundingClientRect();
+            const imageRect = mainImage.getBoundingClientRect();
+            const lensWidth = zoomLens.offsetWidth;
+            const lensHeight = zoomLens.offsetHeight;
+
+            let x = event.clientX - stageRect.left - lensWidth / 2;
+            let y = event.clientY - stageRect.top - lensHeight / 2;
+
+            const minX = Math.max(imageRect.left - stageRect.left, 0);
+            const minY = Math.max(imageRect.top - stageRect.top, 0);
+            const maxX = Math.min(imageRect.right - stageRect.left, stageRect.width) - lensWidth;
+            const maxY = Math.min(imageRect.bottom - stageRect.top, stageRect.height) - lensHeight;
+
+            x = Math.max(minX, Math.min(x, maxX));
+            y = Math.max(minY, Math.min(y, maxY));
+
+            zoomLens.style.left = `${x}px`;
+            zoomLens.style.top = `${y}px`;
+
+            const relativeX = (x + lensWidth / 2 - (imageRect.left - stageRect.left)) / imageRect.width;
+            const relativeY = (y + lensHeight / 2 - (imageRect.top - stageRect.top)) / imageRect.height;
+            const zoomFactor = 2.5;
+
+            zoomPreview.style.backgroundSize = `${imageRect.width * zoomFactor}px ${imageRect.height * zoomFactor}px`;
+            zoomPreview.style.backgroundPosition = `${-(relativeX * imageRect.width * zoomFactor - zoomPreview.offsetWidth / 2)}px ${-(relativeY * imageRect.height * zoomFactor - zoomPreview.offsetHeight / 2)}px`;
+        });
+    }
+
+    refreshImages();
 });
 </script>
 

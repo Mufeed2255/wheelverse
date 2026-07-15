@@ -1209,14 +1209,6 @@ def order_detail(request, order_id):
         "RETURNED": 100,
     }.get(order.status, 15)
 
-    has_cancelled_item = order.items.filter(
-        cancelled_quantity__gt=0
-    ).exists()
-
-    cancelled_item = order.items.filter(
-        cancelled_quantity__gt=0
-    ).first()
-
     # Attach database-backed item offer totals for the template.
     # The queryset is already prefetched, so these attributes are available
     # when the template loops through order.items.all.
@@ -1246,8 +1238,6 @@ def order_detail(request, order_id):
         "first_item": first_item,
         "current_step": current_step,
         "progress_percent": progress_percent,
-        "has_cancelled_item": has_cancelled_item,
-        "cancelled_item": cancelled_item,
         "subtotal_after_offer": subtotal_after_offer,
         "total_savings": total_savings,
     })
@@ -1381,7 +1371,8 @@ def cancel_order_item(request, item_id):
     Cancel a selected quantity from one order item.
 
     Business rules:
-    - Only one cancellation action is allowed for the entire order.
+    - Every eligible order item may be cancelled independently.
+    - The same item cannot be cancelled more than once.
     - The customer may choose a quantity from 1 up to item.quantity.
     - Stock is restored only for the selected quantity.
     - Prepaid refund is calculated from the reduction in the order total.
@@ -1429,23 +1420,12 @@ def cancel_order_item(request, item_id):
         )
         return redirect("order_detail", order_id=order.id)
 
-    # Only one cancellation action is allowed for the complete order.
-    already_cancelled_item = (
-        order.items
-        .select_for_update()
-        .filter(cancelled_quantity__gt=0)
-        .first()
-    )
-
-    if already_cancelled_item:
-        messages.error(
+    # Protect this item from a second cancellation request.
+    # Other active items in the same order can still be cancelled separately.
+    if order_item.cancelled_quantity > 0 or order_item.is_cancelled:
+        messages.info(
             request,
-            (
-                "Only one cancellation is allowed for an order. "
-                f"{already_cancelled_item.product_name} already has "
-                f"{already_cancelled_item.cancelled_quantity} cancelled "
-                "quantity."
-            ),
+            "A cancellation has already been processed for this item.",
         )
         return redirect("order_detail", order_id=order.id)
 

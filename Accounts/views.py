@@ -18,6 +18,9 @@ from django.core.mail import EmailMultiAlternatives
 from decimal import Decimal
 from django.db import transaction
 from Wallet.models import Wallet, WalletTransaction
+from django.db.models import Count, Min, Max, Prefetch, Q
+from adminpanel.models import Category, Product, ProductVariant
+from Products.models import Cart, Wishlist
 
 
 def send_wheelverse_otp_email(to_email, username, otp, purpose, expiry=5):
@@ -69,7 +72,159 @@ Enter the Universe of Wheels
 
 
 def landing_page(request):
-    return render(request, 'accounts/landing_page.html')
+    active_variants = (
+        ProductVariant.objects
+        .filter(is_active=True, is_deleted=False)
+        .prefetch_related("images")
+        .order_by("id")
+    )
+
+    base_products = (
+        Product.objects
+        .filter(
+            is_active=True,
+            is_deleted=False,
+            category__is_active=True,
+        )
+        .select_related("category")
+        .prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=active_variants,
+                to_attr="active_variants",
+            )
+        )
+        .annotate(
+            min_price=Min(
+                "variants__price",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            ),
+            max_price=Max(
+                "variants__price",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            ),
+        )
+        .filter(min_price__isnull=False)
+    )
+
+    latest_products = list(
+        base_products.order_by("-created_at", "-id")[:8]
+    )
+
+    expensive_products = list(
+        base_products.order_by("-max_price", "-created_at")[:6]
+    )
+
+    categories = list(
+        Category.objects
+        .filter(
+            is_active=True,
+            products__is_active=True,
+            products__is_deleted=False,
+        )
+        .annotate(
+            product_count=Count(
+                "products",
+                filter=Q(
+                    products__is_active=True,
+                    products__is_deleted=False,
+                ),
+                distinct=True,
+            )
+        )
+        .prefetch_related(
+            Prefetch(
+                "products",
+                queryset=base_products.order_by("-created_at"),
+                to_attr="landing_products",
+            )
+        )
+        .distinct()
+        .order_by("name")[:8]
+    )
+
+    all_products = latest_products + expensive_products
+
+    for product in all_products:
+        product.first_active_variant = (
+            product.active_variants[0]
+            if product.active_variants
+            else None
+        )
+        product.landing_image_url = ""
+
+        if product.first_active_variant:
+            first_image = product.first_active_variant.images.first()
+
+            if first_image and first_image.image:
+                product.landing_image_url = first_image.image.url
+            elif product.first_active_variant.image:
+                product.landing_image_url = (
+                    product.first_active_variant.image.url
+                )
+
+    for category in categories:
+        category.landing_image_url = ""
+        category.featured_product = None
+
+        for product in getattr(category, "landing_products", []):
+            variants = getattr(product, "active_variants", [])
+
+            if not variants:
+                continue
+
+            category.featured_product = product
+            first_variant = variants[0]
+            first_image = first_variant.images.first()
+
+            if first_image and first_image.image:
+                category.landing_image_url = first_image.image.url
+            elif first_variant.image:
+                category.landing_image_url = first_variant.image.url
+
+            if category.landing_image_url:
+                break
+
+    hero_product = (
+        expensive_products[0]
+        if expensive_products
+        else (latest_products[0] if latest_products else None)
+    )
+
+    cart_count = 0
+    wishlist_count = 0
+
+    if request.user.is_authenticated:
+        cart_count = Cart.objects.filter(
+            user=request.user,
+            variant__is_active=True,
+            variant__is_deleted=False,
+        ).count()
+
+        wishlist_count = Wishlist.objects.filter(
+            user=request.user,
+            variant__is_active=True,
+            variant__is_deleted=False,
+        ).count()
+
+    return render(
+        request,
+        "accounts/landing_page.html",
+        {
+            "hero_product": hero_product,
+            "categories": categories,
+            "latest_products": latest_products,
+            "expensive_products": expensive_products,
+            "cart_count": cart_count,
+            "wishlist_count": wishlist_count,
+        },
+    )
 
 def credit_referral_reward(new_user):
     if not new_user.referred_by:

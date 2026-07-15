@@ -142,8 +142,6 @@ def user_collections(request):
             if product.total_stock == 0
         ]
 
-    # Mark the first displayed variant as already wishlisted.
-    # This is used by collections.html to render a filled yellow heart.
     wishlisted_variant_ids = set()
 
     if request.user.is_authenticated:
@@ -194,12 +192,7 @@ def user_collections(request):
 
 
 def product_search_suggestions(request):
-    """
-    Return product suggestions for the collection-page search box.
 
-    URL example:
-        /collections/search-suggestions/?q=ferrari
-    """
     query = request.GET.get("q", "").strip()
 
     if len(query) < 2:
@@ -452,12 +445,6 @@ def add_to_cart(request):
 
 
 def get_cart_totals(user):
-    """
-    Calculate cart totals using the best active product/category offer
-    for each variant.
-
-    Cart model is not changed. Offer values are calculated dynamically.
-    """
 
     cart_items = list(
         Cart.objects.filter(
@@ -527,9 +514,6 @@ def cart_view(request):
 
 
 def _cart_ajax_response(cart_item, totals):
-    """
-    Build one consistent JSON response for quantity increase/decrease.
-    """
 
     current_line = None
 
@@ -703,17 +687,7 @@ def wishlist_view(request):
 @login_required
 @require_POST
 def add_to_wishlist(request):
-    """
-    Toggle the selected variant in the user's wishlist.
 
-    First click:
-        Add to wishlist.
-
-    Second click:
-        Remove from wishlist.
-
-    The user is redirected back to the page from which the action started.
-    """
     variant_id = request.POST.get("variant_id", "").strip()
     next_url = request.POST.get("next", "").strip()
 
