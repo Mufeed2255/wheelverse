@@ -19,5 +19,7 @@ urlpatterns = [
     path("wishlist/add/", views.add_to_wishlist, name="add_to_wishlist"),
     path("wishlist/remove/<int:item_id>/", views.remove_wishlist, name="remove_wishlist"),
     path("wishlist/move-to-cart/<int:item_id>/", views.move_wishlist_to_cart, name="move_wishlist_to_cart"),
+    path("collections/",views.user_collections,name="collections",),
+    path("collections/search-suggestions/",views.product_search_suggestions,name="product_search_suggestions",),
      
 ]

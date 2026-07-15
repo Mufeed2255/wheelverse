@@ -399,13 +399,6 @@
                         <span class="orbitron text-xs text-white">RAZORPAY</span>
                     </label>
 
-                    <label class="flex items-center gap-3 glass p-4 cursor-pointer payment-choice border border-[#f2ca50]/20">
-                        <input type="radio" name="payment_method" value="UPI"
-                            form="checkoutForm"
-                            class="payment-radio text-[#f2ca50] bg-transparent border-[#f2ca50]">
-                        <span class="material-symbols-outlined gold">qr_code_2</span>
-                        <span class="orbitron text-xs text-white">UPI</span>
-                    </label>
 
                 </div>
 
@@ -587,8 +580,6 @@ paymentRadios.forEach(radio => {
             placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">lock</span> PLACE COD ORDER';
         } else if (this.value === "WALLET") {
             placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">account_balance_wallet</span> CONTINUE WITH WALLET';
-        } else if (this.value === "UPI") {
-            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">qr_code_2</span> CONTINUE WITH UPI';
         } else {
             placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">credit_card</span> CONTINUE TO RAZORPAY';
         }

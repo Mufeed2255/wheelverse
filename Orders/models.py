@@ -9,6 +9,7 @@ from adminpanel.models import Product, ProductVariant
 
 class Order(models.Model):
     STATUS_CHOICES = [
+        ("PAYMENT_PENDING", "Payment Pending"),
         ("PENDING", "Pending"),
         ("CONFIRMED", "Confirmed"),
         ("SHIPPED", "Shipped"),
@@ -25,7 +26,6 @@ class Order(models.Model):
         ("COD", "Cash on Delivery"),
         ("WALLET", "Wallet"),
         ("RAZORPAY", "Razorpay"),
-        ("UPI", "UPI"),
     ]
 
     user = models.ForeignKey(
@@ -85,7 +85,7 @@ class Order(models.Model):
     status = models.CharField(
         max_length=25,
         choices=STATUS_CHOICES,
-        default="PENDING"
+        default="PAYMENT_PENDING"
     )
 
     cancel_reason = models.TextField(
@@ -120,12 +120,6 @@ class Order(models.Model):
         max_length=30,
         blank=True,
         null=True
-    )
-
-    coupon_discount = models.DecimalField(
-        max_digits=12,
-        decimal_places=2,
-        default=Decimal("0.00")
     )
 
     ordered_at = models.DateTimeField(auto_now_add=True)
@@ -262,11 +256,6 @@ class OrderItem(models.Model):
         decimal_places=2
     )
 
-    price = models.DecimalField(
-        max_digits=12,
-        decimal_places=2
-    )
-
     quantity = models.PositiveIntegerField(default=1)
 
     # Final amount for this order item.
@@ -277,6 +266,11 @@ class OrderItem(models.Model):
     )
 
     is_cancelled = models.BooleanField(default=False)
+
+    cancelled_quantity = models.PositiveIntegerField(
+        default=0,
+        help_text="Quantity cancelled by the customer."
+    )
 
     cancel_reason = models.TextField(
         blank=True,
@@ -306,6 +300,20 @@ class OrderItem(models.Model):
         Compatibility property for old code that uses item.subtotal.
         """
         return self.item_total
+
+    @property
+    def active_quantity(self):
+        return max(self.quantity - self.cancelled_quantity, 0)
+
+    @property
+    def cancelled_amount(self):
+        if self.quantity <= 0:
+            return Decimal("0.00")
+
+        unit_total = self.item_total / self.quantity
+        return (unit_total * self.cancelled_quantity).quantize(
+            Decimal("0.01")
+        )
 
     def __str__(self):
         return f"{self.product_name} x {self.quantity}"
@@ -458,4 +466,3 @@ class ProductReviewImage(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     
-

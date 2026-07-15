@@ -66,6 +66,40 @@
         .product-card:hover .product-img {
             transform: scale(1.06);
         }
+
+        .quantity-control {
+            background: #050505;
+            border: 1px solid rgba(242,202,80,.35);
+            box-shadow: 0 0 20px rgba(242,202,80,.10);
+        }
+
+        .quantity-button {
+            width: 56px;
+            height: 56px;
+            background: #050505;
+            color: #f2ca50;
+            transition: .2s ease;
+        }
+
+        .quantity-button:hover:not(:disabled) {
+            background: #f2ca50;
+            color: #241a00;
+        }
+
+        .quantity-button:disabled {
+            opacity: .35;
+            cursor: not-allowed;
+        }
+
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 
@@ -74,9 +108,13 @@
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="max-w-6xl mx-auto px-8 pt-36 pb-20">
+<main class="max-w-6xl mx-auto px-6 md:px-8 pt-36 pb-20">
 
     <section class="text-center mb-12">
+        <p class="font-orbitron text-[#f2ca50] text-xs tracking-[.3em] mb-4">
+            ORDER #{{ order.order_id }}
+        </p>
+
         <h1 class="font-orbitron text-4xl md:text-6xl font-bold tracking-widest text-[#eae1d4]">
             {% if mode == "order" %}
                 RETURN ORDER ITEMS
@@ -86,7 +124,7 @@
         </h1>
 
         <p class="text-[#d0c5af] mt-5 text-lg max-w-3xl mx-auto">
-            Select how many quantity you want to return. Example: If you ordered 3 quantity, you can return only 1 or 2.
+            Select the quantity you want to return and provide proof images with a clear explanation.
         </p>
     </section>
 
@@ -170,16 +208,36 @@
                                     RETURN QUANTITY
                                 </label>
 
-                                <input type="number"
-                                       name="return_quantity_{{ item.id }}"
-                                       min="0"
-                                       max="{{ item.available_qty }}"
-                                       value="0"
-                                       class="input-box w-full mt-3 p-4 rounded return-qty"
-                                       data-max="{{ item.available_qty }}">
+                                <div class="quantity-control mt-3 inline-flex items-center rounded-lg overflow-hidden">
 
-                                <p class="text-[#99907c] text-xs mt-2">
-                                    Enter 0 if you do not want to return this item.
+                                    <button
+                                        type="button"
+                                        class="quantity-button decrease-return-qty flex items-center justify-center border-r border-[#f2ca50]/30"
+                                        aria-label="Decrease return quantity">
+                                        <span class="material-symbols-outlined">remove</span>
+                                    </button>
+
+                                    <input
+                                        type="number"
+                                        name="return_quantity_{{ item.id }}"
+                                        min="0"
+                                        max="{{ item.available_qty }}"
+                                        value="0"
+                                        readonly
+                                        class="w-20 h-14 bg-black border-0 text-center text-[#f2ca50] font-orbitron text-xl focus:ring-0 focus:outline-none return-qty"
+                                        data-max="{{ item.available_qty }}">
+
+                                    <button
+                                        type="button"
+                                        class="quantity-button increase-return-qty flex items-center justify-center border-l border-[#f2ca50]/30"
+                                        aria-label="Increase return quantity">
+                                        <span class="material-symbols-outlined">add</span>
+                                    </button>
+
+                                </div>
+
+                                <p class="text-[#99907c] text-xs mt-3">
+                                    Keep quantity at 0 to skip this item.
                                 </p>
                             </div>
 
@@ -240,22 +298,43 @@
                                 </div>
                             </div>
 
-                            <div class="mt-8 max-w-xs">
+                            <div class="mt-8">
                                 <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
                                     RETURN QUANTITY <span class="text-red-300">*</span>
                                 </label>
 
-                                <input type="number"
-                                       name="return_quantity"
-                                       min="1"
-                                       max="{{ available_qty }}"
-                                       value="1"
-                                       required
-                                       class="input-box w-full mt-4 p-4 rounded return-qty"
-                                       data-max="{{ available_qty }}">
+                                <div class="quantity-control mt-4 inline-flex items-center rounded-lg overflow-hidden">
 
-                                <p class="text-[#99907c] text-xs mt-2">
-                                    You can return maximum {{ available_qty }} quantity.
+                                    <button
+                                        type="button"
+                                        class="quantity-button decrease-return-qty flex items-center justify-center border-r border-[#f2ca50]/30"
+                                        aria-label="Decrease return quantity">
+                                        <span class="material-symbols-outlined">remove</span>
+                                    </button>
+
+                                    <input
+                                        type="number"
+                                        name="return_quantity"
+                                        min="1"
+                                        max="{{ available_qty }}"
+                                        value="1"
+                                        required
+                                        readonly
+                                        class="w-24 h-14 bg-black border-0 text-center text-[#f2ca50] font-orbitron text-xl focus:ring-0 focus:outline-none return-qty"
+                                        data-max="{{ available_qty }}">
+
+                                    <button
+                                        type="button"
+                                        class="quantity-button increase-return-qty flex items-center justify-center border-l border-[#f2ca50]/30"
+                                        aria-label="Increase return quantity">
+                                        <span class="material-symbols-outlined">add</span>
+                                    </button>
+
+                                </div>
+
+                                <p class="text-[#99907c] text-xs mt-3">
+                                    Maximum return quantity:
+                                    <span class="text-[#f2ca50]">{{ available_qty }}</span>
                                 </p>
                             </div>
                         </div>
@@ -340,6 +419,24 @@
 
         </section>
 
+        <div class="mt-10 p-5 border-l-4 border-[#f2ca50] bg-[#f2ca50]/10 rounded-r-lg">
+            <div class="flex items-start gap-3">
+                <span class="material-symbols-outlined text-[#f2ca50]">
+                    assignment_return
+                </span>
+
+                <div>
+                    <p class="font-orbitron text-[#f2ca50] text-xs tracking-widest">
+                        RETURN NOTICE
+                    </p>
+
+                    <p class="text-[#d0c5af] text-sm mt-2">
+                        Return requests are reviewed by the admin team. Approved return amounts will be refunded to your wallet after verification.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="border-t border-[#4d4635]/50 mt-12 pt-8 flex flex-col md:flex-row justify-center gap-6">
             <button type="submit"
                     class="gold-btn font-orbitron tracking-[0.2em] px-16 py-4 rounded hover:scale-[1.02] transition">
@@ -413,6 +510,49 @@
 
             reader.readAsDataURL(file);
         });
+    });
+
+    document.querySelectorAll(".return-qty").forEach(function (qtyInput) {
+        const wrapper = qtyInput.closest(".quantity-control");
+
+        if (!wrapper) {
+            return;
+        }
+
+        const decreaseButton = wrapper.querySelector(".decrease-return-qty");
+        const increaseButton = wrapper.querySelector(".increase-return-qty");
+
+        const minimumQuantity = Number(qtyInput.getAttribute("min") || 0);
+        const maximumQuantity = Number(qtyInput.dataset.max || 0);
+
+        function updateQuantityControl() {
+            let quantity = Number(qtyInput.value || minimumQuantity);
+
+            if (quantity < minimumQuantity) {
+                quantity = minimumQuantity;
+            }
+
+            if (quantity > maximumQuantity) {
+                quantity = maximumQuantity;
+            }
+
+            qtyInput.value = quantity;
+
+            decreaseButton.disabled = quantity <= minimumQuantity;
+            increaseButton.disabled = quantity >= maximumQuantity;
+        }
+
+        decreaseButton.addEventListener("click", function () {
+            qtyInput.value = Number(qtyInput.value) - 1;
+            updateQuantityControl();
+        });
+
+        increaseButton.addEventListener("click", function () {
+            qtyInput.value = Number(qtyInput.value) + 1;
+            updateQuantityControl();
+        });
+
+        updateQuantityControl();
     });
 
     document.querySelector("form").addEventListener("submit", function (e) {

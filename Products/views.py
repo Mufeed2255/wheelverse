@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.shortcuts import get_object_or_404, redirect, render
-from django.db.models import Count, Q, Min
+from django.db.models import Count, Q, Min ,Prefetch
 from adminpanel.models import Product, Category, ProductVariant
 from Products.models import Cart, Wishlist
 from django.shortcuts import render
@@ -15,7 +15,6 @@ from decimal import Decimal
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from decimal import Decimal
-from django.db.models import Prefetch
 from Orders.models import ProductReview
 from adminpanel.services.offers import build_cart_offer_summary
 import json
@@ -26,128 +25,289 @@ from Products.models import Cart, Wishlist
 from Orders.models import ProductReview
 from adminpanel.services.offers import build_cart_offer_summary
 
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 
 def user_collections(request):
-    search_query = request.GET.get('search', '').strip()
-    category_id = request.GET.get('category', '')
-    status = request.GET.get('status', '')
-    sort_by = request.GET.get('sort_by', '')
-    rarity = request.GET.get('rarity', '').strip()
-    
+    search_query = request.GET.get("search", "").strip()
+    category_id = request.GET.get("category", "").strip()
+    status = request.GET.get("status", "").strip()
+    sort_by = request.GET.get("sort_by", "newest").strip()
+    rarity = request.GET.get("rarity", "").strip()
 
     try:
-        price_min = int(request.GET.get('price_min', 0))
+        price_min = max(int(request.GET.get("price_min", 0)), 0)
     except (ValueError, TypeError):
         price_min = 0
 
     try:
-        price_max = int(request.GET.get('price_max', 150000))
+        price_max = max(int(request.GET.get("price_max", 150000)), 0)
     except (ValueError, TypeError):
         price_max = 150000
 
+    if price_min > price_max:
+        price_min, price_max = price_max, price_min
 
-    products_queryset = Product.objects.filter(is_deleted=False, is_active=True)
-    
-    products_queryset = products_queryset.prefetch_related(
-    Prefetch(
-        'variants',
-        queryset=ProductVariant.objects.filter(is_active=True, is_deleted=False).order_by('id'),
-        to_attr='active_variants'
+    active_variants = ProductVariant.objects.filter(
+        is_active=True,
+        is_deleted=False,
+    ).prefetch_related("images").order_by("id")
+
+    products_queryset = (
+        Product.objects
+        .filter(is_deleted=False, is_active=True)
+        .select_related("category")
+        .prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=active_variants,
+                to_attr="active_variants",
+            )
+        )
+        .annotate(
+            min_price=Min(
+                "variants__price",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            )
+        )
     )
-)
 
-    categories = Category.objects.filter(is_active=True).annotate(
-        total_items=Count('products', filter=Q(products__is_deleted=False, products__is_active=True))
+    categories = (
+        Category.objects
+        .filter(is_active=True)
+        .annotate(
+            total_items=Count(
+                "products",
+                filter=Q(
+                    products__is_deleted=False,
+                    products__is_active=True,
+                ),
+                distinct=True,
+            )
+        )
+        .order_by("name")
     )
-
 
     if search_query:
-        products_queryset = products_queryset.filter(name__icontains=search_query)
-        
+        products_queryset = products_queryset.filter(
+            Q(name__icontains=search_query)
+            | Q(category__name__icontains=search_query)
+            | Q(sku__icontains=search_query)
+        )
 
     if category_id:
         products_queryset = products_queryset.filter(category_id=category_id)
 
-
     if rarity:
         products_queryset = products_queryset.filter(rarity__iexact=rarity)
 
+    products_queryset = products_queryset.filter(
+        min_price__isnull=False,
+        min_price__gte=price_min,
+        min_price__lte=price_max,
+    )
 
-    
-
-    products_queryset = products_queryset.annotate(min_price=Min('variants__price'))
-
-    if price_min:
-        products_queryset = products_queryset.filter(min_price__gte=price_min)
-    if price_max:
-        products_queryset = products_queryset.filter(min_price__lte=price_max)
-
-    if sort_by == 'a-z':
-        products_queryset = products_queryset.order_by('name')
-    elif sort_by == 'z-a':
-        products_queryset = products_queryset.order_by('-name')
-    elif sort_by == 'price-low': 
-        products_queryset = products_queryset.order_by('min_price')
-    elif sort_by == 'price-high': 
-        products_queryset = products_queryset.order_by('-min_price')
-    elif sort_by == 'oldest': 
-        products_queryset = products_queryset.order_by('id')
+    if sort_by == "oldest":
+        products_queryset = products_queryset.order_by("id")
+    elif sort_by == "a-z":
+        products_queryset = products_queryset.order_by("name")
+    elif sort_by == "z-a":
+        products_queryset = products_queryset.order_by("-name")
+    elif sort_by == "price-low":
+        products_queryset = products_queryset.order_by("min_price", "name")
+    elif sort_by == "price-high":
+        products_queryset = products_queryset.order_by("-min_price", "name")
     else:
-        products_queryset = products_queryset.order_by('-id')
+        sort_by = "newest"
+        products_queryset = products_queryset.order_by("-id")
 
     products_list = list(products_queryset)
 
-    if status == 'in_stock':
-        products_list = [p for p in products_list if p.total_stock > 10]
-    elif status == 'limited':
-        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
-    elif status == 'out_of_stock':
-        products_list = [p for p in products_list if p.total_stock == 0]
+    if status == "in_stock":
+        products_list = [
+            product for product in products_list
+            if product.total_stock > 10
+        ]
+    elif status == "limited":
+        products_list = [
+            product for product in products_list
+            if 0 < product.total_stock <= 10
+        ]
+    elif status == "out_of_stock":
+        products_list = [
+            product for product in products_list
+            if product.total_stock == 0
+        ]
 
-    paginator = Paginator(products_list, 6) 
-    page = request.GET.get('page', 1)
-    
+    # Mark the first displayed variant as already wishlisted.
+    # This is used by collections.html to render a filled yellow heart.
+    wishlisted_variant_ids = set()
+
+    if request.user.is_authenticated:
+        wishlisted_variant_ids = set(
+            Wishlist.objects.filter(user=request.user)
+            .values_list("variant_id", flat=True)
+        )
+
+    for product in products_list:
+        for variant in getattr(product, "active_variants", []):
+            variant.is_wishlisted = variant.id in wishlisted_variant_ids
+
+    paginator = Paginator(products_list, 6)
+    page_number = request.GET.get("page", 1)
+
     try:
-        paginated_products = paginator.page(page)
+        paginated_products = paginator.page(page_number)
     except PageNotAnInteger:
         paginated_products = paginator.page(1)
     except EmptyPage:
         paginated_products = paginator.page(paginator.num_pages)
 
+    has_active_filters = bool(
+        search_query
+        or category_id
+        or status
+        or rarity
+        or price_min > 0
+        or price_max < 150000
+    )
+
     context = {
-        'products': paginated_products,  
-        'categories': categories,
-        'total_products_count': len(products_list),
-        'current_search': search_query,
-        'current_category': category_id,
-        'current_status': status,
-        'current_sort': sort_by,
-        'current_rarity': rarity,  
-        'price_min': price_min,
-        'price_max': price_max,
-        'rarity_choices': [('', 'All Rarities')] + Product.RARITY_CHOICES,
-}
-    return render(request, 'products/collections.html', context)
+        "products": paginated_products,
+        "categories": categories,
+        "total_products_count": len(products_list),
+        "current_search": search_query,
+        "current_category": category_id,
+        "current_status": status,
+        "current_sort": sort_by,
+        "current_rarity": rarity,
+        "price_min": price_min,
+        "price_max": price_max,
+        "rarity_choices": [("", "All Rarities")] + list(Product.RARITY_CHOICES),
+        "has_active_filters": has_active_filters,
+    }
+
+    return render(request, "products/collections.html", context)
+
+
+def product_search_suggestions(request):
+    """
+    Return product suggestions for the collection-page search box.
+
+    URL example:
+        /collections/search-suggestions/?q=ferrari
+    """
+    query = request.GET.get("q", "").strip()
+
+    if len(query) < 2:
+        return JsonResponse({"suggestions": []})
+
+    active_variants = (
+        ProductVariant.objects
+        .filter(is_active=True, is_deleted=False)
+        .prefetch_related("images")
+        .order_by("id")
+    )
+
+    products = (
+        Product.objects
+        .filter(
+            is_deleted=False,
+            is_active=True,
+        )
+        .filter(
+            Q(name__icontains=query)
+            | Q(category__name__icontains=query)
+            | Q(sku__icontains=query)
+        )
+        .select_related("category")
+        .prefetch_related(
+            Prefetch(
+                "variants",
+                queryset=active_variants,
+                to_attr="active_variants",
+            )
+        )
+        .annotate(
+            min_price=Min(
+                "variants__price",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            )
+        )
+        .order_by("name")[:8]
+    )
+
+    suggestions = []
+
+    for product in products:
+        image_url = ""
+        first_variant = (
+            product.active_variants[0]
+            if product.active_variants
+            else None
+        )
+
+        if first_variant:
+            first_image = first_variant.images.first()
+
+            if first_image and first_image.image:
+                image_url = first_image.image.url
+            elif first_variant.image:
+                image_url = first_variant.image.url
+
+        suggestions.append({
+            "id": product.id,
+            "name": product.name,
+            "category": product.category.name if product.category else "",
+            "rarity": product.rarity,
+            "price": (
+                f"{product.min_price:.2f}"
+                if product.min_price is not None
+                else ""
+            ),
+            "stock": product.total_stock,
+            "image_url": image_url,
+            "detail_url": reverse("product_detail", kwargs={"product_id": product.id}),
+        })
+
+    return JsonResponse({"suggestions": suggestions})
 
 @login_required
 def product_detail(request, product_id):
-
     product = get_object_or_404(
         Product.objects.filter(
             is_deleted=False,
-            is_active=True
+            is_active=True,
         ).annotate(
-            variant_stock=Sum("variants__stock"),
-            min_variant_price=Min("variants__price")
+            variant_stock=Sum(
+                "variants__stock",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            ),
+            min_variant_price=Min(
+                "variants__price",
+                filter=Q(
+                    variants__is_active=True,
+                    variants__is_deleted=False,
+                ),
+            ),
         ),
-        id=product_id
+        id=product_id,
     )
 
     variants = (
         ProductVariant.objects.filter(
             product=product,
             is_active=True,
-            is_deleted=False
+            is_deleted=False,
         )
         .prefetch_related("images")
         .order_by("id")
@@ -155,39 +315,49 @@ def product_detail(request, product_id):
 
     variants_list = list(variants)
 
+    wishlisted_variant_ids = set(
+        Wishlist.objects.filter(
+            user=request.user,
+            variant__product=product,
+        ).values_list("variant_id", flat=True)
+    )
+
     for variant in variants_list:
-        image_urls = [img.image.url for img in variant.images.all()]
+        image_urls = [image.image.url for image in variant.images.all()]
         variant.image_urls_json = json.dumps(image_urls)
+        variant.is_wishlisted = variant.id in wishlisted_variant_ids
 
     first_variant = variants_list[0] if variants_list else None
 
-    cart_count = Cart.objects.filter(user=request.user).count()
-    wishlist_count = Wishlist.objects.filter(user=request.user).count()
+    cart_count = Cart.objects.filter(
+        user=request.user,
+        variant__is_active=True,
+        variant__is_deleted=False,
+    ).count()
 
-    # ---------------- Reviews ---------------- #
+    wishlist_count = Wishlist.objects.filter(
+        user=request.user,
+        variant__is_active=True,
+        variant__is_deleted=False,
+    ).count()
 
     reviews = (
-        ProductReview.objects
-        .filter(
+        ProductReview.objects.filter(
             product=product,
-            is_active=True
+            is_active=True,
         )
-        .select_related(
-            "user",
-            "variant"
-        )
+        .select_related("user", "variant")
         .prefetch_related("images")
         .order_by("-created_at")
     )
 
     review_count = reviews.count()
-
     average_rating = 0
 
-    if review_count > 0:
+    if review_count:
         average_rating = round(
             sum(review.rating for review in reviews) / review_count,
-            1
+            1,
         )
 
     context = {
@@ -196,51 +366,89 @@ def product_detail(request, product_id):
         "first_variant": first_variant,
         "cart_count": cart_count,
         "wishlist_count": wishlist_count,
-
-        # Reviews
         "reviews": reviews,
         "review_count": review_count,
         "average_rating": average_rating,
     }
 
-    return render(
-        request,
-        "products/product_detail.html",
-        context
-    )
-    
-    
+    return render(request, "products/product_detail.html", context)
+
+
 @login_required
+@require_POST
 def add_to_cart(request):
-    if request.method == "POST":
-        variant_id = request.POST.get("variant_id")
-        quantity = int(request.POST.get("quantity", 1))
-        
-        variant = get_object_or_404( ProductVariant,
+    variant_id = request.POST.get("variant_id", "").strip()
+    quantity_value = request.POST.get("quantity", "1").strip()
+
+    variant = get_object_or_404(
+        ProductVariant.objects.select_related("product"),
         id=variant_id,
         is_active=True,
-        is_deleted=False
+        is_deleted=False,
+        product__is_active=True,
+        product__is_deleted=False,
     )
-        product = variant.product
 
-        if quantity > variant.stock:
-            messages.error(request, "Stock unavailable.")
-            return redirect("product_detail", product_id=product.id)
+    product = variant.product
+    detail_redirect = redirect("product_detail", product_id=product.id)
 
-        if Cart.objects.filter(user=request.user, variant=variant).exists():
-            messages.error(request, "This product is already added to cart.")
-            return redirect("product_detail", product_id=product.id)
+    try:
+        quantity = int(quantity_value)
+    except (TypeError, ValueError):
+        messages.error(request, "Invalid quantity.")
+        return detail_redirect
 
-        Cart.objects.create(
+    if quantity < 1:
+        messages.error(request, "Quantity must be at least 1.")
+        return detail_redirect
+
+    if variant.stock <= 0:
+        messages.error(request, "This variant is out of stock.")
+        return detail_redirect
+
+    if quantity > variant.stock:
+        messages.error(
+            request,
+            f"Only {variant.stock} unit(s) are available.",
+        )
+        return detail_redirect
+
+    existing_cart_item = Cart.objects.filter(
+        user=request.user,
+        variant=variant,
+    ).first()
+
+    if existing_cart_item:
+        # Keep cart and wishlist mutually exclusive even when the item
+        # was already in the cart.
+        Wishlist.objects.filter(
             user=request.user,
             variant=variant,
-            quantity=quantity
+        ).delete()
+
+        messages.info(
+            request,
+            "This variant is already in your cart. It was removed from your wishlist.",
         )
+        return detail_redirect
 
-        messages.success(request, "Product added to cart successfully.")
-        return redirect("cart")
+    Cart.objects.create(
+        user=request.user,
+        variant=variant,
+        quantity=quantity,
+    )
 
-    return redirect("collections")
+    # A variant added to cart should no longer remain in wishlist.
+    Wishlist.objects.filter(
+        user=request.user,
+        variant=variant,
+    ).delete()
+
+    messages.success(
+        request,
+        "Product added to cart successfully.",
+    )
+    return detail_redirect
 
 
 def get_cart_totals(user):
@@ -493,31 +701,79 @@ def wishlist_view(request):
 
 
 @login_required
+@require_POST
 def add_to_wishlist(request):
-    if request.method == "POST":
-        variant_id = request.POST.get("variant_id")
+    """
+    Toggle the selected variant in the user's wishlist.
 
-        if not variant_id:
-            messages.error(request, "Variant not selected.")
-            return redirect("collections")
+    First click:
+        Add to wishlist.
 
-        variant = get_object_or_404(
-            ProductVariant, 
-            id=variant_id,
-            is_active=True,
-            is_deleted=False
+    Second click:
+        Remove from wishlist.
+
+    The user is redirected back to the page from which the action started.
+    """
+    variant_id = request.POST.get("variant_id", "").strip()
+    next_url = request.POST.get("next", "").strip()
+
+    fallback_url = reverse("collections")
+
+    if next_url and url_has_allowed_host_and_scheme(
+        url=next_url,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        redirect_url = next_url
+    else:
+        redirect_url = fallback_url
+
+    if not variant_id:
+        messages.error(request, "Variant not selected.")
+        return redirect(redirect_url)
+
+    variant = get_object_or_404(
+        ProductVariant.objects.select_related("product"),
+        id=variant_id,
+        is_active=True,
+        is_deleted=False,
+        product__is_active=True,
+        product__is_deleted=False,
     )
 
-        if Wishlist.objects.filter(user=request.user, variant=variant).exists():
-            messages.error(request, "This product is already in your wishlist.")
-            return redirect("product_detail", product_id=variant.product.id)
+    wishlist_item = Wishlist.objects.filter(
+        user=request.user,
+        variant=variant,
+    ).first()
 
-        Wishlist.objects.create(user=request.user, variant=variant)
+    if wishlist_item:
+        wishlist_item.delete()
+        messages.success(
+            request,
+            "Product removed from wishlist.",
+        )
+        return redirect(redirect_url)
 
-        messages.success(request, "Product added to wishlist.")
-        return redirect("wishlist")
+    if Cart.objects.filter(
+        user=request.user,
+        variant=variant,
+    ).exists():
+        messages.info(
+            request,
+            "This variant is already in your cart.",
+        )
+        return redirect(redirect_url)
 
-    return redirect("collections")
+    Wishlist.objects.create(
+        user=request.user,
+        variant=variant,
+    )
+
+    messages.success(
+        request,
+        "Product added to wishlist.",
+    )
+    return redirect(redirect_url)
 
 
 @login_required

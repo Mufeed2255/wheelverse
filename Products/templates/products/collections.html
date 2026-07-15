@@ -3,14 +3,14 @@
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WheelVerse | Elite Collector Legends</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <script>
         tailwind.config = {
@@ -36,32 +36,52 @@
                     }
                 }
             }
-        }
+        };
     </script>
 
     <style>
         .glass-card {
-            background: linear-gradient(135deg, rgba(26,26,26,.85), rgba(8,8,8,.95));
+            background: linear-gradient(135deg, rgba(26, 26, 26, .85), rgba(8, 8, 8, .95));
             backdrop-filter: blur(12px);
-            border: 1px solid rgba(242,202,80,.12);
+            border: 1px solid rgba(242, 202, 80, .12);
         }
 
         .product-card-hover:hover {
-            border-color: rgba(242,202,80,.45);
-            box-shadow: 0 0 30px rgba(242,202,80,.12);
+            border-color: rgba(242, 202, 80, .45);
+            box-shadow: 0 0 30px rgba(242, 202, 80, .12);
         }
 
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
 
-        input[type="range"] { accent-color: #f2ca50; }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
 
-        /* Custom radio styling */
-        input[type="radio"] { accent-color: #f2ca50; }
+        input[type="radio"] {
+            accent-color: #f2ca50;
+        }
 
-        /* Hero fallback gradient */
         .hero-bg {
             background: linear-gradient(135deg, #1a1200 0%, #0e0c07 50%, #1a0a00 100%);
+        }
+
+        .suggestion-enter {
+            animation: suggestionEnter .16s ease-out;
+        }
+
+        @keyframes suggestionEnter {
+            from {
+                opacity: 0;
+                transform: translateY(-5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -69,194 +89,213 @@
 <body class="bg-background text-on-surface font-body-md overflow-x-hidden">
 
 {% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
 
+<!-- FILTER OVERLAY -->
+<div
+    id="filterOverlay"
+    class="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm opacity-0 invisible transition-all duration-300"
+    onclick="closeFilterDrawer()">
+</div>
 
-<div class="max-w-[1600px] mx-auto pt-20 flex min-h-screen">
+<!-- FILTER DRAWER -->
+<aside
+    id="filterDrawer"
+    class="fixed top-0 left-0 z-[90] h-screen w-full max-w-[380px]
+           bg-[#110f0a] border-r border-primary/20 px-7 py-8
+           overflow-y-auto no-scrollbar -translate-x-full
+           transition-transform duration-300 ease-in-out">
 
-    <aside class="w-[300px] hidden lg:block sticky top-20 h-[calc(100vh-80px)] border-r border-primary/10 px-8 py-10 overflow-y-auto no-scrollbar flex-shrink-0">
+    <div class="flex items-center justify-between border-b border-primary/10 pb-5 mb-8">
+        <div>
+            <p class="font-label-caps text-[10px] tracking-[0.25em] text-on-surface-variant">
+                REFINE COLLECTION
+            </p>
+            <h2 class="font-display-lg text-xl text-primary mt-1">FILTERS</h2>
+        </div>
 
-        <form method="GET" action="{% url 'collections' %}" id="filterForm" class="space-y-10">
+        <button
+            type="button"
+            onclick="closeFilterDrawer()"
+            class="w-10 h-10 border border-primary/20 text-on-surface-variant
+                   hover:text-primary hover:border-primary
+                   flex items-center justify-center transition-colors"
+            aria-label="Close filters">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
 
-            <!-- Preserve sort & search when filtering -->
-            <input type="hidden" name="search" value="{{ current_search }}">
-            <input type="hidden" name="sort_by" value="{{ current_sort }}">
+    <form method="GET" action="{% url 'collections' %}" id="filterForm" class="space-y-8">
+        <input type="hidden" name="search" value="{{ current_search }}">
+        <input type="hidden" name="sort_by" value="{{ current_sort }}">
 
-            <!-- CATEGORIES -->
-            <section>
-                <h3 class="font-label-caps text-xs text-primary mb-6 flex justify-between items-center">
-                    CATEGORIES
-                    <span class="material-symbols-outlined text-sm">expand_more</span>
-                </h3>
+        <!-- CATEGORIES -->
+        <section>
+            <h3 class="font-label-caps text-xs text-primary mb-5">CATEGORIES</h3>
 
-                <div class="space-y-1">
-                    <a href="?search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
-                       class="flex justify-between px-3 py-2 text-sm transition-colors
-                           {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary hover:bg-primary/5{% endif %}">
-                        All Legends <span class="text-xs opacity-60">({{ total_products_count }})</span>
-                    </a>
+            <div class="space-y-2">
+                <label class="flex items-center justify-between gap-3 cursor-pointer px-3 py-2
+                    {% if not current_category %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                    <span class="flex items-center gap-3">
+                        <input
+                            type="radio"
+                            name="category"
+                            value=""
+                            {% if not current_category %}checked{% endif %}>
+                        All Legends
+                    </span>
+                    <span class="text-xs opacity-60">({{ total_products_count }})</span>
+                </label>
 
-                    {% for cat in categories %}
-                    <a href="?category={{ cat.id }}&search={{ current_search }}&sort_by={{ current_sort }}&status={{ current_status }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
-                       class="flex justify-between px-3 py-2 text-sm transition-colors
-                           {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary hover:bg-primary/5{% endif %}">
-                        {{ cat.name }} <span class="text-xs opacity-60">({{ cat.total_items|default:0 }})</span>
-                    </a>
-                    {% endfor %}
+                {% for cat in categories %}
+                <label class="flex items-center justify-between gap-3 cursor-pointer px-3 py-2
+                    {% if current_category == cat.id|stringformat:'s' %}text-primary bg-primary/5 border-l-2 border-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                    <span class="flex items-center gap-3">
+                        <input
+                            type="radio"
+                            name="category"
+                            value="{{ cat.id }}"
+                            {% if current_category == cat.id|stringformat:'s' %}checked{% endif %}>
+                        {{ cat.name }}
+                    </span>
+                    <span class="text-xs opacity-60">({{ cat.total_items|default:0 }})</span>
+                </label>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- PRICE RANGE -->
+        <section class="border-t border-primary/10 pt-6">
+            <h3 class="font-label-caps text-xs text-primary mb-5">PRICE RANGE</h3>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">
+                        FROM (₹)
+                    </label>
+                    <input
+                        type="number"
+                        name="price_min"
+                        min="0"
+                        max="150000"
+                        value="{{ price_min|default:0 }}"
+                        placeholder="Min"
+                        class="w-full bg-surface-container border border-primary/20
+                               text-on-surface text-xs p-3 focus:ring-1
+                               focus:ring-primary focus:border-primary rounded-none">
                 </div>
-            </section>
 
-            <!-- PRICE RANGE -->
-            <section class="border-t border-primary/10 pt-6">
-                <h3 class="font-label-caps text-xs text-primary mb-5">PRICE RANGE</h3>
-
-                <!-- Preserve status when price changes -->
-                <input type="hidden" name="status" value="{{ current_status }}">
-                <input type="hidden" name="rarity" value="{{ current_rarity }}">
-                <input type="hidden" name="category" value="{{ current_category }}">
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">FROM (₹)</label>
-                        <input type="number" name="price_min" min="0" max="150000"
-                               value="{{ price_min|default:0 }}"
-                               placeholder="Min"
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-1 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    </div>
-                    <div>
-                        <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">TO (₹)</label>
-                        <input type="number" name="price_max" min="0" max="150000"
-                               value="{{ price_max|default:150000 }}"
-                               placeholder="Max"
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="w-full bg-surface-container border border-primary/20 text-on-surface text-xs p-3 focus:ring-1 focus:ring-primary focus:border-primary rounded-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                    </div>
+                <div>
+                    <label class="font-label-caps text-[10px] text-on-surface-variant block mb-2">
+                        TO (₹)
+                    </label>
+                    <input
+                        type="number"
+                        name="price_max"
+                        min="0"
+                        max="150000"
+                        value="{{ price_max|default:150000 }}"
+                        placeholder="Max"
+                        class="w-full bg-surface-container border border-primary/20
+                               text-on-surface text-xs p-3 focus:ring-1
+                               focus:ring-primary focus:border-primary rounded-none">
                 </div>
-            </section>
+            </div>
+        </section>
 
-            <!-- RARITY -->
-            <section class="border-t border-primary/10 pt-6">
-                <h3 class="font-label-caps text-xs text-primary mb-6">RARITY LEVEL</h3>
+        <!-- RARITY -->
+        <section class="border-t border-primary/10 pt-6">
+            <h3 class="font-label-caps text-xs text-primary mb-5">RARITY LEVEL</h3>
 
-                <div class="space-y-3 text-sm">
-                    {% for val, label in rarity_choices %}
-                    <label class="flex items-center gap-3 cursor-pointer transition-colors
-                        {% if current_rarity|upper == val %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value="{{ val }}"
-                               {% if current_rarity|upper == val %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        {{ label }}
-                    </label>
-                    {% empty %}
-                    <!-- Fallback if rarity_choices not passed from view -->
-                    <label class="flex items-center gap-3 cursor-pointer {% if not current_rarity %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value=""
-                               {% if not current_rarity %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        All Rarities
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'COMMON' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value="COMMON"
-                               {% if current_rarity|upper == 'COMMON' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Common
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'RARE' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value="RARE"
-                               {% if current_rarity|upper == 'RARE' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Rare
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'EPIC' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value="EPIC"
-                               {% if current_rarity|upper == 'EPIC' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Epic
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_rarity|upper == 'LEGENDARY' %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="rarity" value="LEGENDARY"
-                               {% if current_rarity|upper == 'LEGENDARY' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Legendary
-                    </label>
-                    {% endfor %}
-                </div>
-            </section>
+            <div class="space-y-3 text-sm">
+                {% for value, label in rarity_choices %}
+                <label class="flex items-center gap-3 cursor-pointer
+                    {% if current_rarity|upper == value %}text-primary font-semibold{% else %}text-on-surface-variant hover:text-primary{% endif %}">
+                    <input
+                        type="radio"
+                        name="rarity"
+                        value="{{ value }}"
+                        {% if current_rarity|upper == value %}checked{% endif %}>
+                    {{ label }}
+                </label>
+                {% endfor %}
+            </div>
+        </section>
 
-            <!-- AVAILABILITY -->
-            <section class="border-t border-primary/10 pt-6">
-                <h3 class="font-label-caps text-xs text-primary mb-6">AVAILABILITY</h3>
+        <!-- AVAILABILITY -->
+        <section class="border-t border-primary/10 pt-6">
+            <h3 class="font-label-caps text-xs text-primary mb-5">AVAILABILITY</h3>
 
-                <div class="space-y-3 text-sm">
-                    <label class="flex items-center gap-3 cursor-pointer {% if not current_status %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="status" value=""
-                               {% if not current_status %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        All Items
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'in_stock' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="status" value="in_stock"
-                               {% if current_status == 'in_stock' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        In Stock
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'limited' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="status" value="limited"
-                               {% if current_status == 'limited' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Limited Stock
-                    </label>
-                    <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'out_of_stock' %}text-primary{% else %}text-on-surface-variant hover:text-primary{% endif %}">
-                        <input type="radio" name="status" value="out_of_stock"
-                               {% if current_status == 'out_of_stock' %}checked{% endif %}
-                               onchange="document.getElementById('filterForm').submit();"
-                               class="border-primary/30 text-primary focus:ring-primary">
-                        Out of Stock
-                    </label>
-                </div>
-            </section>
+            <div class="space-y-3 text-sm">
+                <label class="flex items-center gap-3 cursor-pointer {% if not current_status %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                    <input type="radio" name="status" value="" {% if not current_status %}checked{% endif %}>
+                    All Items
+                </label>
 
-            <!-- CLEAR ALL -->
-            <a href="{% url 'collections' %}"
-               class="block w-full text-center py-3 border border-primary/20 font-label-caps text-[10px] text-on-surface-variant hover:text-primary hover:border-primary transition-colors">
-                CLEAR ALL FILTERS
-            </a>
+                <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'in_stock' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                    <input type="radio" name="status" value="in_stock" {% if current_status == 'in_stock' %}checked{% endif %}>
+                    In Stock
+                </label>
 
-        </form>
-    </aside>
+                <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'limited' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                    <input type="radio" name="status" value="limited" {% if current_status == 'limited' %}checked{% endif %}>
+                    Limited Stock
+                </label>
 
-    <main class="flex-1 min-w-0">
+                <label class="flex items-center gap-3 cursor-pointer {% if current_status == 'out_of_stock' %}text-primary{% else %}text-on-surface-variant{% endif %}">
+                    <input type="radio" name="status" value="out_of_stock" {% if current_status == 'out_of_stock' %}checked{% endif %}>
+                    Out of Stock
+                </label>
+            </div>
+        </section>
 
-        <!-- HERO BANNER -->
+        <div class="sticky bottom-0 bg-[#110f0a] border-t border-primary/10 pt-5 pb-2">
+            <div class="grid grid-cols-2 gap-3">
+                <a
+                    href="{% url 'collections' %}"
+                    class="py-3 text-center border border-primary/20
+                           font-label-caps text-[10px] text-on-surface-variant
+                           hover:text-primary hover:border-primary transition-colors">
+                    CLEAR ALL
+                </a>
+
+                <button
+                    type="submit"
+                    class="py-3 bg-primary text-black font-label-caps
+                           text-[10px] font-bold hover:bg-yellow-400 transition-colors">
+                    APPLY FILTERS
+                </button>
+            </div>
+        </div>
+    </form>
+</aside>
+
+<div class="max-w-[1600px] mx-auto pt-20 min-h-screen">
+    <main class="w-full min-w-0">
+
+        <!-- HERO -->
         <section class="relative h-[320px] w-full overflow-hidden border-b border-primary/10 hero-bg">
-
-            <!-- Try to load static image; if missing, gradient fallback shows -->
             {% if hero_image %}
-            <img src="{{ hero_image }}" alt="Collector Legends"
-                 class="absolute inset-0 w-full h-full object-cover opacity-60">
+            <img
+                src="{{ hero_image }}"
+                alt="Collector Legends"
+                class="absolute inset-0 w-full h-full object-cover opacity-60">
             {% else %}
-            <!-- Gradient pattern fallback — no 404 error -->
-            <div class="absolute inset-0 opacity-20"
-                 style="background-image: repeating-linear-gradient(45deg, #f2ca50 0, #f2ca50 1px, transparent 0, transparent 50%); background-size: 20px 20px;"></div>
+            <div
+                class="absolute inset-0 opacity-20"
+                style="background-image: repeating-linear-gradient(45deg, #f2ca50 0, #f2ca50 1px, transparent 0, transparent 50%); background-size: 20px 20px;">
+            </div>
             {% endif %}
 
             <div class="absolute inset-0 bg-gradient-to-r from-background via-background/70 to-transparent z-10"></div>
             <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent z-10"></div>
 
-            <div class="relative z-20 h-full flex flex-col justify-center px-12">
+            <div class="relative z-20 h-full flex flex-col justify-center px-5 sm:px-8 xl:px-12">
                 <div class="flex gap-3 mb-4">
                     <span class="px-4 py-1 border border-primary/40 text-primary bg-black/30 font-label-caps text-[10px] tracking-widest">
                         COLLECTIONS
                     </span>
+
                     {% if current_search %}
                     <span class="px-4 py-1 border border-primary/20 text-on-surface-variant bg-black/30 font-label-caps text-[10px]">
                         "{{ current_search }}"
@@ -264,72 +303,132 @@
                     {% endif %}
                 </div>
 
-                <h1 class="font-display-lg text-[48px] leading-none tracking-wide text-white">
+                <h1 class="font-display-lg text-4xl sm:text-[48px] leading-none tracking-wide text-white">
                     EXPLORE <br>
                     <span class="text-primary">COLLECTOR LEGENDS</span>
                 </h1>
 
                 <p class="mt-4 max-w-lg text-on-surface-variant text-sm">
-                    Curated selection of the world's most sought-after digital automotive masterpieces.
+                    Curated selection of the world's most sought-after automotive masterpieces.
                 </p>
             </div>
         </section>
 
-        <!-- SORT + RESULTS BAR -->
-        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-12 py-5 border-b border-primary/10">
+        <!-- SEARCH, FILTER AND SORT -->
+        <section class="sticky top-20 z-40 bg-background/95 backdrop-blur-md px-4 sm:px-8 xl:px-12 py-5 border-b border-primary/10">
+            <div class="flex items-center justify-between gap-4 flex-wrap">
 
-            <div class="flex items-center justify-between gap-6 flex-wrap">
-
-                <!-- Search -->
-                <form method="GET"
-                    action="{% url 'collections' %}"
-                    class="flex items-center w-[420px] bg-surface-container border border-primary/20 overflow-hidden">
-
-                    <!-- Preserve filters -->
-                    <input type="hidden" name="category" value="{{ current_category }}">
-                    <input type="hidden" name="status" value="{{ current_status }}">
-                    <input type="hidden" name="sort_by" value="{{ current_sort }}">
-                    <input type="hidden" name="price_min" value="{{ price_min }}">
-                    <input type="hidden" name="price_max" value="{{ price_max }}">
-                    <input type="hidden" name="rarity" value="{{ current_rarity }}">
-
-                    <span class="material-symbols-outlined px-4 text-primary">
-                        search
-                    </span>
-
-                    <input
-                        type="text"
-                        name="search"
-                        value="{{ current_search }}"
-                        placeholder="Search by vehicle name..."
-                        class="flex-1 bg-transparent border-0 outline-none text-sm text-white placeholder:text-[#8a8375] px-2 py-3">
+                <div class="flex items-center gap-3 flex-1 min-w-[280px]">
 
                     <button
-                        type="submit"
-                        class="px-6 py-3 bg-primary text-black font-label-caps text-[11px] font-bold hover:bg-yellow-400 transition">
-                        SEARCH
+                        type="button"
+                        onclick="openFilterDrawer()"
+                        class="shrink-0 flex items-center gap-2 px-4 sm:px-5 py-3
+                               border border-primary/30 bg-surface-container
+                               text-primary font-label-caps text-[10px]
+                               hover:bg-primary hover:text-black transition-all duration-300">
+                        <span class="material-symbols-outlined text-lg">tune</span>
+                        <span class="hidden sm:inline">FILTERS</span>
+
+                        {% if has_active_filters %}
+                        <span class="w-2 h-2 rounded-full bg-primary"></span>
+                        {% endif %}
                     </button>
 
-                </form>
+                    <!-- SEARCH WITH LIVE SUGGESTIONS -->
+                    <div class="relative flex-1 max-w-[600px]" id="searchWrapper">
+                        <form
+                            method="GET"
+                            action="{% url 'collections' %}"
+                            id="collectionSearchForm"
+                            class="flex items-center w-full bg-surface-container border border-primary/20 overflow-hidden">
 
-                <div class="flex items-center gap-6">
+                            <input type="hidden" name="category" value="{{ current_category }}">
+                            <input type="hidden" name="status" value="{{ current_status }}">
+                            <input type="hidden" name="sort_by" value="{{ current_sort }}">
+                            <input type="hidden" name="price_min" value="{{ price_min }}">
+                            <input type="hidden" name="price_max" value="{{ price_max }}">
+                            <input type="hidden" name="rarity" value="{{ current_rarity }}">
 
+                            <span class="material-symbols-outlined px-4 text-primary">search</span>
+
+                            <input
+                                type="text"
+                                id="productSearchInput"
+                                name="search"
+                                value="{{ current_search }}"
+                                placeholder="Search vehicle, category or SKU..."
+                                autocomplete="off"
+                                class="flex-1 min-w-0 bg-transparent border-0 outline-none
+                                       text-sm text-white placeholder:text-[#8a8375]
+                                       px-2 py-3 focus:ring-0">
+
+                            <button
+                                type="button"
+                                id="clearSearchButton"
+                                class="hidden px-2 text-on-surface-variant hover:text-primary"
+                                aria-label="Clear search">
+                                <span class="material-symbols-outlined text-lg">close</span>
+                            </button>
+
+                            <button
+                                type="submit"
+                                class="hidden sm:block px-6 py-3 bg-primary text-black
+                                       font-label-caps text-[11px] font-bold
+                                       hover:bg-yellow-400 transition">
+                                SEARCH
+                            </button>
+                        </form>
+
+                        <!-- SUGGESTION DROPDOWN -->
+                        <div
+                            id="searchSuggestions"
+                            class="hidden absolute left-0 right-0 top-full mt-2 z-[70]
+                                   bg-[#17130c] border border-primary/20
+                                   shadow-2xl shadow-black/60 suggestion-enter overflow-hidden">
+
+                            <div id="suggestionLoading" class="hidden px-5 py-5 text-center">
+                                <span class="material-symbols-outlined text-primary animate-spin">
+                                    progress_activity
+                                </span>
+                                <p class="text-xs text-on-surface-variant mt-2">Searching collection...</p>
+                            </div>
+
+                            <div id="suggestionList"></div>
+
+                            <div id="suggestionEmpty" class="hidden px-5 py-8 text-center">
+                                <span class="material-symbols-outlined text-3xl text-primary/40">
+                                    search_off
+                                </span>
+                                <p class="text-sm text-on-surface mt-2">No matching products</p>
+                                <p class="text-xs text-on-surface-variant mt-1">
+                                    Try another vehicle name, category or SKU.
+                                </p>
+                            </div>
+
+                            <button
+                                type="button"
+                                id="viewAllSearchResults"
+                                class="hidden w-full px-5 py-3 border-t border-primary/10
+                                       text-left font-label-caps text-[10px] text-primary
+                                       hover:bg-primary/5 transition-colors">
+                                VIEW ALL SEARCH RESULTS
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 sm:gap-6">
                     <div class="flex items-center gap-3">
                         <span class="text-primary font-display-lg text-xl">
                             {{ total_products_count }}
                         </span>
-
                         <span class="font-label-caps text-on-surface-variant text-[10px]">
                             RESULTS FOUND
                         </span>
                     </div>
 
-                    <!-- Sorting -->
-
-                    <form method="GET"
-                        action="{% url 'collections' %}"
-                        id="sortForm">
-
+                    <form method="GET" action="{% url 'collections' %}" id="sortForm">
                         <input type="hidden" name="search" value="{{ current_search }}">
                         <input type="hidden" name="category" value="{{ current_category }}">
                         <input type="hidden" name="status" value="{{ current_status }}">
@@ -339,51 +438,29 @@
 
                         <select
                             name="sort_by"
-                            onchange="this.form.submit();"
-                            class="bg-surface-container border border-primary/20 text-on-surface font-label-caps text-[10px] py-3 pl-4 pr-10">
-
-                            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>
-                                NEWEST FIRST
-                            </option>
-
-                            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>
-                                OLDEST FIRST
-                            </option>
-
-                            <option value="a-z" {% if current_sort == "a-z" %}selected{% endif %}>
-                                NAME A-Z
-                            </option>
-
-                            <option value="z-a" {% if current_sort == "z-a" %}selected{% endif %}>
-                                NAME Z-A
-                            </option>
-
-                            <option value="price-low" {% if current_sort == "price-low" %}selected{% endif %}>
-                                PRICE LOW-HIGH
-                            </option>
-
-                            <option value="price-high" {% if current_sort == "price-high" %}selected{% endif %}>
-                                PRICE HIGH-LOW
-                            </option>
-
+                            onchange="this.form.submit()"
+                            class="bg-surface-container border border-primary/20
+                                   text-on-surface font-label-caps text-[10px]
+                                   py-3 pl-4 pr-10">
+                            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>NEWEST FIRST</option>
+                            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>OLDEST FIRST</option>
+                            <option value="a-z" {% if current_sort == "a-z" %}selected{% endif %}>NAME A-Z</option>
+                            <option value="z-a" {% if current_sort == "z-a" %}selected{% endif %}>NAME Z-A</option>
+                            <option value="price-low" {% if current_sort == "price-low" %}selected{% endif %}>PRICE LOW-HIGH</option>
+                            <option value="price-high" {% if current_sort == "price-high" %}selected{% endif %}>PRICE HIGH-LOW</option>
                         </select>
-
                     </form>
-
                 </div>
-
             </div>
-
         </section>
 
         <!-- PRODUCT GRID -->
-        <section class="px-12 py-10">
+        <section class="px-4 sm:px-8 xl:px-12 py-10">
             <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
 
                 {% for product in products %}
                 <div class="glass-card product-card-hover group relative rounded-md overflow-hidden transition-all duration-500 flex flex-col">
 
-                    <!-- Rarity badge -->
                     <div class="absolute top-4 left-4 z-10">
                         <span class="px-3 py-1 font-label-caps text-[10px] font-bold uppercase tracking-wider
                             {% if product.rarity|lower == 'common' %}bg-neutral-600 text-white
@@ -395,58 +472,54 @@
                         </span>
                     </div>
 
-                    <!-- Low stock warning -->
                     {% if product.total_stock > 0 and product.total_stock <= 3 %}
                     <div class="absolute top-4 right-4 z-10 bg-red-800/90 text-white text-[9px] font-label-caps px-2 py-1 tracking-wider">
                         ONLY {{ product.total_stock }} LEFT
                     </div>
-                    {% endif %}
-
-                    <!-- Out of stock overlay -->
-                    {% if product.total_stock == 0 %}
+                    {% elif product.total_stock == 0 %}
                     <div class="absolute top-4 right-4 z-10 bg-black/80 border border-red-500/40 text-red-400 text-[9px] font-label-caps px-2 py-1 tracking-wider">
                         OUT OF STOCK
                     </div>
                     {% endif %}
 
-                    <!-- Product image → links to detail page -->
                     <a href="{% url 'product_detail' product_id=product.id %}" class="block">
                         <div class="aspect-[16/10] bg-black/50 overflow-hidden relative">
                             {% with first_variant=product.active_variants.0 %}
                                 {% if first_variant %}
                                     {% with first_image=first_variant.images.first %}
                                         {% if first_image %}
-                                            <img src="{{ first_image.image.url }}"
-                                                alt="{{ product.name }}"
-                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                        <img
+                                            src="{{ first_image.image.url }}"
+                                            alt="{{ product.name }}"
+                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                                         {% elif first_variant.image %}
-                                            <img src="{{ first_variant.image.url }}"
-                                                alt="{{ product.name }}"
-                                                class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                        <img
+                                            src="{{ first_variant.image.url }}"
+                                            alt="{{ product.name }}"
+                                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
                                         {% else %}
-                                            <div class="w-full h-full flex items-center justify-center text-primary/40">
-                                                <span class="material-symbols-outlined text-5xl">directions_car</span>
-                                            </div>
+                                        <div class="w-full h-full flex items-center justify-center text-primary/40">
+                                            <span class="material-symbols-outlined text-5xl">directions_car</span>
+                                        </div>
                                         {% endif %}
                                     {% endwith %}
                                 {% else %}
-                                    <div class="w-full h-full flex items-center justify-center text-primary/40">
-                                        <span class="material-symbols-outlined text-5xl">directions_car</span>
-                                    </div>
+                                <div class="w-full h-full flex items-center justify-center text-primary/40">
+                                    <span class="material-symbols-outlined text-5xl">directions_car</span>
+                                </div>
                                 {% endif %}
                             {% endwith %}
                         </div>
                     </a>
 
-                    <!-- Card body -->
                     <div class="p-6 flex-1 flex flex-col justify-between">
                         <div>
                             <p class="font-label-caps text-[10px] text-primary mb-2 tracking-widest">
                                 {{ product.category.name|upper }}
                             </p>
 
-                            <a href="{% url 'product_detail' product_id=product.id %}" class="block group/title">
-                                <h3 class="font-display-lg text-xl leading-tight text-white group-hover/title:text-primary transition-colors">
+                            <a href="{% url 'product_detail' product_id=product.id %}">
+                                <h3 class="font-display-lg text-xl leading-tight text-white hover:text-primary transition-colors">
                                     {{ product.name }}
                                 </h3>
                             </a>
@@ -459,42 +532,38 @@
                         </div>
 
                         <div class="mt-6">
-                            <!-- Stock status -->
                             {% if product.total_stock == 0 %}
-                                <p class="text-[11px] text-red-400 font-label-caps mb-3 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">inventory</span>
-                                    STOCK NOT AVAILABLE
-                                </p>
+                            <p class="text-[11px] text-red-400 font-label-caps mb-3 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">inventory</span>
+                                STOCK NOT AVAILABLE
+                            </p>
                             {% elif product.total_stock <= 3 %}
-                                <p class="text-[11px] text-amber-400 font-label-caps mb-3 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">warning</span>
-                                    ONLY {{ product.total_stock }} LEFT IN VAULT
-                                </p>
+                            <p class="text-[11px] text-amber-400 font-label-caps mb-3 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">warning</span>
+                                ONLY {{ product.total_stock }} LEFT IN VAULT
+                            </p>
                             {% elif product.total_stock <= 10 %}
-                                <p class="text-[11px] text-yellow-500 mb-3 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">local_fire_department</span>
-                                    LIMITED — {{ product.total_stock }} remaining
-                                </p>
+                            <p class="text-[11px] text-yellow-500 mb-3 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">local_fire_department</span>
+                                LIMITED — {{ product.total_stock }} REMAINING
+                            </p>
                             {% else %}
-                                <p class="text-[11px] text-on-surface-variant mb-3 flex items-center gap-1">
-                                    <span class="material-symbols-outlined text-sm">check_circle</span>
-                                    {{ product.total_stock }} units available
-                                </p>
+                            <p class="text-[11px] text-on-surface-variant mb-3 flex items-center gap-1">
+                                <span class="material-symbols-outlined text-sm">check_circle</span>
+                                {{ product.total_stock }} UNITS AVAILABLE
+                            </p>
                             {% endif %}
 
-                            
-                            <!-- Price + wishlist -->
                             {% with first_variant=product.active_variants.0 %}
                             <div class="flex gap-3">
-
-                                <a href="{% url 'product_detail' product_id=product.id %}"
-                                class="flex-1 py-3 text-center font-label-caps text-xs font-bold transition-colors
-                                {% if product.total_stock == 0 %}
-                                        bg-surface-variant text-on-surface-variant cursor-not-allowed
-                                {% else %}
+                                <a
+                                    href="{% url 'product_detail' product_id=product.id %}"
+                                    class="flex-1 py-3 text-center font-label-caps text-xs font-bold transition-colors
+                                    {% if product.total_stock == 0 %}
+                                        bg-surface-variant text-on-surface-variant
+                                    {% else %}
                                         bg-primary text-black hover:bg-primary/90
-                                {% endif %}">
-
+                                    {% endif %}">
                                     {% if first_variant and first_variant.price %}
                                         ₹{{ first_variant.price }}
                                     {% else %}
@@ -503,25 +572,46 @@
                                 </a>
 
                                 {% if first_variant %}
-                                <form method="POST" action="{% url 'add_to_wishlist' %}">
-                                    {% csrf_token %}
+                                    <form method="POST" action="{% url 'add_to_wishlist' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="variant_id" value="{{ first_variant.id }}">
+                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
 
-                                    <input type="hidden" name="variant_id" value="{{ first_variant.id }}">
+                                        <button
+                                            type="submit"
+                                            class="w-12 h-full border transition-colors flex items-center justify-center
+                                            {% if first_variant.is_wishlisted %}
+                                                border-primary bg-primary/15 text-primary hover:bg-red-500/10 hover:text-red-300 hover:border-red-300
+                                            {% else %}
+                                                border-primary/30 text-on-surface-variant hover:text-primary hover:border-primary hover:bg-primary/10
+                                            {% endif %}"
+                                            title="{% if first_variant.is_wishlisted %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}">
 
-                                    <button type="submit"
-                                            class="w-12 h-full border border-primary/30 text-primary hover:bg-primary hover:text-black transition-colors flex items-center justify-center"
-                                            title="Add to Wishlist">
-                                        <span class="material-symbols-outlined text-xl">favorite</span>
-                                    </button>
-                                </form>
+                                            <span
+                                                class="material-symbols-outlined text-xl"
+                                                {% if first_variant.is_wishlisted %}
+                                                style="font-variation-settings: 'FILL' 1;"
+                                                {% endif %}>
+                                                {% if first_variant.is_wishlisted %}
+                                                    favorite
+                                                {% else %}
+                                                    favorite_border
+                                                {% endif %}
+                                            </span>
+                                        </button>
+                                    </form>
                                 {% else %}
-                                <button disabled
-                                        class="w-12 border border-primary/20 text-on-surface-variant cursor-not-allowed flex items-center justify-center"
-                                        title="No Variant Available">
-                                    <span class="material-symbols-outlined text-xl">favorite</span>
+                                <button
+                                    type="button"
+                                    disabled
+                                    class="w-12 border border-primary/20 text-on-surface-variant
+                                           cursor-not-allowed flex items-center justify-center"
+                                    title="No Variant Available">
+                                    <span class="material-symbols-outlined text-xl">
+                                        favorite_border
+                                    </span>
                                 </button>
                                 {% endif %}
-
                             </div>
                             {% endwith %}
                         </div>
@@ -529,10 +619,13 @@
                 </div>
 
                 {% empty %}
-                <!-- Empty state -->
                 <div class="col-span-full py-24 text-center glass-card rounded-xl">
-                    <span class="material-symbols-outlined text-6xl text-primary/30 block mb-4">search_off</span>
-                    <h3 class="font-display-lg text-xl text-on-surface mb-2">No vehicles found</h3>
+                    <span class="material-symbols-outlined text-6xl text-primary/30 block mb-4">
+                        search_off
+                    </span>
+                    <h3 class="font-display-lg text-xl text-on-surface mb-2">
+                        No vehicles found
+                    </h3>
                     <p class="text-on-surface-variant text-sm mb-6">
                         {% if current_search %}
                             No results for "{{ current_search }}". Try a different search.
@@ -540,69 +633,301 @@
                             No vehicles match your current filters.
                         {% endif %}
                     </p>
-                    <a href="{% url 'collections' %}"
-                       class="inline-block px-8 py-3 bg-primary text-black font-label-caps text-xs hover:bg-primary/90 transition-colors">
+                    <a
+                        href="{% url 'collections' %}"
+                        class="inline-block px-8 py-3 bg-primary text-black
+                               font-label-caps text-xs hover:bg-primary/90 transition-colors">
                         CLEAR FILTERS
                     </a>
                 </div>
                 {% endfor %}
             </div>
 
-            <!-- PAGINATION -->
             {% if products.has_other_pages %}
             <div class="flex justify-center items-center gap-2 mt-16">
-
                 {% if products.has_previous %}
-                <a href="?page={{ products.previous_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
-                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
+                <a
+                    href="?page={{ products.previous_page_number }}&search={{ current_search|urlencode }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                    class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
                     <span class="material-symbols-outlined text-sm">chevron_left</span>
                 </a>
-                {% else %}
-                <span class="w-10 h-10 border border-primary/10 flex items-center justify-center text-on-surface-variant/30 cursor-not-allowed">
-                    <span class="material-symbols-outlined text-sm">chevron_left</span>
-                </span>
                 {% endif %}
 
-                {% for num in products.paginator.page_range %}
-                    {% if products.number == num %}
+                {% for number in products.paginator.page_range %}
+                    {% if products.number == number %}
                     <span class="w-10 h-10 bg-primary text-black font-display-lg font-bold flex items-center justify-center text-sm">
-                        {{ num }}
+                        {{ number }}
                     </span>
-                    {% elif num > products.number|add:'-3' and num < products.number|add:'3' %}
-                    <a href="?page={{ num }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
-                       class="w-10 h-10 border border-primary/20 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors text-sm">
-                        {{ num }}
+                    {% elif number > products.number|add:'-3' and number < products.number|add:'3' %}
+                    <a
+                        href="?page={{ number }}&search={{ current_search|urlencode }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                        class="w-10 h-10 border border-primary/20 flex items-center justify-center text-on-surface-variant hover:text-primary hover:border-primary transition-colors text-sm">
+                        {{ number }}
                     </a>
                     {% endif %}
                 {% endfor %}
 
                 {% if products.has_next %}
-                <a href="?page={{ products.next_page_number }}&search={{ current_search }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
-                   class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
+                <a
+                    href="?page={{ products.next_page_number }}&search={{ current_search|urlencode }}&category={{ current_category }}&status={{ current_status }}&sort_by={{ current_sort }}&price_min={{ price_min }}&price_max={{ price_max }}&rarity={{ current_rarity }}"
+                    class="w-10 h-10 border border-primary/20 flex items-center justify-center text-primary hover:bg-primary hover:text-black transition-colors">
                     <span class="material-symbols-outlined text-sm">chevron_right</span>
                 </a>
-                {% else %}
-                <span class="w-10 h-10 border border-primary/10 flex items-center justify-center text-on-surface-variant/30 cursor-not-allowed">
-                    <span class="material-symbols-outlined text-sm">chevron_right</span>
-                </span>
                 {% endif %}
-
             </div>
 
-            <!-- Page info -->
             <p class="text-center font-label-caps text-[10px] text-on-surface-variant mt-4">
                 PAGE {{ products.number }} OF {{ products.paginator.num_pages }}
             </p>
             {% endif %}
-
         </section>
 
-        <!-- FOOTER -->
         {% include "include/user_footer.html" %}
-
-
     </main>
 </div>
+
+<script>
+    const filterDrawer = document.getElementById("filterDrawer");
+    const filterOverlay = document.getElementById("filterOverlay");
+
+    function openFilterDrawer() {
+        filterDrawer.classList.remove("-translate-x-full");
+        filterOverlay.classList.remove("opacity-0", "invisible");
+        filterOverlay.classList.add("opacity-100", "visible");
+        document.body.classList.add("overflow-hidden");
+    }
+
+    function closeFilterDrawer() {
+        filterDrawer.classList.add("-translate-x-full");
+        filterOverlay.classList.remove("opacity-100", "visible");
+        filterOverlay.classList.add("opacity-0", "invisible");
+        document.body.classList.remove("overflow-hidden");
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeFilterDrawer();
+            hideSuggestions();
+        }
+    });
+
+    const searchWrapper = document.getElementById("searchWrapper");
+    const searchInput = document.getElementById("productSearchInput");
+    const searchForm = document.getElementById("collectionSearchForm");
+    const suggestionsBox = document.getElementById("searchSuggestions");
+    const suggestionList = document.getElementById("suggestionList");
+    const suggestionLoading = document.getElementById("suggestionLoading");
+    const suggestionEmpty = document.getElementById("suggestionEmpty");
+    const viewAllButton = document.getElementById("viewAllSearchResults");
+    const clearSearchButton = document.getElementById("clearSearchButton");
+
+    const suggestionUrl = "{% url 'product_search_suggestions' %}";
+    let searchTimer = null;
+    let currentController = null;
+
+    function escapeHtml(value) {
+        const element = document.createElement("div");
+        element.textContent = value ?? "";
+        return element.innerHTML;
+    }
+
+    function showSuggestions() {
+        suggestionsBox.classList.remove("hidden");
+    }
+
+    function hideSuggestions() {
+        suggestionsBox.classList.add("hidden");
+    }
+
+    function setLoading(isLoading) {
+        suggestionLoading.classList.toggle("hidden", !isLoading);
+
+        if (isLoading) {
+            suggestionList.innerHTML = "";
+            suggestionEmpty.classList.add("hidden");
+            viewAllButton.classList.add("hidden");
+            showSuggestions();
+        }
+    }
+
+    function updateClearButton() {
+        clearSearchButton.classList.toggle(
+            "hidden",
+            searchInput.value.trim().length === 0
+        );
+    }
+
+    function getStockText(stock) {
+        if (stock <= 0) {
+            return "OUT OF STOCK";
+        }
+
+        if (stock <= 10) {
+            return `${stock} LEFT`;
+        }
+
+        return "IN STOCK";
+    }
+
+    function renderSuggestions(suggestions, query) {
+        setLoading(false);
+        suggestionList.innerHTML = "";
+
+        if (!suggestions.length) {
+            suggestionEmpty.classList.remove("hidden");
+            viewAllButton.classList.add("hidden");
+            showSuggestions();
+            return;
+        }
+
+        suggestionEmpty.classList.add("hidden");
+
+        suggestions.forEach(function (product) {
+            const imageSection = product.image_url
+                ? `
+                    <img
+                        src="${escapeHtml(product.image_url)}"
+                        alt="${escapeHtml(product.name)}"
+                        class="w-20 h-16 object-cover bg-black/50 shrink-0">
+                `
+                : `
+                    <div class="w-20 h-16 bg-black/50 flex items-center justify-center text-primary/40 shrink-0">
+                        <span class="material-symbols-outlined text-3xl">directions_car</span>
+                    </div>
+                `;
+
+            const priceSection = product.price
+                ? `₹${escapeHtml(product.price)}`
+                : "VIEW DETAILS";
+
+            const item = document.createElement("a");
+            item.href = product.detail_url;
+            item.className = `
+                flex items-center gap-4 px-4 py-3 border-b border-primary/10
+                hover:bg-primary/5 transition-colors group
+            `;
+
+            item.innerHTML = `
+                ${imageSection}
+
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <p class="font-display-lg text-sm text-white truncate group-hover:text-primary transition-colors">
+                                ${escapeHtml(product.name)}
+                            </p>
+
+                            <p class="font-label-caps text-[9px] text-on-surface-variant mt-1 truncate">
+                                ${escapeHtml(product.category)} · ${escapeHtml(product.rarity)}
+                            </p>
+                        </div>
+
+                        <p class="font-display-lg text-sm text-primary shrink-0">
+                            ${priceSection}
+                        </p>
+                    </div>
+
+                    <p class="font-label-caps text-[9px] mt-2 ${
+                        product.stock > 0 ? "text-emerald-400" : "text-red-400"
+                    }">
+                        ${getStockText(product.stock)}
+                    </p>
+                </div>
+
+                <span class="material-symbols-outlined text-primary/50 group-hover:text-primary">
+                    arrow_forward
+                </span>
+            `;
+
+            suggestionList.appendChild(item);
+        });
+
+        viewAllButton.textContent = `VIEW ALL RESULTS FOR "${query}"`;
+        viewAllButton.classList.remove("hidden");
+        showSuggestions();
+    }
+
+    async function fetchSuggestions(query) {
+        if (currentController) {
+            currentController.abort();
+        }
+
+        currentController = new AbortController();
+        setLoading(true);
+
+        try {
+            const response = await fetch(
+                `${suggestionUrl}?q=${encodeURIComponent(query)}`,
+                {
+                    headers: {
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    signal: currentController.signal
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Suggestion request failed.");
+            }
+
+            const data = await response.json();
+            renderSuggestions(data.suggestions || [], query);
+        } catch (error) {
+            if (error.name !== "AbortError") {
+                setLoading(false);
+                suggestionList.innerHTML = "";
+                suggestionEmpty.classList.remove("hidden");
+                viewAllButton.classList.add("hidden");
+                showSuggestions();
+            }
+        }
+    }
+
+    searchInput.addEventListener("input", function () {
+        const query = searchInput.value.trim();
+        updateClearButton();
+
+        clearTimeout(searchTimer);
+
+        if (query.length < 2) {
+            hideSuggestions();
+            suggestionList.innerHTML = "";
+            return;
+        }
+
+        searchTimer = setTimeout(function () {
+            fetchSuggestions(query);
+        }, 300);
+    });
+
+    searchInput.addEventListener("focus", function () {
+        const query = searchInput.value.trim();
+
+        if (query.length >= 2 && suggestionList.children.length > 0) {
+            showSuggestions();
+        }
+    });
+
+    clearSearchButton.addEventListener("click", function () {
+        searchInput.value = "";
+        updateClearButton();
+        hideSuggestions();
+        suggestionList.innerHTML = "";
+        searchInput.focus();
+    });
+
+    viewAllButton.addEventListener("click", function () {
+        searchForm.submit();
+    });
+
+    document.addEventListener("click", function (event) {
+        if (!searchWrapper.contains(event.target)) {
+            hideSuggestions();
+        }
+    });
+
+    updateClearButton();
+</script>
 
 </body>
 </html>

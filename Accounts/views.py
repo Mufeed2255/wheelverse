@@ -118,15 +118,19 @@ def signup_view(request):
 
         if not username:
             messages.error(request, "Username cannot be empty.")
-            return render(request, "accounts/signup.html", {"referral_code": referral_code})
+            return render(request,"accounts/signup.html",{"referral_code": referral_code},)
 
         if len(username) < 5 or len(username) > 20:
-            messages.error(request, "Username must be between 5 and 20 characters.")
-            return render(request, "accounts/signup.html", {"referral_code": referral_code})
+            messages.error(request,"Username must be between 5 and 20 characters." )
+            return render(request,"accounts/signup.html",{"referral_code": referral_code},)
 
-        if not username.isalnum():
-            messages.error(request, "Username must contain only letters and numbers.")
-            return render(request, "accounts/signup.html", {"referral_code": referral_code})
+        if not re.fullmatch(r"(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+", username):
+            messages.error(request,"Username must contain both letters and numbers, without spaces or special characters.")
+            return render(request,"accounts/signup.html",{"referral_code": referral_code},)
+
+        if User.objects.filter(username__iexact=username).exists():
+            messages.error(request, "Username already exists.")
+            return render(request,"accounts/signup.html",{"referral_code": referral_code},)
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists.")

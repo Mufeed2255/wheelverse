@@ -5,291 +5,369 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cancel Order | WheelVerse</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <title>Cancel Item | WheelVerse</title>
 
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
-    <script>
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        primary: "#f2ca50",
-                        background: "#16130b",
-                        surface: "#16130b",
-                        "surface-container": "#231f17",
-                        "surface-container-low": "#1f1b13",
-                        "surface-container-high": "#2d2a21",
-                        "surface-container-highest": "#38342b",
-                        "surface-container-lowest": "#110e07",
-                        "surface-variant": "#38342b",
-                        "on-surface": "#eae1d4",
-                        "on-surface-variant": "#d0c5af",
-                        "outline": "#99907c",
-                        "outline-variant": "#4d4635",
-                        "on-primary": "#3c2f00",
-                        "on-primary-fixed": "#241a00",
-                        error: "#ffb4ab",
-                        "error-container": "#93000a",
-                    },
-                    fontFamily: {
-                        "body-md": ["Poppins"],
-                        "body-lg": ["Poppins"],
-                        "display-lg": ["Orbitron"],
-                        "headline-md": ["Orbitron"],
-                        "label-caps": ["Orbitron"],
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <style>
         body {
             background: #080705;
             color: #eae1d4;
-            overflow-x: hidden;
+            font-family: Poppins, sans-serif;
         }
 
-        .page-content {
-            margin-left: 360px;
-            padding-top: 130px;
+        .font-orbitron {
+            font-family: Orbitron, sans-serif;
+        }
+
+        .page-bg {
             min-height: 100vh;
             background:
-                radial-gradient(circle at 50% 18%, rgba(242,202,80,.10), transparent 38%),
-                linear-gradient(180deg, #16130b 0%, #080705 75%);
+                linear-gradient(rgba(8,7,5,.76), rgba(8,7,5,.94)),
+                radial-gradient(circle at center, rgba(242,202,80,.09), transparent 45%);
         }
 
-        @media(max-width: 900px) {
-            .page-content {
-                margin-left: 0;
-                padding-top: 120px;
-            }
+        .glass {
+            background: rgba(10,10,10,.74);
+            border: 1px solid rgba(242,202,80,.18);
+            backdrop-filter: blur(18px);
         }
 
-        .glass-panel {
-            background: rgba(22, 19, 11, 0.72);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(242, 202, 80, 0.16);
-            box-shadow: inset 0 0 22px rgba(242, 202, 80, 0.04), 0 0 40px rgba(0,0,0,.35);
+        .input-box {
+            background: #231f17;
+            border: 1px solid #4d4635;
+            color: #eae1d4;
         }
 
-        .carbon-texture {
-            background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
-            background-size: 4px 4px;
-        }
-
-        .gold-gradient-btn {
-            background: linear-gradient(135deg, #f2ca50 0%, #d4af37 50%, #f2ca50 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .gold-gradient-btn::after {
-            content: "";
-            position: absolute;
-            top: -60%;
-            left: -80%;
-            width: 220%;
-            height: 220%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.22), transparent);
-            transform: rotate(45deg);
-            pointer-events: none;
-        }
-
-        .field-glow:focus {
-            box-shadow: 0 0 15px rgba(242, 202, 80, 0.22);
+        .input-box:focus {
             border-color: #f2ca50;
+            box-shadow: 0 0 14px rgba(242,202,80,.25);
+            outline: none;
         }
 
-        .product-img {
-            transition: .7s ease;
+        .gold-btn {
+            background: linear-gradient(135deg, #f2ca50, #d4af37);
+            color: #241a00;
+            box-shadow: 0 0 25px rgba(242,202,80,.35);
         }
 
-        .product-card:hover .product-img {
-            transform: scale(1.06);
+        .qty-button {
+            width: 52px;
+            height: 52px;
+            border: 1px solid rgba(242,202,80,.35);
+            background: #16130b;
+            color: #f2ca50;
+            transition: .2s ease;
+        }
+
+        .qty-button:hover:not(:disabled) {
+            background: #f2ca50;
+            color: #241a00;
+        }
+
+        .qty-button:disabled {
+            opacity: .35;
+            cursor: not-allowed;
         }
     </style>
 </head>
 
-<body class="font-body-md min-h-screen">
+<body class="page-bg">
 
-{% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="page-content">
-    <div class="max-w-5xl mx-auto px-6 md:px-12 py-10 relative z-10">
+<main class="max-w-5xl mx-auto px-6 md:px-8 pt-36 pb-20">
 
-        <section class="text-center mb-12">
-            <h1 class="font-display-lg text-5xl md:text-7xl text-primary tracking-[0.08em] drop-shadow-[0_0_18px_rgba(242,202,80,.45)]">
-                CANCEL ORDER
-            </h1>
+    <section class="text-center mb-12">
+        <p class="font-orbitron text-[#f2ca50] text-xs tracking-[.3em] mb-4">
+            ORDER #{{ order.order_id }}
+        </p>
 
-            <p class="font-body-lg text-on-surface-variant mt-5 max-w-2xl mx-auto">
-                Please provide details about your cancellation request for your legendary collectible.
-            </p>
-        </section>
+        <h1 class="font-orbitron text-4xl md:text-6xl font-bold tracking-widest">
+            CANCEL ITEM QUANTITY
+        </h1>
 
-        <section class="glass-panel rounded-xl p-6 md:p-12">
+        <p class="text-[#d0c5af] mt-5 max-w-3xl mx-auto">
+            Select how many units you want to cancel. Only one cancellation
+            action is allowed for this complete order.
+        </p>
+    </section>
 
-            <div class="flex flex-col md:flex-row justify-between items-center bg-surface-container-high/40 border border-outline-variant/40 rounded-lg p-6 mb-8 gap-5">
-                <div class="flex items-center gap-4">
-                    <div class="w-14 h-14 rounded bg-primary/10 flex items-center justify-center border border-primary/30">
-                        <span class="material-symbols-outlined text-primary text-3xl">receipt_long</span>
-                    </div>
+    <form
+        method="POST"
+        action="{% url 'cancel_order_item' item.id %}"
+        id="cancelItemForm"
+        class="glass rounded-xl p-7 md:p-12">
 
-                    <div>
-                        <p class="font-label-caps text-xs text-primary tracking-widest">Order ID</p>
-                        <h3 class="font-headline-md text-xl text-on-surface">
-                            #{{ order.order_id }}
-                        </h3>
-                    </div>
-                </div>
+        {% csrf_token %}
 
-                <a href="{% url 'order_detail' order.id %}"
-                   class="font-label-caps text-xs px-7 py-3 border border-outline hover:border-primary hover:text-primary transition rounded tracking-widest">
-                    VIEW ORDER DETAILS
-                </a>
-            </div>
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
-
-                <div class="space-y-6">
-                    <div class="product-card relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-primary/20 to-transparent rounded-xl blur opacity-25 group-hover:opacity-50 transition"></div>
-
-                        <div class="relative bg-black rounded-xl overflow-hidden border border-outline-variant/50">
-                            <div class="h-64 relative bg-surface-container overflow-hidden">
-                                {% if item.variant and item.variant.images.first %}
-                                    <img src="{{ item.variant.images.first.image.url }}"
-                                        alt="{{ item.product_name }}"
-                                        class="product-img w-full h-full object-cover">
-                                {% else %}
-                                    <div class="w-full h-full flex items-center justify-center bg-[#110e07]">
-                                        <span class="material-symbols-outlined text-primary text-8xl">
-                                            directions_car
-                                        </span>
-                                    </div>
-                                {% endif %}
-
-                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-transparent to-transparent"></div>
-
-                                <div class="absolute top-4 left-4 flex gap-2">
-                                    <span class="bg-primary text-on-primary font-label-caps text-[10px] px-3 py-1 rounded">
-                                        WHEELVERSE
-                                    </span>
-
-                                    <span class="bg-black/80 backdrop-blur text-primary border border-primary/50 font-label-caps text-[10px] px-3 py-1 rounded">
-                                        {{ order.status }}
-                                    </span>
-                                </div>
-
-                                <div class="absolute bottom-5 left-5 right-5">
-                                    <h4 class="font-headline-md text-xl text-white">
-                                        {% if first_item %}
-                                            {{ first_item.product_name }}
-                                        {% else %}
-                                            WheelVerse Collectible
-                                        {% endif %}
-                                    </h4>
-
-                                    {% if first_item %}
-                                        <p class="text-primary font-label-caps text-xs mt-1">
-                                            Qty {{ first_item.quantity }} • ₹{{ first_item.item_total }}
-                                        </p>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            <div class="p-5 carbon-texture">
-                                <div class="grid grid-cols-2 gap-4 text-on-surface-variant font-label-caps text-[11px] border-t border-outline-variant/30 pt-4">
-                                    <div>
-                                        <span>PAYMENT</span>
-                                        <p class="text-primary font-bold text-sm mt-1">{{ order.payment_method }}</p>
-                                    </div>
-                                    <div class="text-right">
-                                        <span>TOTAL</span>
-                                        <p class="text-primary font-bold text-sm mt-1">₹{{ order.total_amount }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="bg-error-container/10 border-l-4 border-error p-5 rounded-r-lg">
-                        <div class="flex items-start gap-3">
-                            <span class="material-symbols-outlined text-error">warning</span>
-                            <div>
-                                <p class="font-label-caps text-xs text-error mb-1 tracking-widest">
-                                    CANCELLATION NOTICE
-                                </p>
-                                <p class="text-sm text-on-surface-variant">
-                                    IMPORTANT: Cancelled orders may not be restored once confirmed. Product stock will be restored after cancellation.
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <form method="POST" action="{% url 'cancel_order_item' item.id %}" class="space-y-6">
-                    {% csrf_token %}
-
-                    <div class="flex flex-col gap-2">
-                        <label class="font-label-caps text-xs text-on-surface-variant tracking-widest">
-                            Select a reason for cancellation
-                        </label>
-
-                        <div class="relative">
-                            <select name="cancel_reason"
-                                    required
-                                    class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-4 font-body-md text-on-surface appearance-none field-glow focus:outline-none focus:ring-0 transition">
-                                <option disabled selected value="">Select an option...</option>
-                                <option value="Ordered by Mistake">Ordered by Mistake</option>
-                                <option value="Found Another Collectible">Found Another Collectible</option>
-                                <option value="Financial Reasons">Financial Reasons</option>
-                                <option value="Shipping Delay Concerns">Shipping Delay Concerns</option>
-                                <option value="Other">Other</option>
-                            </select>
-
-                            <span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-primary">
-                                expand_more
+            <div class="lg:col-span-5">
+                <div class="h-72 rounded overflow-hidden border border-[#f2ca50]/25 bg-[#110e07]">
+                    {% if item.variant and item.variant.images.first %}
+                        <img
+                            src="{{ item.variant.images.first.image.url }}"
+                            alt="{{ item.product_name }}"
+                            class="w-full h-full object-cover">
+                    {% elif item.variant and item.variant.image %}
+                        <img
+                            src="{{ item.variant.image.url }}"
+                            alt="{{ item.product_name }}"
+                            class="w-full h-full object-cover">
+                    {% else %}
+                        <div class="w-full h-full flex items-center justify-center">
+                            <span class="material-symbols-outlined text-[#f2ca50] text-8xl">
+                                directions_car
                             </span>
                         </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="lg:col-span-7">
+                <p class="font-orbitron text-[#f2ca50] text-xs tracking-widest">
+                    SELECTED COLLECTIBLE
+                </p>
+
+                <h2 class="font-orbitron text-3xl text-white mt-3 uppercase">
+                    {{ item.product_name }}
+                </h2>
+
+                <p class="text-[#d0c5af] mt-3">
+                    {{ item.variant_color|default:"Collector Edition" }}
+                    {% if item.variant_size %}
+                        / {{ item.variant_size }}
+                    {% endif %}
+                </p>
+
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-7">
+                    <div class="glass p-4">
+                        <p class="font-orbitron text-[10px] text-[#99907c]">ORDERED QTY</p>
+                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                            {{ item.quantity }}
+                        </p>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <label class="font-label-caps text-xs text-on-surface-variant tracking-widest">
-                            Additional Comments
-                        </label>
-
-                        <textarea name="comments"
-                                  class="w-full bg-surface-container-low border border-outline-variant rounded-lg p-4 font-body-md text-on-surface field-glow focus:outline-none focus:ring-0 transition resize-none"
-                                  placeholder="Tell us more about your request... (Optional)"
-                                  rows="6"></textarea>
+                    <div class="glass p-4">
+                        <p class="font-orbitron text-[10px] text-[#99907c]">UNIT PRICE</p>
+                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                            ₹{{ item.price }}
+                        </p>
                     </div>
 
-                    <div class="pt-6 space-y-4">
-                        <button type="submit"
-                                class="w-full gold-gradient-btn text-on-primary font-display-lg text-sm py-5 rounded-lg shadow-[0_0_30px_rgba(242,202,80,0.3)] hover:shadow-[0_0_45px_rgba(242,202,80,0.5)] transition active:scale-[0.98] uppercase tracking-[0.2em] font-bold">
-                            CONFIRM CANCELLATION
+                    <div class="glass p-4 col-span-2 md:col-span-1">
+                        <p class="font-orbitron text-[10px] text-[#99907c]">ITEM TOTAL</p>
+                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                            ₹{{ item.item_total }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                        CANCEL QUANTITY
+                    </label>
+
+                    <div class="mt-4 inline-flex items-center bg-black border border-[#f2ca50]/40 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(242,202,80,0.12)]">
+
+                        <button
+                            type="button"
+                            id="decreaseQty"
+                            class="w-14 h-14 flex items-center justify-center
+                                bg-black text-[#f2ca50]
+                                border-r border-[#f2ca50]/30
+                                hover:bg-[#f2ca50] hover:text-black
+                                disabled:opacity-30 disabled:cursor-not-allowed
+                                transition-colors"
+                            aria-label="Decrease cancellation quantity">
+
+                            <span class="material-symbols-outlined">
+                                remove
+                            </span>
                         </button>
 
-                        <a href="{% url 'order_detail' order.id %}"
-                           class="block text-center w-full bg-surface-container-highest/20 border border-outline-variant hover:border-primary/50 text-on-surface font-display-lg text-sm py-5 rounded-lg transition active:scale-[0.98] uppercase tracking-[0.2em]">
-                            GO BACK
-                        </a>
-                    </div>
-                </form>
+                        <input
+                            type="number"
+                            id="cancelQuantity"
+                            name="cancel_quantity"
+                            min="1"
+                            max="{{ available_cancel_quantity }}"
+                            value="1"
+                            readonly
+                            required
+                            class="w-24 h-14 bg-black border-0
+                                text-center text-[#f2ca50]
+                                font-orbitron text-xl
+                                focus:ring-0 focus:outline-none
+                                appearance-none">
 
+                        <button
+                            type="button"
+                            id="increaseQty"
+                            class="w-14 h-14 flex items-center justify-center
+                                bg-black text-[#f2ca50]
+                                border-l border-[#f2ca50]/30
+                                hover:bg-[#f2ca50] hover:text-black
+                                disabled:opacity-30 disabled:cursor-not-allowed
+                                transition-colors"
+                            aria-label="Increase cancellation quantity">
+
+                            <span class="material-symbols-outlined">
+                                add
+                            </span>
+                        </button>
+
+                    </div>
+
+                    <p class="text-[#99907c] text-xs mt-3">
+                        Maximum cancellation quantity:
+                        <span class="text-[#f2ca50]">
+                            {{ available_cancel_quantity }}
+                        </span>
+                    </p>
+
+                    <p
+                        id="remainingText"
+                        class="text-green-300 text-xs mt-2">
+                    </p>
+                </div>
             </div>
         </section>
 
-    </div>
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 border-t border-[#4d4635]/50 pt-10">
+
+            <div>
+                <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                    CANCELLATION REASON
+                </label>
+
+                <select
+                    name="cancel_reason"
+                    required
+                    class="input-box w-full mt-4 p-4 rounded">
+                    <option value="" selected disabled>Select a reason...</option>
+                    <option value="Ordered by Mistake">Ordered by Mistake</option>
+                    <option value="Found Another Collectible">Found Another Collectible</option>
+                    <option value="Financial Reasons">Financial Reasons</option>
+                    <option value="Shipping Delay Concerns">Shipping Delay Concerns</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                    ADDITIONAL COMMENTS
+                </label>
+
+                <textarea
+                    name="comments"
+                    rows="5"
+                    maxlength="500"
+                    class="input-box w-full mt-4 p-4 rounded resize-none"
+                    placeholder="Optional details about the cancellation..."></textarea>
+
+                <p class="text-[#99907c] text-xs mt-2">
+                    Maximum 500 characters.
+                </p>
+            </div>
+        </section>
+
+        <div class="mt-10 p-5 border-l-4 border-red-400 bg-red-500/10">
+            <p class="font-orbitron text-red-300 text-xs tracking-widest">
+                IMPORTANT
+            </p>
+            <p class="text-[#d0c5af] text-sm mt-2">
+                After confirming this cancellation, no other item or quantity
+                from this order can be cancelled. The selected quantity will
+                be restored to stock. Eligible prepaid refunds will be credited
+                to your wallet.
+            </p>
+        </div>
+
+        <div class="mt-10 flex flex-col md:flex-row justify-center gap-5">
+            <button
+                type="submit"
+                class="gold-btn font-orbitron tracking-[.18em] px-12 py-4 rounded hover:scale-[1.02] transition">
+                CONFIRM CANCELLATION
+            </button>
+
+            <a
+                href="{% url 'order_detail' order.id %}"
+                class="border border-[#99907c] text-[#eae1d4] font-orbitron tracking-[.18em] px-12 py-4 rounded text-center hover:border-[#f2ca50] hover:text-[#f2ca50] transition">
+                GO BACK
+            </a>
+        </div>
+    </form>
 </main>
+
+<script>
+    const quantityInput = document.getElementById("cancelQuantity");
+    const decreaseButton = document.getElementById("decreaseQty");
+    const increaseButton = document.getElementById("increaseQty");
+    const remainingText = document.getElementById("remainingText");
+
+    const maximumQuantity = Number(
+        quantityInput.getAttribute("max")
+    );
+
+    function updateQuantityUI() {
+        let quantity = Number(quantityInput.value || 1);
+
+        if (quantity < 1) {
+            quantity = 1;
+        }
+
+        if (quantity > maximumQuantity) {
+            quantity = maximumQuantity;
+        }
+
+        quantityInput.value = quantity;
+
+        decreaseButton.disabled = quantity <= 1;
+        increaseButton.disabled = quantity >= maximumQuantity;
+
+        const remainingQuantity = maximumQuantity - quantity;
+
+        if (remainingQuantity === 0) {
+            remainingText.textContent =
+                "This item will be fully cancelled.";
+        } else {
+            remainingText.textContent =
+                `${remainingQuantity} unit(s) will remain active in the order.`;
+        }
+    }
+
+    decreaseButton.addEventListener("click", function () {
+        quantityInput.value = Number(quantityInput.value) - 1;
+        updateQuantityUI();
+    });
+
+    increaseButton.addEventListener("click", function () {
+        quantityInput.value = Number(quantityInput.value) + 1;
+        updateQuantityUI();
+    });
+
+    document
+        .getElementById("cancelItemForm")
+        .addEventListener("submit", function (event) {
+            const selectedQuantity = Number(quantityInput.value);
+
+            if (
+                selectedQuantity < 1
+                || selectedQuantity > maximumQuantity
+            ) {
+                event.preventDefault();
+                alert("Please select a valid cancellation quantity.");
+            }
+        });
+
+    updateQuantityUI();
+</script>
 
 </body>
 </html>

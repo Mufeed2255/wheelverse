@@ -170,22 +170,23 @@
                         </a>
                     {% endif %}
 
-                {% elif order.payment_method == "UPI" or order.payment_method == "RAZORPAY" %}
+                {% elif order.payment_method == "RAZORPAY" %}
                     <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
-                        {% if order.payment_method == "UPI" %}qr_code_2{% else %}credit_card{% endif %}
+                        credit_card
                     </span>
 
                     <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
-                        {% if order.payment_method == "UPI" %}
-                            UPI Payment
-                        {% else %}
-                            Razorpay Secure Payment
-                        {% endif %}
+                        Razorpay Secure Payment
                     </h2>
 
                     <p class="text-[#d0c5af] leading-relaxed max-w-2xl">
                         Click below to open Razorpay secure checkout. You can complete payment using UPI, cards, netbanking, wallets, or pay later.
                     </p>
+
+                    <div id="razorpayDismissNotice"
+                         class="hidden mt-6 border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                        Payment was not completed. No order has been placed. You can try again or return to checkout.
+                    </div>
 
                     <form id="razorpayVerifyForm"
                           method="POST"
@@ -199,11 +200,7 @@
                     <button id="razorpayBtn"
                             type="button"
                             class="mt-10 bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
-                        {% if order.payment_method == "UPI" %}
-                            PAY WITH UPI
-                        {% else %}
-                            PAY WITH RAZORPAY
-                        {% endif %}
+                        PAY WITH RAZORPAY
                     </button>
                 {% endif %}
 
@@ -288,7 +285,7 @@
     </div>
 </main>
 
-{% if order.payment_method == "UPI" or order.payment_method == "RAZORPAY" %}
+{% if order.payment_method == "RAZORPAY" %}
 <script>
 document.getElementById("razorpayBtn").addEventListener("click", function () {
     const options = {
@@ -318,7 +315,10 @@ document.getElementById("razorpayBtn").addEventListener("click", function () {
 
         modal: {
             ondismiss: function () {
-                window.location.href = "{% url 'order_failed_with_order' order.id %}";
+                const notice = document.getElementById("razorpayDismissNotice");
+                if (notice) {
+                    notice.classList.remove("hidden");
+                }
             }
         }
     };

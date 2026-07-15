@@ -229,6 +229,7 @@
                         data-variant-id="{{ variant.id }}"
                         data-price="{{ variant.price }}"
                         data-stock="{{ variant.stock }}"
+                        data-wishlisted="{% if variant.is_wishlisted %}true{% else %}false{% endif %}"
                         data-color="{{ variant.color }}"
                         data-size="{{ variant.size }}"
                         data-image="{% with imgs=variant.images.all %}{% if imgs %}{{ imgs.0.image.url }}{% endif %}{% endwith %}"
@@ -277,46 +278,74 @@
     <form method="POST" action="{% url 'add_to_cart' %}">
         {% csrf_token %}
 
-        <input type="hidden"
-               name="variant_id"
-               id="selectedVariantId"
-               value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
+        <input
+            type="hidden"
+            name="variant_id"
+            id="selectedVariantId"
+            value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
 
-        <input type="hidden"
-               name="quantity"
-               id="cartQuantity"
-               value="1">
+        <input
+            type="hidden"
+            name="quantity"
+            id="cartQuantity"
+            value="1">
 
-        {% if first_variant and first_variant.stock > 0 %}
-            <button id="addToCartBtn"
-                    type="submit"
-                    {% if not first_variant or first_variant.stock <= 0 %}disabled{% endif %}
-                    class="{% if first_variant and first_variant.stock > 0 %}btn-gold{% else %}bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed{% endif %} py-4 rounded-sm text-sm w-full">
-                {% if first_variant and first_variant.stock > 0 %}ADD TO CART{% else %}OUT OF STOCK{% endif %}
-            </button>
-        {% else %}
-            <button id="addToCartBtn"
-                    type="button"
-                    disabled
-                    class="py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full">
+        <button
+            id="addToCartBtn"
+            type="{% if first_variant and first_variant.stock > 0 %}submit{% else %}button{% endif %}"
+            {% if not first_variant or first_variant.stock <= 0 %}disabled{% endif %}
+            class="{% if first_variant and first_variant.stock > 0 %}btn-gold{% else %}bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed{% endif %} py-4 rounded-sm text-sm w-full">
+            {% if first_variant and first_variant.stock > 0 %}
+                ADD TO CART
+            {% else %}
                 OUT OF STOCK
-            </button>
-        {% endif %}
+            {% endif %}
+        </button>
     </form>
 
-    <form method="POST" action="{% url 'add_to_wishlist' %}">
+    <form
+        method="POST"
+        action="{% url 'add_to_wishlist' %}"
+        id="wishlistForm">
         {% csrf_token %}
 
-        <input type="hidden"
-              name="variant_id"
-              id="wishlistVariantId"
-              value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
+        <input
+            type="hidden"
+            name="variant_id"
+            id="wishlistVariantId"
+            value="{% if first_variant %}{{ first_variant.id }}{% endif %}">
 
-        <button id="wishlistBtn"
-                type="submit"
-                class="btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2 w-full">
-            <span class="material-symbols-outlined">favorite_border</span>
-            ADD TO WISHLIST
+        <input
+            type="hidden"
+            name="next"
+            value="{{ request.get_full_path }}">
+
+        <button
+            id="wishlistBtn"
+            type="submit"
+            {% if not first_variant %}disabled{% endif %}
+            class="{% if first_variant and first_variant.is_wishlisted %}border border-[#f2ca50] bg-[#f2ca50]/10 text-[#f2ca50] orbitron hover:border-red-300 hover:text-red-300 hover:bg-red-500/10{% else %}btn-outline{% endif %} py-4 rounded-sm text-sm flex items-center justify-center gap-2 w-full">
+
+            <span
+                id="wishlistIcon"
+                class="material-symbols-outlined"
+                {% if first_variant and first_variant.is_wishlisted %}
+                style="font-variation-settings: 'FILL' 1;"
+                {% endif %}>
+                {% if first_variant and first_variant.is_wishlisted %}
+                    favorite
+                {% else %}
+                    favorite_border
+                {% endif %}
+            </span>
+
+            <span id="wishlistText">
+                {% if first_variant and first_variant.is_wishlisted %}
+                    REMOVE FROM WISHLIST
+                {% else %}
+                    ADD TO WISHLIST
+                {% endif %}
+            </span>
         </button>
     </form>
 
@@ -425,6 +454,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const minusBtn = document.getElementById("minusQty");
 
     const addToCartBtn = document.getElementById("addToCartBtn");
+    const wishlistBtn = document.getElementById("wishlistBtn");
+    const wishlistIcon = document.getElementById("wishlistIcon");
+    const wishlistText = document.getElementById("wishlistText");
 
     let currentStock = {% if first_variant %}{{ first_variant.stock }}{% else %}0{% endif %};
 
@@ -458,6 +490,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const variantId = button.dataset.variantId;
         const price = button.dataset.price;
         const stock = parseInt(button.dataset.stock || 0);
+        const isWishlisted = button.dataset.wishlisted === "true";
         const color = button.dataset.color;
         const size = button.dataset.size;
         const image = button.dataset.image;
@@ -525,6 +558,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 addToCartBtn.type = "button";       // ← prevent accidental submit
                 addToCartBtn.textContent = "OUT OF STOCK";
                 addToCartBtn.className = "py-4 rounded-sm text-sm bg-[#38342b] text-[#d0c5af] orbitron cursor-not-allowed w-full";
+            }
+        }
+
+        if (wishlistBtn && wishlistIcon && wishlistText) {
+            wishlistBtn.disabled = false;
+            wishlistBtn.type = "submit";
+
+            if (isWishlisted) {
+                wishlistBtn.className = "border border-[#f2ca50] bg-[#f2ca50]/10 text-[#f2ca50] orbitron hover:border-red-300 hover:text-red-300 hover:bg-red-500/10 py-4 rounded-sm text-sm flex items-center justify-center gap-2 w-full";
+                wishlistIcon.textContent = "favorite";
+                wishlistIcon.style.fontVariationSettings = "'FILL' 1";
+                wishlistText.textContent = "REMOVE FROM WISHLIST";
+            } else {
+                wishlistBtn.className = "btn-outline py-4 rounded-sm text-sm flex items-center justify-center gap-2 w-full";
+                wishlistIcon.textContent = "favorite_border";
+                wishlistIcon.style.fontVariationSettings = "'FILL' 0";
+                wishlistText.textContent = "ADD TO WISHLIST";
             }
         }
     }
