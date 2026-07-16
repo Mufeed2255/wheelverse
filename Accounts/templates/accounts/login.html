@@ -1,252 +1,709 @@
 {% load socialaccount %}
+
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>WheelVerse | Welcome Back, Collector</title>
+    <meta charset="utf-8">
 
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-<script id="tailwind-config">
-tailwind.config = {
-  darkMode: "class",
-  theme: {
-    extend: {
-      colors: {
-        "on-secondary-container": "#bab8b7",
-        "on-surface": "#eae1d4",
-        "on-background": "#eae1d4",
-        "surface": "#16130b",
-        "primary": "#f2ca50",
-        "primary-container": "#d4af37",
-        "background": "#16130b",
-        "outline-variant": "#4d4635",
-        "on-surface-variant": "#d0c5af",
-        "surface-container-lowest": "#110e07",
-        "surface-container-high": "#2d2a21",
-        "surface-container-highest": "#38342b",
-        "on-primary": "#3c2f00"
-      },
-      fontFamily: {
-        "display-lg": ["Orbitron"],
-        "label-caps": ["Orbitron"],
-        "body-md": ["Poppins"],
-        "headline-md": ["Orbitron"]
-      }
-    }
-  }
-}
-</script>
+    <title>WheelVerse | Welcome Back, Collector</title>
 
-<style>
-.glass-card {
-  background: rgba(10, 10, 10, 0.75);
-  backdrop-filter: blur(24px);
-  border: 1px solid rgba(242, 202, 80, 0.2);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(242, 202, 80, 0.05);
-}
-.metallic-gold-gradient {
-  background: linear-gradient(135deg, #f2ca50 0%, #d4af37 50%, #b8860b 100%);
-}
-.neon-underglow {
-  box-shadow: 0 0 15px rgba(242, 202, 80, 0.4);
-}
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-</style>
+    <link
+        href="https://fonts.googleapis.com"
+        rel="preconnect">
+
+    <link
+        crossorigin
+        href="https://fonts.gstatic.com"
+        rel="preconnect">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+
+            theme: {
+                extend: {
+                    colors: {
+                        "on-secondary-container": "#bab8b7",
+                        "on-surface": "#eae1d4",
+                        "on-background": "#eae1d4",
+                        "surface": "#16130b",
+                        "primary": "#f2ca50",
+                        "primary-container": "#d4af37",
+                        "background": "#16130b",
+                        "outline-variant": "#4d4635",
+                        "on-surface-variant": "#d0c5af",
+                        "surface-container-lowest": "#110e07",
+                        "surface-container-high": "#2d2a21",
+                        "surface-container-highest": "#38342b",
+                        "on-primary": "#3c2f00"
+                    },
+
+                    fontFamily: {
+                        "display-lg": ["Orbitron"],
+                        "label-caps": ["Orbitron"],
+                        "body-md": ["Poppins"],
+                        "headline-md": ["Orbitron"]
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            min-height: 100%;
+        }
+
+        body {
+            background: #16130b;
+        }
+
+        .glass-card {
+            background: rgba(10, 10, 10, 0.78);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+
+            border: 1px solid rgba(242, 202, 80, 0.20);
+
+            box-shadow:
+                0 0 40px rgba(0, 0, 0, 0.60),
+                inset 0 0 20px rgba(242, 202, 80, 0.05);
+        }
+
+        .metallic-gold-gradient {
+            background:
+                linear-gradient(
+                    135deg,
+                    #f2ca50 0%,
+                    #d4af37 50%,
+                    #b8860b 100%
+                );
+        }
+
+        .neon-underglow {
+            box-shadow:
+                0 0 15px rgba(242, 202, 80, 0.40);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings:
+                "FILL" 0,
+                "wght" 400,
+                "GRAD" 0,
+                "opsz" 24;
+        }
+
+        .login-background {
+            background:
+                radial-gradient(
+                    circle at 75% 25%,
+                    rgba(242, 202, 80, 0.10),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 20% 80%,
+                    rgba(212, 175, 55, 0.06),
+                    transparent 30%
+                ),
+                #16130b;
+        }
+
+        .background-image {
+            animation:
+                slowZoom 14s ease-in-out infinite alternate;
+        }
+
+        @keyframes slowZoom {
+            from {
+                transform: scale(1.02);
+            }
+
+            to {
+                transform: scale(1.10);
+            }
+        }
+
+        @media (max-width: 640px) {
+            .glass-card {
+                border-radius: 18px;
+                backdrop-filter: blur(18px);
+                -webkit-backdrop-filter: blur(18px);
+            }
+
+            .background-image {
+                opacity: 0.22;
+            }
+        }
+
+        @media (max-height: 760px) and (min-width: 768px) {
+            .login-wrapper {
+                padding-top: 38px;
+                padding-bottom: 38px;
+            }
+
+            .glass-card {
+                padding-top: 26px;
+                padding-bottom: 26px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .background-image {
+                animation: none;
+            }
+
+            * {
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
 </head>
 
-<body class="bg-surface font-body-md text-on-surface min-h-screen relative overflow-hidden flex items-center justify-center">
+<body
+    class="login-background font-body-md text-on-surface
+           min-h-screen relative overflow-x-hidden">
 
-<div class="fixed inset-0 z-0">
-  <div class="absolute inset-0 bg-gradient-to-br from-black via-surface-container-lowest to-black opacity-90"></div>
-  <img
-    alt="Futuristic Garage"
-    class="absolute inset-0 w-full h-full object-cover opacity-40 mix-blend-overlay blur-[2px]"
-    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYBb3PbrGnZ9TbbeXfL_nrFEssIgPWc_BC7mK6Vm4MKMRAgFKbtOeAuxnbF425Vy7JlvlXweTyn9Mo1UJHzXaYX148dI-mIakKyth-pXXYM_mMglkBR_k7eottFzYtYvnwg6T6b74XGbOVUGmo7IhgrGhtTfxXO9Q6jXKk9VWTERHMHfZ-kDYeVkL9kZuxeyo0_vhoW_sB3umrycoHFTVUWjtk6EvJgfHorp-B8Up6C--9wDIXGl_k4uolJEYOM_20aM_fFOjMkCA"
-  />
-  <div class="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/60"></div>
-</div>
+    <!-- Background -->
+    <div class="fixed inset-0 z-0 overflow-hidden">
 
-<main class="relative z-20 w-full max-w-md px-margin-mobile md:px-0">
-
-<div class="glass-card rounded-xl p-8 md:p-10 flex flex-col items-center">
-
-  <div class="text-center mb-8">
-    <h1 class="font-display-lg text-headline-md text-primary italic tracking-tighter mb-1 uppercase">
-      WheelVerse
-    </h1>
-    <p class="font-label-caps text-[10px] tracking-[0.3em] text-on-surface-variant opacity-80">
-      Enter the Universe of Wheels
-    </p>
-  </div>
-
-  <div class="w-full mb-8">
-    <h2 class="font-headline-md text-2xl text-on-surface mb-2">
-      Welcome Back, Collector
-    </h2>
-    <p class="font-body-md text-sm text-on-surface-variant">
-      Access your premium garage and rare collections.
-    </p>
-  </div>
-
-  {% if messages %}
-    {% for message in messages %}
-      <div class="w-full mb-4 px-4 py-3 rounded-lg text-sm
-        {% if message.tags == 'error' %}
-          bg-red-500/20 text-red-400 border border-red-500/30
-        {% elif message.tags == 'successs' %}
-          bg-green-500/20 text-green-400 border border-green-500/30
-        {% endif %}
-      ">
-        {{ message }}
-      </div>
-    {% endfor %}
-  {% endif %}
-
-  <form method="POST" action="{% url 'login' %}" class="w-full space-y-5">
-
-    {% csrf_token %}
-
-    <!-- Email / Username Field -->
-    <div class="space-y-2">
-      <label class="font-label-caps text-[10px] text-primary/70 block ml-1">
-        Email / Username
-      </label>
-
-      <div class="relative group">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
-          mail
-        </span>
-
-        <input
-          name="email"
-          class="w-full bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg py-4 pl-12 pr-4 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 focus:border-primary focus:shadow-[0_0_10px_rgba(242,202,80,0.2)] transition-all"
-          placeholder="Enter email or username"
-          type="text"
-        />
-      </div>
-    </div>
-
-    <!-- Password Field -->
-    <div class="space-y-2">
-      <label class="font-label-caps text-[10px] text-primary/70 block ml-1">
-        Password
-      </label>
-
-      <div class="relative group">
-        <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant group-focus-within:text-primary transition-colors">
-          lock
-        </span>
-
-        <input
-          id="password"
-          name="password"
-          class="w-full bg-surface-container-lowest/50 border border-outline-variant/30 rounded-lg py-4 pl-12 pr-12 text-on-surface placeholder:text-on-surface-variant/40 focus:ring-0 focus:border-primary focus:shadow-[0_0_10px_rgba(242,202,80,0.2)] transition-all"
-          placeholder="••••••••••••"
-          type="password"
-        />
-
-        <button
-          onclick="togglePassword()"
-          class="absolute right-4 top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface"
-          type="button"
-        >
-          <span id="eyeIcon" class="material-symbols-outlined">visibility</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="flex items-center justify-between py-1">
-      <label class="flex items-center gap-2 cursor-pointer group">
-        <div class="relative flex items-center justify-center">
-          <input class="peer appearance-none w-5 h-5 border border-outline-variant bg-surface-container-lowest/50 rounded focus:ring-0 checked:bg-primary checked:border-primary transition-all" type="checkbox"/>
-          <span class="material-symbols-outlined text-[14px] text-on-primary absolute opacity-0 peer-checked:opacity-100 pointer-events-none">
-            check
-          </span>
+        <div
+            class="absolute inset-0
+                   bg-gradient-to-br
+                   from-black
+                   via-surface-container-lowest
+                   to-black
+                   opacity-90">
         </div>
 
-        <span class="font-body-md text-xs text-on-surface-variant group-hover:text-on-surface">
-          Remember Me
-        </span>
-      </label>
+        <img
+            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYBb3PbrGnZ9TbbeXfL_nrFEssIgPWc_BC7mK6Vm4MKMRAgFKbtOeAuxnbF425Vy7JlvlXweTyn9Mo1UJHzXaYX148dI-mIakKyth-pXXYM_mMglkBR_k7eottFzYtYvnwg6T6b74XGbOVUGmo7IhgrGhtTfxXO9Q6jXKk9VWTERHMHfZ-kDYeVkL9kZuxeyo0_vhoW_sB3umrycoHFTVUWjtk6EvJgfHorp-B8Up6C--9wDIXGl_k4uolJEYOM_20aM_fFOjMkCA"
+            alt="Futuristic WheelVerse Garage"
+            class="background-image absolute inset-0
+                   w-full h-full object-cover
+                   opacity-40 mix-blend-overlay blur-[2px]">
 
-      <a class="font-label-caps text-[10px] text-primary hover:text-primary-fixed transition-colors" href="{% url 'forgot_password' %}">
-        Forgot Password?
-      </a>
+        <div
+            class="absolute inset-0
+                   bg-gradient-to-t
+                   from-black
+                   via-black/20
+                   to-black/70">
+        </div>
+
+        <div
+            class="absolute inset-0
+                   bg-gradient-to-r
+                   from-black/70
+                   via-transparent
+                   to-black/40">
+        </div>
     </div>
 
-    <button
-      class="w-full metallic-gold-gradient py-4 rounded-lg font-label-caps text-on-primary font-bold tracking-widest uppercase hover:opacity-90 active:scale-[0.98] transition-all neon-underglow flex items-center justify-center gap-2 mt-4 relative overflow-hidden group"
-      type="submit"
-    >
-      <span class="relative z-10">Enter WheelVerse</span>
-      <span class="material-symbols-outlined relative z-10">arrow_forward</span>
-      <div class="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 skew-x-12"></div>
-    </button>
+    <!-- Page Wrapper -->
+    <main
+        class="login-wrapper relative z-20
+               min-h-screen w-full
+               flex items-center justify-center
+               px-4 sm:px-6 lg:px-8
+               py-8 sm:py-12">
 
-  </form>
+        <div class="w-full max-w-[460px]">
 
-  <div class="w-full flex items-center gap-4 my-8">
-    <div class="h-[1px] flex-1 bg-gradient-to-r from-transparent to-outline-variant/40"></div>
-    <span class="font-label-caps text-[10px] text-on-surface-variant">OR</span>
-    <div class="h-[1px] flex-1 bg-gradient-to-l from-transparent to-outline-variant/40"></div>
-  </div>
-<div class="w-full flex justify-center mb-8">
+            <!-- Login Card -->
+            <section
+                class="glass-card rounded-2xl
+                       px-5 py-7
+                       sm:px-8 sm:py-9
+                       md:px-10 md:py-10">
 
-  <a
-    href="{% provider_login_url 'google' %}"
-    class="w-full bg-surface-container-high/50 border border-outline-variant/20 py-4 rounded-lg flex items-center justify-center gap-3 hover:bg-surface-container-highest transition-colors active:scale-95 text-center cursor-pointer"
-  >
+                <!-- Brand -->
+                <div class="text-center mb-7 sm:mb-8">
 
-    <img
-      src="https://developers.google.com/identity/images/g-logo.png"
-      alt="Google"
-      class="w-5 h-5"
-    >
+                    <a
+                        href="{% url 'landing_page' %}"
+                        class="inline-block">
 
-    <span class="font-label-caps text-xs tracking-widest text-on-surface">
-      Continue with Google
-    </span>
+                        <h1
+                            class="font-display-lg
+                                   text-3xl sm:text-4xl
+                                   text-primary italic
+                                   tracking-[-0.08em]
+                                   uppercase">
 
-  </a>
+                            WheelVerse
+                        </h1>
+                    </a>
 
-</div>
-</div>
+                    <p
+                        class="font-label-caps
+                               text-[8px] sm:text-[10px]
+                               tracking-[0.20em] sm:tracking-[0.30em]
+                               text-on-surface-variant
+                               opacity-80 mt-2">
 
-  <p class="font-body-md text-sm text-on-surface-variant">
-    Don’t have an account?
-    <a class="text-primary font-semibold hover:underline decoration-primary/30 transition-all ml-1" href="{% url 'signup' %}">
-      Create Account
-    </a>
-  </p>
+                        Enter the Universe of Wheels
+                    </p>
+                </div>
 
-</div>
+                <!-- Heading -->
+                <div class="w-full mb-7 sm:mb-8">
 
-</main>
+                    <h2
+                        class="font-headline-md
+                               text-xl sm:text-2xl
+                               text-on-surface
+                               leading-snug">
 
+                        Welcome Back, Collector
+                    </h2>
 
-<script>
-function togglePassword() {
-    const password = document.getElementById("password");
-    const eyeIcon = document.getElementById("eyeIcon");
+                    <p
+                        class="font-body-md
+                               text-xs sm:text-sm
+                               text-on-surface-variant
+                               mt-2 leading-6">
 
-    if (password.type === "password") {
-        password.type = "text";
-        eyeIcon.innerText = "visibility_off";
-    } else {
-        password.type = "password";
-        eyeIcon.innerText = "visibility";
-    }
-}
+                        Access your premium garage and rare collections.
+                    </p>
+                </div>
 
-</script>
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="space-y-3 mb-5">
 
+                        {% for message in messages %}
+                            <div
+                                class="w-full px-4 py-3 rounded-lg
+                                       text-xs sm:text-sm leading-6
+                                       {% if message.tags == 'error' %}
+                                           bg-red-500/15 text-red-300
+                                           border border-red-500/30
+                                       {% elif message.tags == 'success' %}
+                                           bg-green-500/15 text-green-300
+                                           border border-green-500/30
+                                       {% elif message.tags == 'warning' %}
+                                           bg-yellow-500/15 text-yellow-300
+                                           border border-yellow-500/30
+                                       {% else %}
+                                           bg-primary/10 text-primary
+                                           border border-primary/25
+                                       {% endif %}">
+
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <!-- Login Form -->
+                <form
+                    method="POST"
+                    action="{% url 'login' %}"
+                    class="w-full space-y-5">
+
+                    {% csrf_token %}
+
+                    <!-- Email / Username -->
+                    <div class="space-y-2">
+
+                        <label
+                            for="email"
+                            class="font-label-caps
+                                   text-[9px] sm:text-[10px]
+                                   text-primary/80
+                                   tracking-wider
+                                   block ml-1">
+
+                            Email / Username
+                        </label>
+
+                        <div class="relative group">
+
+                            <span
+                                class="material-symbols-outlined
+                                       absolute left-4 top-1/2
+                                       -translate-y-1/2
+                                       text-on-surface-variant
+                                       group-focus-within:text-primary
+                                       transition-colors
+                                       pointer-events-none">
+
+                                alternate_email
+                            </span>
+
+                            <input
+                                id="email"
+                                name="email"
+                                type="text"
+                                autocomplete="username"
+                                required
+                                value="{{ request.POST.email }}"
+                                placeholder="Enter email or username"
+                                class="w-full
+                                       bg-surface-container-lowest/60
+                                       border border-outline-variant/40
+                                       rounded-lg
+                                       py-3.5 sm:py-4
+                                       pl-12 pr-4
+                                       text-sm text-on-surface
+                                       placeholder:text-on-surface-variant/40
+                                       focus:ring-0
+                                       focus:border-primary
+                                       focus:shadow-[0_0_14px_rgba(242,202,80,0.18)]
+                                       transition-all">
+                        </div>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="space-y-2">
+
+                        <label
+                            for="password"
+                            class="font-label-caps
+                                   text-[9px] sm:text-[10px]
+                                   text-primary/80
+                                   tracking-wider
+                                   block ml-1">
+
+                            Password
+                        </label>
+
+                        <div class="relative group">
+
+                            <span
+                                class="material-symbols-outlined
+                                       absolute left-4 top-1/2
+                                       -translate-y-1/2
+                                       text-on-surface-variant
+                                       group-focus-within:text-primary
+                                       transition-colors
+                                       pointer-events-none">
+
+                                lock
+                            </span>
+
+                            <input
+                                id="password"
+                                name="password"
+                                type="password"
+                                autocomplete="current-password"
+                                required
+                                placeholder="Enter your password"
+                                class="w-full
+                                       bg-surface-container-lowest/60
+                                       border border-outline-variant/40
+                                       rounded-lg
+                                       py-3.5 sm:py-4
+                                       pl-12 pr-12
+                                       text-sm text-on-surface
+                                       placeholder:text-on-surface-variant/40
+                                       focus:ring-0
+                                       focus:border-primary
+                                       focus:shadow-[0_0_14px_rgba(242,202,80,0.18)]
+                                       transition-all">
+
+                            <button
+                                type="button"
+                                id="passwordToggle"
+                                aria-label="Show password"
+                                class="absolute right-3 sm:right-4
+                                       top-1/2 -translate-y-1/2
+                                       w-9 h-9
+                                       flex items-center justify-center
+                                       rounded-full
+                                       text-on-surface-variant
+                                       hover:text-primary
+                                       hover:bg-primary/5
+                                       transition">
+
+                                <span
+                                    id="eyeIcon"
+                                    class="material-symbols-outlined text-xl">
+
+                                    visibility
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Remember / Forgot -->
+                    <div
+                        class="flex flex-col
+                               xs:flex-row
+                               sm:flex-row
+                               gap-3
+                               sm:items-center
+                               sm:justify-between
+                               py-1">
+
+                        <label
+                            class="flex items-center gap-2
+                                   cursor-pointer group
+                                   w-fit">
+
+                            <span
+                                class="relative flex items-center justify-center">
+
+                                <input
+                                    name="remember_me"
+                                    type="checkbox"
+                                    class="peer appearance-none
+                                           w-5 h-5
+                                           border border-outline-variant
+                                           bg-surface-container-lowest/50
+                                           rounded
+                                           focus:ring-0
+                                           checked:bg-primary
+                                           checked:border-primary
+                                           transition-all">
+
+                                <span
+                                    class="material-symbols-outlined
+                                           text-[14px] text-on-primary
+                                           absolute opacity-0
+                                           peer-checked:opacity-100
+                                           pointer-events-none">
+
+                                    check
+                                </span>
+                            </span>
+
+                            <span
+                                class="font-body-md
+                                       text-xs
+                                       text-on-surface-variant
+                                       group-hover:text-on-surface">
+
+                                Remember Me
+                            </span>
+                        </label>
+
+                        <a
+                            href="{% url 'forgot_password' %}"
+                            class="font-label-caps
+                                   text-[9px] sm:text-[10px]
+                                   text-primary
+                                   hover:text-[#ffe088]
+                                   transition-colors
+                                   w-fit">
+
+                            Forgot Password?
+                        </a>
+                    </div>
+
+                    <!-- Submit -->
+                    <button
+                        type="submit"
+                        class="w-full
+                               metallic-gold-gradient
+                               py-3.5 sm:py-4
+                               rounded-lg
+                               font-label-caps
+                               text-on-primary
+                               text-[10px] sm:text-xs
+                               font-bold
+                               tracking-[0.12em] sm:tracking-widest
+                               uppercase
+                               hover:brightness-110
+                               active:scale-[0.98]
+                               transition-all
+                               neon-underglow
+                               flex items-center justify-center
+                               gap-2
+                               relative overflow-hidden
+                               group">
+
+                        <span class="relative z-10">
+                            Enter WheelVerse
+                        </span>
+
+                        <span
+                            class="material-symbols-outlined
+                                   relative z-10
+                                   text-lg">
+
+                            arrow_forward
+                        </span>
+
+                        <span
+                            class="absolute inset-0
+                                   bg-white/20
+                                   translate-x-[-120%]
+                                   group-hover:translate-x-[120%]
+                                   transition-transform
+                                   duration-700
+                                   skew-x-12">
+                        </span>
+                    </button>
+                </form>
+
+                <!-- Divider -->
+                <div class="w-full flex items-center gap-3 sm:gap-4 my-7 sm:my-8">
+
+                    <div
+                        class="h-px flex-1
+                               bg-gradient-to-r
+                               from-transparent
+                               to-outline-variant/40">
+                    </div>
+
+                    <span
+                        class="font-label-caps
+                               text-[9px] sm:text-[10px]
+                               text-on-surface-variant">
+
+                        OR
+                    </span>
+
+                    <div
+                        class="h-px flex-1
+                               bg-gradient-to-l
+                               from-transparent
+                               to-outline-variant/40">
+                    </div>
+                </div>
+
+                <!-- Google Login -->
+                <a
+                    href="{% provider_login_url 'google' %}"
+                    class="w-full
+                           bg-surface-container-high/50
+                           border border-outline-variant/25
+                           py-3.5 sm:py-4
+                           px-4
+                           rounded-lg
+                           flex items-center justify-center
+                           gap-3
+                           hover:bg-surface-container-highest
+                           hover:border-primary/30
+                           transition-colors
+                           active:scale-[0.98]
+                           text-center">
+
+                    <img
+                        src="https://developers.google.com/identity/images/g-logo.png"
+                        alt="Google"
+                        class="w-5 h-5 shrink-0">
+
+                    <span
+                        class="font-label-caps
+                               text-[9px] sm:text-xs
+                               tracking-[0.10em] sm:tracking-widest
+                               text-on-surface">
+
+                        Continue with Google
+                    </span>
+                </a>
+
+                <!-- Signup -->
+                <p
+                    class="font-body-md
+                           text-xs sm:text-sm
+                           text-on-surface-variant
+                           text-center mt-7">
+
+                    Don’t have an account?
+
+                    <a
+                        href="{% url 'signup' %}"
+                        class="text-primary
+                               font-semibold
+                               hover:underline
+                               decoration-primary/30
+                               transition-all
+                               ml-1">
+
+                        Create Account
+                    </a>
+                </p>
+            </section>
+
+            <!-- Bottom Link -->
+            <div class="text-center mt-5">
+
+                <a
+                    href="{% url 'landing_page' %}"
+                    class="inline-flex items-center gap-2
+                           text-[10px] sm:text-xs
+                           text-on-surface-variant
+                           hover:text-primary
+                           transition">
+
+                    <span class="material-symbols-outlined text-base">
+                        arrow_back
+                    </span>
+
+                    Return to WheelVerse
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+                const passwordInput =
+                    document.getElementById("password");
+
+                const toggleButton =
+                    document.getElementById("passwordToggle");
+
+                const eyeIcon =
+                    document.getElementById("eyeIcon");
+
+                if (
+                    passwordInput
+                    && toggleButton
+                    && eyeIcon
+                ) {
+                    toggleButton.addEventListener(
+                        "click",
+                        function () {
+                            const isPassword =
+                                passwordInput.type === "password";
+
+                            passwordInput.type =
+                                isPassword
+                                    ? "text"
+                                    : "password";
+
+                            eyeIcon.textContent =
+                                isPassword
+                                    ? "visibility_off"
+                                    : "visibility";
+
+                            toggleButton.setAttribute(
+                                "aria-label",
+                                isPassword
+                                    ? "Hide password"
+                                    : "Show password"
+                            );
+                        }
+                    )
+                }
+            }
+        );
+    </script>
 </body>
 </html>

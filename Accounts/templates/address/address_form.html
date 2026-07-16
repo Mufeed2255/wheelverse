@@ -1,183 +1,845 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html class="dark" lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>WHEELVERSE | Manage Address</title>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "primary": "#f2ca50",
-                        "background": "#0A0A0A",
-                        "surface": "#16130b",
-                        "surface-container-lowest": "#110e07",
-                        "outline-variant": "#4d4635",
-                        "on-surface": "#eae1d4",
-                        "on-surface-variant": "#d0c5af",
-                        "error": "#ffb4ab"
-                    },
-                    fontFamily: {
-                        orbitron: ["Orbitron"],
-                        poppins: ["Poppins"],
-                        "headline-md": ["Orbitron"],
-                        "label-caps": ["Orbitron"],
-                        "display-lg": ["Orbitron"],
-                        "body-md": ["Poppins"]
-                    }
-                }
-            }
-        }
-    </script>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% if is_edit %}
+            Edit Address
+        {% else %}
+            Add Address
+        {% endif %}
+        | WheelVerse
+    </title>
+
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800&family=Poppins:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined"
+        rel="stylesheet">
+
     <style>
-        .glass-panel {
-            background: rgba(26, 26, 26, 0.7);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(242, 202, 80, 0.15);
+        body {
+            margin: 0;
+            background: #080705;
+            color: #eae1d4;
+            font-family: "Poppins", sans-serif;
         }
-        .input-glow:focus {
-            box-shadow: 0 0 10px rgba(242, 202, 80, 0.2);
-            border-color: #f2ca50;
-            outline: none;
+
+        .orbitron {
+            font-family: "Orbitron", sans-serif;
         }
-        .carbon-texture {
-            background-image: linear-gradient(45deg, #111 25%, transparent 25%), linear-gradient(-45deg, #111 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #111 75%), linear-gradient(-45deg, transparent 75%, #111 75%);
-            background-size: 4px 4px;
-            background-color: #0d0d0d;
+
+        .page-bg {
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 80% 10%,
+                    rgba(242, 202, 80, 0.08),
+                    transparent 34%
+                ),
+                #080705;
         }
-        .neon-underglow-gold {
-            box-shadow: 0 0 15px rgba(242, 202, 80, 0.4);
+
+        .glass-card {
+            background: rgba(20, 17, 12, 0.88);
+            border: 1px solid rgba(242, 202, 80, 0.16);
+            backdrop-filter: blur(18px);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+        }
+
+        .field-wrapper{
+            position:relative;
+            display:flex;
+            align-items:center;
+            width:100%;
+            background:#000000;
+            border:1px solid #3d3d3d;
+            border-radius:12px;
+            transition:.3s ease;
+            overflow:hidden;
+        }
+
+        .field-wrapper:hover{
+            border-color:#f2ca50;
+        }
+
+
+        .field-wrapper:focus-within{
+            border-color:#f2ca50;
+            box-shadow:0 0 0 3px rgba(242,202,80,.15);
+        }
+
+
+        .field-wrapper.field-error{
+            border:2px solid #ef4444 !important;
+            box-shadow:0 0 12px rgba(239,68,68,.25);
+        }
+
+
+        .address-input{
+            width:100%;
+            background:#000000 !important;
+            border:none !important;
+            outline:none !important;
+            color:#ffffff !important;
+            padding:16px 18px;
+            font-size:15px;
+        }
+
+
+        .address-input::placeholder{
+            color:#8b8b8b;
+        }
+
+
+        .field-wrapper select{
+            width:100%;
+            background:#000000 !important;
+            color:#ffffff !important;
+            border:none !important;
+            outline:none !important;
+            padding:16px 18px;
+            box-shadow:none !important;
+        }
+
+        .field-wrapper select option{
+            background:#000000;
+            color:#ffffff;
+        }
+
+        .field-wrapper textarea{
+            width:100%;
+            background:#000000 !important;
+            color:#ffffff !important;
+            border:none !important;
+            outline:none !important;
+            resize:none;
+            box-shadow:none !important;
+            padding:16px 18px;
+        }
+
+
+        .field-error-text{
+            color:#ef4444;
+            font-size:13px;
+            margin-top:6px;
+            min-height:18px;
         }
     </style>
 </head>
-<body class="font-body-md text-body-md bg-background text-on-surface selection:bg-primary selection:text-background">
-        {% include "include/user_topbar.html" %}
-        {% include "include/user_sidebar.html" %}
-        {% include "adminpanel/includes/messages.html" %}
 
-    <main class="pl-72 pt-28 min-h-screen carbon-texture">
-        <div class="max-w-[900px] mx-auto px-10 pb-20">
-            
+<body class="page-bg">
 
-            <div class="flex justify-between items-end mb-10">
-                <div>
-                    <h2 class="font-display-lg text-2xl text-primary mb-2">
-                        {% if address %}EDIT ADDRESS{% else %}ADD NEW ADDRESS{% endif %}
-                    </h2>
-                    <p class="text-on-surface-variant text-sm">Configure terminal properties configuration payload parameters.</p>
-                </div>
-                <a class="text-primary hover:underline font-label-caps text-xs flex items-center gap-2" href="{% url 'address_list' %}">BACK</a>
-            </div>
-            
-            <div class="glass-panel p-10 relative">
-                <form method="POST" class="space-y-12">
-                    {% csrf_token %}
-                    
-                    <section>
-                        <div class="flex items-center gap-4 mb-8">
-                            <span class="material-symbols-outlined text-primary">contact_mail</span>
-                            <h3 class="font-headline-md text-sm text-on-surface uppercase tracking-widest">Contact Information</h3>
-                            <div class="flex-1 h-px bg-primary/20"></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            <div class="space-y-2">
-                                <label class="font-label-caps text-[10px] text-primary block tracking-widest">FULL NAME</label>
-                                <input type="text" name="name" value="{% if address.name %}{{ address.name }}{% else %}{{ posted_data.name }}{% endif %}" required class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all">                            
-                            </div>
-                            <div class="space-y-2">
-                                <label class="font-label-caps text-[10px] text-primary block tracking-widest">PHONE NUMBER</label>
-                                <input name="phone_number" value="{% if address.phone_number %}{{ address.phone_number }}{% else %}{{ posted_data.phone_number }}{% endif %}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="tel" required/>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    <section>
-                        
-                        <div class="flex items-center gap-4 mb-8">
-                            <span class="material-symbols-outlined text-primary">fmd_good</span>
-                            <h3 class="font-headline-md text-sm text-on-surface uppercase tracking-widest">Address Details</h3>
-                            <div class="flex-1 h-px bg-primary/20"></div>
-                        </div>
-                        <div class="space-y-8">
-                            <div class="space-y-3">
-                                <label class="font-label-caps text-[10px] text-primary block tracking-widest">ADDRESS TYPE</label>
-                                <input type="hidden" name="address_type" id="id_address_type" value="{{ address.address_type|default:'HOME' }}">
-                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                    <button onclick="setAddressType('HOME')" id="btn-HOME" class="border border-outline-variant bg-surface-container-lowest text-on-surface-variant py-3 px-4 font-label-caps text-[10px]" type="button">HOME</button>
-                                    <button onclick="setAddressType('GARAGE')" id="btn-GARAGE" class="border border-outline-variant bg-surface-container-lowest text-on-surface-variant py-3 px-4 font-label-caps text-[10px]" type="button">GARAGE</button>
-                                    <button onclick="setAddressType('WORK')" id="btn-WORK" class="border border-outline-variant bg-surface-container-lowest text-on-surface-variant py-3 px-4 font-label-caps text-[10px]" type="button">WORK</button>
-                                    <button onclick="setAddressType('OTHER')" id="btn-OTHER" class="border border-outline-variant bg-surface-container-lowest text-on-surface-variant py-3 px-4 font-label-caps text-[10px]" type="button">OTHER</button>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-6">
-                                <div class="space-y-2">
-                                    <label class="font-label-caps text-[10px] text-primary block tracking-widest">ADDRESS LINE 1</label>
-                                    <input name="address_line_1" value="{{ address.address_line_1|default:'' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
-                                </div>
-                                <div class="space-y-2">
-                                    <label class="font-label-caps text-[10px] text-primary block tracking-widest">ADDRESS LINE 2 (OPTIONAL)</label>
-                                    <input name="address_line_2" value="{{ address.address_line_2|default:'' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text"/>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="space-y-2">
-                                        <label class="font-label-caps text-[10px] text-primary block tracking-widest">CITY</label>
-                                        <input name="city" value="{{ address.city|default:'' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="font-label-caps text-[10px] text-primary block tracking-widest">STATE</label>
-                                        <input name="state" value="{{ address.state|default:'' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
-                                    </div>
-                                </div>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                    <div class="space-y-2">
-                                        <label class="font-label-caps text-[10px] text-primary block tracking-widest">POSTAL PINCODE</label>
-                                        <input type="text" name="pincode" maxlength="6" value="{% if address.pincode %}{{ address.pincode }}{% else %}{{ posted_data.pincode }}{% endif %}" required class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all">
-                                    </div>
-                                    <div class="space-y-2">
-                                        <label class="font-label-caps text-[10px] text-primary block tracking-widest">COUNTRY</label>
-                                        <input name="country" value="{{ address.country|default:'INDIA' }}" class="w-full bg-surface-container-lowest border border-outline-variant px-3 py-2 text-on-surface focus:border-primary focus:ring-0 input-glow transition-all" type="text" required/>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="pt-4 flex items-center gap-3">
-                                <input type="checkbox" name="is_default" id="id_is_default" {% if address.is_default %}checked{% endif %} class="w-5 h-5 rounded bg-surface-container-lowest border-outline-variant text-primary focus:ring-0 cursor-pointer">
-                                <label for="id_is_default" class="font-label-caps text-[11px] text-on-surface-variant cursor-pointer select-none">Set as Default Address</label>
-                            </div>
-                        </div>
-                    </section>
-                    
-                    <div class="pt-10 border-t border-primary/10 flex justify-end gap-6 items-center">
-                        <a href="{% url 'address_list' %}" class="px-10 py-4 font-label-caps text-xs text-on-surface-variant hover:text-primary">CANCEL</a>
-                        <button class="px-12 py-4 bg-primary text-background font-label-caps text-sm font-bold tracking-widest neon-underglow-gold" type="submit">SAVE ADDRESS</button>
-                    </div>
-                </form>
-            </div>
+{% include "include/user_topbar.html" %}
+{% include "adminpanel/includes/messages.html" %}
+
+<main class="max-w-5xl mx-auto px-5 md:px-10 pt-36 pb-20">
+
+    <section class="text-center mb-12">
+
+        <p class="orbitron text-[#f2ca50] text-[10px] tracking-[0.3em]">
+            DELIVERY PROFILE
+        </p>
+
+        <h1 class="orbitron text-4xl md:text-6xl font-bold mt-4 uppercase">
+            {% if is_edit %}
+                Edit Address
+            {% else %}
+                Add Address
+            {% endif %}
+        </h1>
+
+        <p class="text-[#d0c5af] mt-5">
+            Enter a complete and valid Indian delivery address.
+        </p>
+    </section>
+
+    <section class="glass-card rounded-xl p-6 md:p-10">
+
+        <div
+            id="generalAddressError"
+            class="hidden mb-6 px-4 py-3 rounded-lg
+                   bg-red-500/15 text-red-300
+                   border border-red-500/30 text-sm">
         </div>
-    </main>
 
-    <script>
-        function setAddressType(type) {
-            document.getElementById('id_address_type').value = type;
-            ['HOME', 'GARAGE', 'WORK', 'OTHER'].forEach(t => {
-                const btn = document.getElementById('btn-' + t);
-                if (t === type) {
-                    btn.className = "border-2 border-primary bg-primary/10 text-primary py-3 px-4 font-label-caps text-[10px] flex items-center justify-center gap-2";
-                } else {
-                    btn.className = "border border-outline-variant bg-surface-container-lowest text-on-surface-variant py-3 px-4 font-label-caps text-[10px] flex items-center justify-center gap-2";
+        <form
+            method="POST"
+            id="addressForm"
+            action="
+                {% if is_edit %}
+                    {% url 'edit_address' address.id %}
+                {% else %}
+                    {% url 'add_address' %}
+                {% endif %}
+            "
+            class="space-y-7"
+            novalidate>
+
+            {% csrf_token %}
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- Name -->
+                <div>
+                    <label
+                        for="name"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        FULL NAME
+                    </label>
+
+                    <div class="field-wrapper relative rounded-lg mt-3">
+
+                        <span
+                            class="material-symbols-outlined
+                                   absolute left-4 top-1/2
+                                   -translate-y-1/2
+                                   text-[#99907c]">
+
+                            person
+                        </span>
+
+                        <input
+                            id="name"
+                            name="name"
+                            type="text"
+                            maxlength="60"
+                            value="{% if posted_data %}{{ posted_data.name }}{% elif address %}{{ address.name }}{% endif %}"
+                            class="address-input py-4 pl-12 pr-4 rounded-lg"
+                            placeholder="Enter full name">
+                    </div>
+
+                    <p
+                        id="nameError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label
+                        for="phone_number"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        PHONE NUMBER
+                    </label>
+
+                    <div class="field-wrapper relative rounded-lg mt-3">
+
+                        <span
+                            class="material-symbols-outlined
+                                   absolute left-4 top-1/2
+                                   -translate-y-1/2
+                                   text-[#99907c]">
+
+                            call
+                        </span>
+
+                        <input
+                            id="phone_number"
+                            name="phone_number"
+                            type="tel"
+                            maxlength="15"
+                            value="{% if posted_data %}{{ posted_data.phone_number }}{% elif address %}{{ address.phone_number }}{% endif %}"
+                            class="address-input py-4 pl-12 pr-4 rounded-lg"
+                            placeholder="9876543210">
+                    </div>
+
+                    <p
+                        id="phone_numberError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+
+                <!-- Address type -->
+                <div>
+                    <label
+                        for="address_type"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        ADDRESS TYPE
+                    </label>
+
+                    <div class="field-wrapper rounded-lg mt-3">
+
+                        <select
+                            id="address_type"
+                            name="address_type"
+                            class="address-input py-4 px-4 rounded-lg">
+
+                            {% with selected_type=posted_data.address_type|default:address.address_type %}
+
+                                <option
+                                    value="HOME"
+                                    {% if selected_type == "HOME" %}selected{% endif %}>
+                                    Home
+                                </option>
+
+                                <option
+                                    value="GARAGE"
+                                    {% if selected_type == "GARAGE" %}selected{% endif %}>
+                                    Garage
+                                </option>
+
+                                <option
+                                    value="WORK"
+                                    {% if selected_type == "WORK" %}selected{% endif %}>
+                                    Work
+                                </option>
+
+                                <option
+                                    value="OTHER"
+                                    {% if selected_type == "OTHER" %}selected{% endif %}>
+                                    Other
+                                </option>
+
+                            {% endwith %}
+                        </select>
+                    </div>
+
+                    <p
+                        id="address_typeError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+
+                <!-- Country -->
+                <div>
+                    <label
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        COUNTRY
+                    </label>
+
+                    <div
+                        class="field-wrapper rounded-lg mt-3
+                               py-4 px-4 text-[#d0c5af] bg-black">
+
+                        INDIA
+                    </div>
+
+                    <input
+                        type="hidden"
+                        name="country"
+                        value="INDIA">
+                </div>
+            </div>
+
+            <!-- Address line 1 -->
+            <div>
+                <label
+                    for="address_line_1"
+                    class="orbitron text-[#f2ca50]
+                           text-[10px] tracking-widest">
+
+                    ADDRESS LINE 1
+                </label>
+
+                <div class="field-wrapper relative rounded-lg mt-3">
+
+                    <span
+                        class="material-symbols-outlined
+                               absolute left-4 top-4
+                               text-[#99907c]">
+
+                        home
+                    </span>
+
+                    <textarea
+                        id="address_line_1"
+                        name="address_line_1"
+                        rows="3"
+                        maxlength="150"
+                        class="address-input py-4 pl-12 pr-4 rounded-lg resize-none"
+                        placeholder="House name, building, street">{% if posted_data %}{{ posted_data.address_line_1 }}{% elif address %}{{ address.address_line_1 }}{% endif %}</textarea>
+                </div>
+
+                <p
+                    id="address_line_1Error"
+                    class="text-red-400 text-sm mt-2">
+                </p>
+            </div>
+
+            <!-- Address line 2 -->
+            <div>
+                <label
+                    for="address_line_2"
+                    class="orbitron text-[#f2ca50]
+                           text-[10px] tracking-widest">
+
+                    ADDRESS LINE 2
+                    <span class="text-[#99907c]">
+                        (OPTIONAL)
+                    </span>
+                </label>
+
+                <div class="field-wrapper relative rounded-lg mt-3">
+
+                    <span
+                        class="material-symbols-outlined
+                               absolute left-4 top-4
+                               text-[#99907c]">
+
+                        location_on
+                    </span>
+
+                    <textarea
+                        id="address_line_2"
+                        name="address_line_2"
+                        rows="2"
+                        maxlength="150"
+                        class="address-input py-4 pl-12 pr-4 rounded-lg resize-none"
+                        placeholder="Landmark, area or additional details">{% if posted_data %}{{ posted_data.address_line_2 }}{% elif address %}{{ address.address_line_2|default:'' }}{% endif %}</textarea>
+                </div>
+
+                <p
+                    id="address_line_2Error"
+                    class="text-red-400 text-sm mt-2">
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+                <!-- City -->
+                <div>
+                    <label
+                        for="city"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        CITY
+                    </label>
+
+                    <div class="field-wrapper rounded-lg mt-3">
+
+                        <input
+                            id="city"
+                            name="city"
+                            type="text"
+                            maxlength="50"
+                            value="{% if posted_data %}{{ posted_data.city }}{% elif address %}{{ address.city }}{% endif %}"
+                            class="address-input py-4 px-4 rounded-lg"
+                            placeholder="Calicut">
+                    </div>
+
+                    <p
+                        id="cityError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+
+                <!-- State -->
+                <div>
+                    <label
+                        for="state"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        STATE
+                    </label>
+
+                    <div class="field-wrapper rounded-lg mt-3">
+
+                        <input
+                            id="state"
+                            name="state"
+                            type="text"
+                            maxlength="50"
+                            value="{% if posted_data %}{{ posted_data.state }}{% elif address %}{{ address.state }}{% endif %}"
+                            class="address-input py-4 px-4 rounded-lg"
+                            placeholder="Kerala">
+                    </div>
+
+                    <p
+                        id="stateError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+
+                <!-- Pincode -->
+                <div>
+                    <label
+                        for="pincode"
+                        class="orbitron text-[#f2ca50]
+                               text-[10px] tracking-widest">
+
+                        PINCODE
+                    </label>
+
+                    <div class="field-wrapper rounded-lg mt-3">
+
+                        <input
+                            id="pincode"
+                            name="pincode"
+                            type="text"
+                            maxlength="6"
+                            inputmode="numeric"
+                            value="{% if posted_data %}{{ posted_data.pincode }}{% elif address %}{{ address.pincode }}{% endif %}"
+                            class="address-input py-4 px-4 rounded-lg"
+                            placeholder="673001">
+                    </div>
+
+                    <p
+                        id="pincodeError"
+                        class="text-red-400 text-sm mt-2">
+                    </p>
+                </div>
+            </div>
+
+            <!-- Default -->
+            <label
+                class="flex items-center gap-3
+                       cursor-pointer w-fit">
+
+                <input
+                    id="is_default"
+                    name="is_default"
+                    type="checkbox"
+                    class="w-5 h-5 rounded
+                           border-[#4d4635]
+                           bg-black
+                           text-[#f2ca50]
+                           focus:ring-[#f2ca50]"
+                    {% if posted_data %}
+                        {% if posted_data.is_default %}checked{% endif %}
+                    {% elif address.is_default %}
+                        checked
+                    {% endif %}>
+
+                <span class="text-sm text-[#d0c5af]">
+                    Set as my default delivery address
+                </span>
+            </label>
+
+            <div
+                class="pt-7 border-t border-[#4d4635]/40
+                       flex flex-col sm:flex-row gap-4">
+
+                <button
+                    id="addressSubmitButton"
+                    type="submit"
+                    class="gold-button flex-1 py-4 rounded-lg
+                           orbitron text-sm font-bold tracking-widest
+                           disabled:opacity-50
+                           disabled:cursor-not-allowed">
+
+                    <span
+                        id="addressButtonContent"
+                        class="flex items-center justify-center gap-2">
+
+                        <span>
+                            {% if is_edit %}
+                                UPDATE ADDRESS
+                            {% else %}
+                                SAVE ADDRESS
+                            {% endif %}
+                        </span>
+
+                        <span class="material-symbols-outlined">
+                            arrow_forward
+                        </span>
+                    </span>
+                </button>
+
+                <a
+                    href="{% url 'address_list' %}"
+                    class="flex-1 py-4 rounded-lg
+                           border border-[#4d4635]
+                           text-[#d0c5af]
+                           orbitron text-xs tracking-widest
+                           text-center
+                           hover:border-[#f2ca50]
+                           hover:text-[#f2ca50]
+                           transition">
+
+                    CANCEL
+                </a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<script>
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+        const form =
+            document.getElementById("addressForm");
+
+        const submitButton =
+            document.getElementById(
+                "addressSubmitButton"
+            );
+
+        const buttonContent =
+            document.getElementById(
+                "addressButtonContent"
+            );
+
+        const generalError =
+            document.getElementById(
+                "generalAddressError"
+            );
+
+        const normalButtonText =
+            {% if is_edit %}
+                "UPDATE ADDRESS"
+            {% else %}
+                "SAVE ADDRESS"
+            {% endif %};
+
+        const fields = {
+            name: document.getElementById("name"),
+
+            phone_number:
+                document.getElementById(
+                    "phone_number"
+                ),
+
+            address_type:
+                document.getElementById(
+                    "address_type"
+                ),
+
+            address_line_1:
+                document.getElementById(
+                    "address_line_1"
+                ),
+
+            address_line_2:
+                document.getElementById(
+                    "address_line_2"
+                ),
+
+            city: document.getElementById("city"),
+
+            state: document.getElementById("state"),
+
+            pincode:
+                document.getElementById("pincode")
+        };
+
+        function getErrorElement(fieldName) {
+            return document.getElementById(
+                `${fieldName}Error`
+            );
+        }
+
+        function clearFieldError(fieldName) {
+            const input = fields[fieldName];
+            const error = getErrorElement(fieldName);
+
+            if (error) {
+                error.textContent = "";
+            }
+
+            if (input) {
+                const wrapper = input.closest(
+                    ".field-wrapper"
+                );
+
+                if (wrapper) {
+                    wrapper.classList.remove(
+                        "field-error"
+                    );
                 }
+            }
+        }
+
+        function clearAllErrors() {
+            Object.keys(fields).forEach(
+                clearFieldError
+            );
+
+            generalError.textContent = "";
+            generalError.classList.add("hidden");
+        }
+
+        function showGeneralError(message) {
+            generalError.textContent = message;
+            generalError.classList.remove("hidden");
+
+            generalError.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
             });
         }
-        window.addEventListener('DOMContentLoaded', () => {
-            const currentType = document.getElementById('id_address_type').value;
-            if (currentType) setAddressType(currentType);
-        });
-    </script>
+
+        function showFieldError(
+            fieldName,
+            message
+        ) {
+            const input = fields[fieldName];
+            const error = getErrorElement(fieldName);
+
+            if (!input || !error) {
+                showGeneralError(message);
+                return;
+            }
+
+            error.textContent = message;
+
+            const wrapper = input.closest(
+                ".field-wrapper"
+            );
+
+            if (wrapper) {
+                wrapper.classList.add(
+                    "field-error"
+                );
+            }
+
+            input.focus();
+
+            input.scrollIntoView({
+                behavior: "smooth",
+                block: "center"
+            });
+        }
+
+        function setLoading(isLoading) {
+            submitButton.disabled = isLoading;
+
+            if (isLoading) {
+                buttonContent.innerHTML = `
+                    <span
+                        class="w-5 h-5 rounded-full
+                               border-2 border-[#241a00]/30
+                               border-t-[#241a00]
+                               animate-spin">
+                    </span>
+
+                    <span>
+                        SAVING...
+                    </span>
+                `;
+            } else {
+                buttonContent.innerHTML = `
+                    <span>
+                        ${normalButtonText}
+                    </span>
+
+                    <span
+                        class="material-symbols-outlined">
+                        arrow_forward
+                    </span>
+                `;
+            }
+        }
+
+        Object.entries(fields).forEach(
+            function ([fieldName, input]) {
+                if (!input) {
+                    return;
+                }
+
+                const eventName =
+                    input.tagName === "SELECT"
+                        ? "change"
+                        : "input";
+
+                input.addEventListener(
+                    eventName,
+                    function () {
+                        clearFieldError(
+                            fieldName
+                        );
+                    }
+                );
+            }
+        );
+
+        form.addEventListener(
+            "submit",
+            async function (event) {
+                event.preventDefault();
+
+                clearAllErrors();
+                setLoading(true);
+
+                try {
+                    const response = await fetch(
+                        form.action,
+                        {
+                            method: "POST",
+                            body: new FormData(form),
+
+                            headers: {
+                                "X-Requested-With":
+                                    "XMLHttpRequest"
+                            },
+
+                            credentials: "same-origin"
+                        }
+                    );
+
+                    let data;
+
+                    try {
+                        data = await response.json();
+                    } catch (error) {
+                        throw new Error(
+                            "Invalid server response."
+                        );
+                    }
+
+                    if (
+                        !response.ok
+                        || !data.success
+                    ) {
+                        if (data.field) {
+                            showFieldError(
+                                data.field,
+                                data.message
+                            );
+                        } else {
+                            showGeneralError(
+                                data.message
+                                || "Unable to save address."
+                            );
+                        }
+
+                        return;
+                    }
+
+                    window.location.href =
+                        data.redirect_url;
+
+                } catch (error) {
+                    console.error(
+                        "ADDRESS AJAX ERROR:",
+                        error
+                    );
+
+                    showGeneralError(
+                        "Unable to save the address. Check your connection and try again."
+                    );
+
+                } finally {
+                    setLoading(false);
+                }
+            }
+        );
+    }
+);
+</script>
+
 </body>
 </html>
