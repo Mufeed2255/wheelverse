@@ -21,19 +21,12 @@ from .models import CouponUsage
 from django.db import models
 from django.core.paginator import Paginator
 from django.db.models import Q
-from decimal import Decimal
 
-
+from decimal import Decimal, ROUND_HALF_UP
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
-from reportlab.platypus import (
-    SimpleDocTemplate,
-    Table,
-    TableStyle,
-    Paragraph,
-    Spacer
-)
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
 import razorpay
@@ -46,6 +39,8 @@ from adminpanel.services.offers import (
 )
 
 
+ 
+from .models import Order, ReturnRequest
 
 def validate_checkout_address(data):
     name = data.get("name", "").strip()
@@ -342,7 +337,6 @@ def checkout(request):
             )
 
             if usage_available:
-                # Coupon is applied after offer discount
                 coupon_discount = (
                     calculate_coupon_discount(
                         applied_coupon,
@@ -555,8 +549,7 @@ def place_order(request):
     selected_address_id = request.POST.get("selected_address", "").strip()
     payment_method = request.POST.get("payment_method", "COD").strip().upper()
 
-    # UPI is intentionally removed as a separate option. Razorpay itself
-    # already supports UPI, cards, netbanking and other enabled methods.
+
     if payment_method not in {"COD", "WALLET", "RAZORPAY"}:
         messages.error(request, "Invalid payment method.")
         return redirect("checkout")
@@ -735,8 +728,6 @@ def place_order(request):
             item_total=line["final_line_total"],
         )
 
-    # Do not increment coupon usage and do not clear the coupon session here.
-    # Both happen only after the order is successfully confirmed.
     return redirect("payment", order_id=order.id)
 
 @login_required
@@ -859,7 +850,6 @@ def confirm_order_after_payment(order):
 
         locked_variants[order_item.id] = variant
 
-    # Validate and lock coupon before changing stock.
     coupon = None
     if order.coupon_code:
         today = timezone.localdate()
@@ -901,7 +891,6 @@ def confirm_order_after_payment(order):
     order.status = "CONFIRMED"
     order.save(update_fields=["status", "updated_at"])
 
-    # Clear only variants included in this order, not unrelated cart rows.
     ordered_variant_ids = [
         item.variant_id for item in order_items if item.variant_id
     ]
@@ -1246,7 +1235,6 @@ def refund_to_wallet_for_cancel(order, amount, reference_suffix):
     if amount <= 0:
         return False
 
-    # COD no refund because user did not pay yet
     if order.payment_method == "COD":
         return False
 
@@ -1367,21 +1355,7 @@ def cancel_order(request, order_id):
 @login_required
 @transaction.atomic
 def cancel_order_item(request, item_id):
-    """
-    Cancel a selected quantity from one order item.
-
-    Business rules:
-    - Every eligible order item may be cancelled independently.
-    - The same item cannot be cancelled more than once.
-    - The customer may choose a quantity from 1 up to item.quantity.
-    - Stock is restored only for the selected quantity.
-    - Prepaid refund is calculated from the reduction in the order total.
-    - Original item quantity and item_total remain unchanged for history.
-    """
-
-    # Lock only the OrderItem row. Do not join nullable variant with
-    # select_for_update(), because PostgreSQL rejects FOR UPDATE on the
-    # nullable side of an outer join.
+    
     locked_item = get_object_or_404(
         OrderItem.objects.select_for_update(),
         id=item_id,
@@ -1420,8 +1394,7 @@ def cancel_order_item(request, item_id):
         )
         return redirect("order_detail", order_id=order.id)
 
-    # Protect this item from a second cancellation request.
-    # Other active items in the same order can still be cancelled separately.
+
     if order_item.cancelled_quantity > 0 or order_item.is_cancelled:
         messages.info(
             request,
@@ -1510,6 +1483,8 @@ def cancel_order_item(request, item_id):
         f"{reason}\n\nAdditional comments: {comments}"
         if comments
         else reason
+        
+        
     )
 
     old_total_amount = order.total_amount
@@ -1577,9 +1552,6 @@ def cancel_order_item(request, item_id):
         Decimal("0.00"),
     )
 
-    # Reduce coupon discount proportionally to the remaining payable
-    # product value. This prevents over-refunding or retaining the full
-    # coupon discount after a partial cancellation.
     if (
         order.coupon_discount > 0
         and old_subtotal_after_offer > 0
@@ -2025,17 +1997,84 @@ def return_order(request, order_id):
         "items": available_items,
         "item": available_items[0],
     })
+
     
+def _q(value):
+    """Quantize a Decimal to 2 places, safely handling None."""
+    if value is None:
+        value = Decimal("0.00")
+    return Decimal(value).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
+ 
+ 
+def _refunded_qty_and_amount(order_item):
+    """
+    Sum up quantity + amount that has actually been refunded for this
+    item (status == REFUNDED). PICKED_UP / APPROVED are "in progress"
+    and should NOT reduce the invoice yet — only a completed refund
+    changes the money the customer owes.
+    """
+    refunded = order_item.order_return_requests.filter(status="REFUNDED")
+    refunded_qty = sum(r.return_quantity for r in refunded)
+    refunded_amount = sum((r.refund_amount or Decimal("0.00")) for r in refunded)
+    return refunded_qty, _q(refunded_amount)
+ 
+ 
+def _pending_return_qty(order_item):
+    """Quantity that is requested/approved/picked-up but not yet refunded."""
+    pending = order_item.order_return_requests.filter(
+        status__in=["REQUESTED", "APPROVED", "PICKED_UP"]
+    )
+    return sum(r.return_quantity for r in pending)
+ 
+ 
+def _item_line_status(order_item, refunded_qty, pending_qty):
+    if order_item.is_cancelled and order_item.cancelled_quantity >= order_item.quantity:
+        return "Cancelled"
+    if refunded_qty >= order_item.quantity:
+        return "Returned & Refunded"
+    if pending_qty > 0:
+        return "Return In Progress"
+    if order_item.cancelled_quantity > 0:
+        return "Partially Cancelled"
+    if refunded_qty > 0:
+        return "Partially Returned"
+    return "Active"
+ 
+ 
+TWO_PLACES = Decimal("0.01")
+ 
+ 
+def _q(value):
+    if value is None:
+        value = Decimal("0.00")
+    return Decimal(value).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
+ 
+ 
+def _refunded_qty_and_amount(order_item):
+
+    refunded = order_item.order_return_requests.filter(status="REFUNDED")
+    refunded_qty = sum(r.return_quantity for r in refunded)
+    refunded_amount = sum((r.refund_amount or Decimal("0.00")) for r in refunded)
+    return refunded_qty, _q(refunded_amount)
+ 
+ 
+def _pending_return_qty(order_item):
+    """Quantity that is requested/approved/picked-up but not yet refunded."""
+    pending = order_item.order_return_requests.filter(
+        status__in=["REQUESTED", "APPROVED", "PICKED_UP"]
+    )
+    return sum(r.return_quantity for r in pending)
+ 
 @login_required
 def download_invoice(request, order_id):
     order = get_object_or_404(
         Order.objects
         .select_related("shipping_address")
-        .prefetch_related("items"),
+        .prefetch_related("items", "items__order_return_requests"),
         id=order_id,
         user=request.user,
     )
-
+ 
     # Do not generate an invoice for an unpaid draft order.
     if order.status == "PAYMENT_PENDING":
         messages.error(
@@ -2043,14 +2082,14 @@ def download_invoice(request, order_id):
             "Invoice is available only after the order is confirmed.",
         )
         return redirect("payment", order_id=order.id)
-
+ 
     address = getattr(order, "shipping_address", None)
-
+ 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = (
         f'attachment; filename="invoice_{order.order_id}.pdf"'
     )
-
+ 
     doc = SimpleDocTemplate(
         response,
         pagesize=A4,
@@ -2059,9 +2098,9 @@ def download_invoice(request, order_id):
         topMargin=18 * mm,
         bottomMargin=18 * mm,
     )
-
+ 
     styles = getSampleStyleSheet()
-
+ 
     title_style = ParagraphStyle(
         "InvoiceTitle",
         parent=styles["Title"],
@@ -2069,7 +2108,7 @@ def download_invoice(request, order_id):
         textColor=colors.HexColor("#d4af37"),
         spaceAfter=14,
     )
-
+ 
     heading_style = ParagraphStyle(
         "Heading",
         parent=styles["Heading2"],
@@ -2077,20 +2116,31 @@ def download_invoice(request, order_id):
         textColor=colors.HexColor("#111111"),
         spaceAfter=8,
     )
-
+ 
     normal_style = ParagraphStyle(
         "NormalCustom",
         parent=styles["Normal"],
         fontSize=10,
         leading=14,
     )
-
+ 
+    small_muted_style = ParagraphStyle(
+        "SmallMuted",
+        parent=styles["Normal"],
+        fontSize=8,
+        leading=11,
+        textColor=colors.HexColor("#777777"),
+    )
+ 
     story = []
-
+ 
     story.append(Paragraph("WHEELVERSE INVOICE", title_style))
     story.append(Paragraph("Enter the Universe of Wheels", normal_style))
     story.append(Spacer(1, 12))
-
+ 
+    is_fully_cancelled = order.status == "CANCELLED"
+    is_fully_returned = order.status == "RETURNED"
+ 
     invoice_info = [
         ["Invoice No", f"INV-{order.order_id}"],
         ["Order ID", order.order_id],
@@ -2098,7 +2148,7 @@ def download_invoice(request, order_id):
         ["Payment Method", order.get_payment_method_display()],
         ["Order Status", order.get_status_display()],
     ]
-
+ 
     invoice_table = Table(
         invoice_info,
         colWidths=[45 * mm, 110 * mm],
@@ -2111,12 +2161,27 @@ def download_invoice(request, order_id):
         ("FONTSIZE", (0, 0), (-1, -1), 10),
         ("PADDING", (0, 0), (-1, -1), 8),
     ]))
-
+ 
     story.append(invoice_table)
+ 
+    if is_fully_cancelled:
+        story.append(Spacer(1, 8))
+        story.append(Paragraph(
+            "<b>This order was cancelled in full.</b> "
+            f"Reason: {order.cancel_reason or 'Not specified'}",
+            normal_style,
+        ))
+    elif is_fully_returned:
+        story.append(Spacer(1, 8))
+        story.append(Paragraph(
+            "<b>This order was returned in full.</b> "
+            f"Reason: {order.return_reason or 'Not specified'}",
+            normal_style,
+        ))
+ 
     story.append(Spacer(1, 16))
-
     story.append(Paragraph("Billing / Delivery Address", heading_style))
-
+ 
     if address:
         address_text = (
             f"<b>{address.full_name}</b><br/>"
@@ -2127,41 +2192,59 @@ def download_invoice(request, order_id):
         )
     else:
         address_text = "Address not available."
-
+ 
     story.append(Paragraph(address_text, normal_style))
     story.append(Spacer(1, 16))
-
+ 
     story.append(Paragraph("Order Items", heading_style))
-
+ 
     item_data = [
-        ["Product", "Variant", "Qty", "Unit Price", "Total"]
+        ["Product", "Variant", "Qty", "Unit Price", "Total", "Status"]
     ]
-
+ 
+    running_active_subtotal = Decimal("0.00")
+    running_refunded_amount = Decimal("0.00")
+ 
     for item in order.items.all():
         variant_parts = []
-
         if item.variant_color:
             variant_parts.append(item.variant_color)
-
         if item.variant_size:
             variant_parts.append(item.variant_size)
-
         variant_text = " / ".join(variant_parts) or "-"
-
+ 
+        refunded_qty, refunded_amount = _refunded_qty_and_amount(item)
+        pending_qty = _pending_return_qty(item)
+        line_status = _item_line_status(item, refunded_qty, pending_qty)
+ 
+        # Quantity still counted as "kept" by the customer right now.
+        effective_qty = max(item.quantity - item.cancelled_quantity - refunded_qty, 0)
+ 
+        unit_price = item.price
+        effective_total = _q(unit_price * effective_qty)
+ 
+        running_active_subtotal += effective_total
+        running_refunded_amount += refunded_amount
+ 
+        qty_display = str(item.quantity)
+        if item.cancelled_quantity or refunded_qty:
+            qty_display = f"{effective_qty} / {item.quantity}"
+ 
         item_data.append([
             Paragraph(str(item.product_name), normal_style),
             Paragraph(variant_text, normal_style),
-            str(item.quantity),
-            f"Rs. {item.price:.2f}",
-            f"Rs. {item.item_total:.2f}",
+            qty_display,
+            f"Rs. {unit_price:.2f}",
+            f"Rs. {effective_total:.2f}",
+            Paragraph(line_status, small_muted_style),
         ])
-
+ 
     item_table = Table(
         item_data,
-        colWidths=[65 * mm, 35 * mm, 18 * mm, 28 * mm, 30 * mm],
+        colWidths=[50 * mm, 28 * mm, 18 * mm, 24 * mm, 26 * mm, 30 * mm],
         repeatRows=1,
     )
-
+ 
     item_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#111111")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#f2ca50")),
@@ -2173,24 +2256,47 @@ def download_invoice(request, order_id):
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("PADDING", (0, 0), (-1, -1), 7),
     ]))
-
+ 
     story.append(item_table)
     story.append(Spacer(1, 16))
+ 
+    original_subtotal = order.subtotal or Decimal("0.00")
+ 
+    if original_subtotal > 0:
+        active_ratio = running_active_subtotal / original_subtotal
+    else:
+        active_ratio = Decimal("0.00")
+ 
+    adjusted_offer_discount = _q(order.offer_discount * active_ratio)
+    adjusted_coupon_discount = _q(order.coupon_discount * active_ratio)
+    adjusted_total_discount = _q(order.discount_amount * active_ratio)
+ 
+    subtotal_after_offer = _q(running_active_subtotal - adjusted_offer_discount)
+ 
 
-    subtotal_after_offer = (
-        order.subtotal - order.offer_discount
+    if running_active_subtotal <= 0:
+        shipping_charge = Decimal("0.00")
+    else:
+        shipping_charge = order.shipping_fee or Decimal("0.00")
+ 
+    final_amount = _q(
+        subtotal_after_offer - adjusted_coupon_discount + shipping_charge
     )
 
+    adjusted_total_discount = _q(adjusted_offer_discount + adjusted_coupon_discount)
+ 
     summary_data = [
-        ["Original Subtotal", f"Rs. {order.subtotal:.2f}"],
-        ["Offer Discount", f"- Rs. {order.offer_discount:.2f}"],
+        ["Original Subtotal", f"Rs. {original_subtotal:.2f}"],
+        ["Active Subtotal (excl. cancelled/returned)", f"Rs. {running_active_subtotal:.2f}"],
+        ["Offer Discount (adjusted)", f"- Rs. {adjusted_offer_discount:.2f}"],
         ["Subtotal After Offer", f"Rs. {subtotal_after_offer:.2f}"],
-        ["Coupon Discount", f"- Rs. {order.coupon_discount:.2f}"],
-        ["Total Discount", f"- Rs. {order.discount_amount:.2f}"],
-        ["Shipping Charge", f"Rs. {order.shipping_fee:.2f}"],
-        ["Total Amount", f"Rs. {order.total_amount:.2f}"],
+        ["Coupon Discount (adjusted)", f"- Rs. {adjusted_coupon_discount:.2f}"],
+        ["Total Discount", f"- Rs. {adjusted_total_discount:.2f}"],
+        ["Shipping Charge", f"Rs. {shipping_charge:.2f}"],
+        ["Refunded Amount", f"- Rs. {_q(running_refunded_amount):.2f}"],
+        ["Payable / Final Amount", f"Rs. {final_amount:.2f}"],
     ]
-
+ 
     summary_table = Table(
         summary_data,
         colWidths=[120 * mm, 55 * mm],
@@ -2203,10 +2309,18 @@ def download_invoice(request, order_id):
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
         ("PADDING", (0, 0), (-1, -1), 8),
     ]))
-
+ 
     story.append(summary_table)
-    story.append(Spacer(1, 20))
-
+    story.append(Spacer(1, 12))
+ 
+    if running_refunded_amount > 0:
+        story.append(Paragraph(
+            f"Rs. {_q(running_refunded_amount):.2f} has been refunded against this order.",
+            small_muted_style,
+        ))
+        story.append(Spacer(1, 8))
+ 
+    story.append(Spacer(1, 12))
     story.append(Paragraph(
         (
             "Thank you for shopping with WheelVerse. "
@@ -2214,10 +2328,9 @@ def download_invoice(request, order_id):
         ),
         normal_style,
     ))
-
+ 
     doc.build(story)
     return response
-
 
 
 

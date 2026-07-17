@@ -284,80 +284,97 @@ def normalize_indian_phone(phone):
     return phone
 
 
+OTP_VALID_SECONDS = 120
+ 
+ 
+def signup_error_response(request, field, message, referral_code="", status=400):
+    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+        return JsonResponse(
+            {"success": False, "field": field, "message": message},
+            status=status,
+        )
+ 
+    messages.error(request, message)
+    return render(request, "accounts/signup.html", {"referral_code": referral_code})
+ 
+ 
 def signup_view(request):
     if request.user.is_authenticated:
         if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            return JsonResponse({
-                "success": True,
-                "redirect_url": reverse("landing_page"),
-            })
+            return JsonResponse({"success": True, "redirect_url": reverse("landing_page")})
         return redirect("landing_page")
-
+ 
     referral_from_url = request.GET.get("ref", "").strip().upper()
-
+ 
     if request.method == "GET":
-        return render(request, "accounts/signup.html", {
-            "referral_code": referral_from_url,
-        })
-
+        return render(request, "accounts/signup.html", {"referral_code": referral_from_url})
+ 
     username = request.POST.get("username", "").strip()
     email = request.POST.get("email", "").strip().lower()
     phone = normalize_indian_phone(request.POST.get("phone", ""))
     password = request.POST.get("password", "")
     confirm_password = request.POST.get("confirm_password", "")
     referral_code = request.POST.get("referral_code", "").strip().upper()
-
+ 
     if not username:
-        return signup_error_response(request, field="username", message="Username cannot be empty.", referral_code=referral_code)
+        return signup_error_response(request, "username", "Username cannot be empty.", referral_code)
     if len(username) < 5 or len(username) > 20:
-        return signup_error_response(request, field="username", message="Username must be between 5 and 20 characters.", referral_code=referral_code)
+        return signup_error_response(request, "username", "Username must be between 5 and 20 characters.", referral_code)
     if not re.fullmatch(r"(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+", username):
-        return signup_error_response(request, field="username", message="Username must contain both letters and numbers without spaces or special characters.", referral_code=referral_code)
+        return signup_error_response(
+            request, "username",
+            "Username must contain both letters and numbers without spaces or special characters.",
+            referral_code,
+        )
     if User.objects.filter(username__iexact=username).exists():
-        return signup_error_response(request, field="username", message="Username already exists.", referral_code=referral_code)
-
+        return signup_error_response(request, "username", "Username already exists.", referral_code)
+ 
     if not email:
-        return signup_error_response(request, field="email", message="Email cannot be empty.", referral_code=referral_code)
+        return signup_error_response(request, "email", "Email cannot be empty.", referral_code)
     email_pattern = r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"
     if not re.fullmatch(email_pattern, email):
-        return signup_error_response(request, field="email", message="Enter a valid email address.", referral_code=referral_code)
+        return signup_error_response(request, "email", "Enter a valid email address.", referral_code)
     if User.objects.filter(email__iexact=email).exists():
-        return signup_error_response(request, field="email", message="Email already exists.", referral_code=referral_code)
-
+        return signup_error_response(request, "email", "Email already exists.", referral_code)
+ 
     if not phone:
-        return signup_error_response(request, field="phone", message="Phone number is required.", referral_code=referral_code)
+        return signup_error_response(request, "phone", "Phone number is required.", referral_code)
     if not re.fullmatch(r"[6-9]\d{9}", phone):
-        return signup_error_response(request, field="phone", message="Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.", referral_code=referral_code)
+        return signup_error_response(
+            request, "phone",
+            "Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.",
+            referral_code,
+        )
     if len(set(phone)) == 1:
-        return signup_error_response(request, field="phone", message="Enter a valid phone number.", referral_code=referral_code)
-
+        return signup_error_response(request, "phone", "Enter a valid phone number.", referral_code)
+ 
     if not password:
-        return signup_error_response(request, field="password", message="Password cannot be empty.", referral_code=referral_code)
+        return signup_error_response(request, "password", "Password cannot be empty.", referral_code)
     if len(password) < 8:
-        return signup_error_response(request, field="password", message="Password must be at least 8 characters.", referral_code=referral_code)
+        return signup_error_response(request, "password", "Password must be at least 8 characters.", referral_code)
     if not re.search(r"[A-Z]", password):
-        return signup_error_response(request, field="password", message="Password must contain at least one uppercase letter.", referral_code=referral_code)
+        return signup_error_response(request, "password", "Password must contain at least one uppercase letter.", referral_code)
     if not re.search(r"[a-z]", password):
-        return signup_error_response(request, field="password", message="Password must contain at least one lowercase letter.", referral_code=referral_code)
+        return signup_error_response(request, "password", "Password must contain at least one lowercase letter.", referral_code)
     if not re.search(r"\d", password):
-        return signup_error_response(request, field="password", message="Password must contain at least one number.", referral_code=referral_code)
+        return signup_error_response(request, "password", "Password must contain at least one number.", referral_code)
     if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
-        return signup_error_response(request, field="password", message="Password must contain at least one special character.", referral_code=referral_code)
-
+        return signup_error_response(request, "password", "Password must contain at least one special character.", referral_code)
+ 
     if not confirm_password:
-        return signup_error_response(request, field="confirm_password", message="Confirm password is required.", referral_code=referral_code)
+        return signup_error_response(request, "confirm_password", "Confirm password is required.", referral_code)
     if password != confirm_password:
-        return signup_error_response(request, field="confirm_password", message="Passwords do not match.", referral_code=referral_code)
-
+        return signup_error_response(request, "confirm_password", "Passwords do not match.", referral_code)
+ 
     referrer_id = None
     if referral_code:
         referrer = User.objects.filter(referral_code__iexact=referral_code).first()
         if not referrer:
-            return signup_error_response(request, field="referral_code", message="Invalid referral code.", referral_code=referral_code)
+            return signup_error_response(request, "referral_code", "Invalid referral code.", referral_code)
         if referrer.username.lower() == username.lower():
-            return signup_error_response(request, field="referral_code", message="You cannot use your own referral code.", referral_code=referral_code)
+            return signup_error_response(request, "referral_code", "You cannot use your own referral code.", referral_code)
         referrer_id = referrer.id
-
+ 
     otp = str(random.randint(100000, 999999))
     request.session["signup_data"] = {
         "username": username,
@@ -369,7 +386,7 @@ def signup_view(request):
         "otp": otp,
         "issued_at": time.time(),
     }
-
+ 
     try:
         send_wheelverse_otp_email(
             to_email=email,
@@ -382,55 +399,50 @@ def signup_view(request):
         print("SIGNUP EMAIL ERROR:", error)
         request.session.pop("signup_data", None)
         return signup_error_response(
-            request,
-            field="general",
-            message="OTP email could not be sent. Please try again.",
-            referral_code=referral_code,
-            status=500,
+            request, "general", "OTP email could not be sent. Please try again.",
+            referral_code, status=500,
         )
-
+ 
     if request.headers.get("x-requested-with") == "XMLHttpRequest":
         return JsonResponse({
             "success": True,
             "message": "OTP sent successfully.",
             "redirect_url": reverse("signup_verify"),
         })
-
+ 
     messages.success(request, "OTP sent to your email.")
     return redirect("signup_verify")
-
-
+ 
+ 
 def signup_verify_view(request):
-    import time
-
+    session_data = request.session.get("signup_data")
+ 
+    if not session_data:
+        messages.error(request, "Verification session timed out. Restart registration.")
+        return redirect("signup")
+ 
     if request.method == "POST":
         user_otp = request.POST.get("otp", "").strip()
-        session_data = request.session.get("signup_data")
-
-        if not session_data:
-            messages.error(request, "Verification session timed out. Restart registration.")
-            return redirect("signup")
-
         issued_at = session_data.get("issued_at", 0)
-
-        if time.time() - issued_at > 120:
+        remaining = OTP_VALID_SECONDS - (time.time() - issued_at)
+ 
+        if remaining <= 0:
             session_data["otp"] = None
             request.session.modified = True
             messages.error(request, "Your OTP has expired. Please click Resend OTP.")
-            return render(request, "accounts/signup_verify.html")
-
+            return render(request, "accounts/signup_verify.html", {"remaining_seconds": 0})
+ 
         if user_otp != session_data["otp"]:
             messages.error(request, "Invalid security code. Re-verify values.")
-            return render(request, "accounts/signup_verify.html")
-
+            return render(request, "accounts/signup_verify.html", {"remaining_seconds": int(remaining)})
+ 
         try:
             with transaction.atomic():
                 referrer = None
-
                 referrer_id = session_data.get("referrer_id")
                 if referrer_id:
                     referrer = User.objects.select_for_update().filter(id=referrer_id).first()
-
+ 
                 user = User(
                     username=session_data["username"],
                     email=session_data["email"],
@@ -439,60 +451,169 @@ def signup_verify_view(request):
                 )
                 user.set_password(session_data["password"])
                 user.save()
-
+ 
                 credit_referral_reward(user)
-
+ 
             request.session.pop("signup_data", None)
-
+ 
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
-
+ 
             messages.success(request, "Collector engine unlocked! Welcome to WheelVerse.")
             return redirect("landing_page")
-
+ 
         except Exception as e:
             print("DEBUG ERROR:", e)
             messages.error(request, "Database error: " + str(e))
             return redirect("signup")
+ 
 
-    return render(request, "accounts/signup_verify.html")
+    issued_at = session_data.get("issued_at", 0)
+    remaining = max(0, int(OTP_VALID_SECONDS - (time.time() - issued_at)))
+ 
+    return render(request, "accounts/signup_verify.html", {"remaining_seconds": remaining})
+ 
+  
+def signup_verify_view(request):
+    session_data = request.session.get("signup_data")
+ 
+    if not session_data:
+        if _is_ajax(request):
+            return JsonResponse(
+                {"success": False, "message": "Verification session timed out. Restart registration."},
+                status=400,
+            )
+        messages.error(request, "Verification session timed out. Restart registration.")
+        return redirect("signup")
+ 
+    if request.method == "POST":
+        user_otp = request.POST.get("otp", "").strip()
+        issued_at = session_data.get("issued_at", 0)
+        remaining = OTP_VALID_SECONDS - (time.time() - issued_at)
+ 
+        if remaining <= 0:
+            session_data["otp"] = None
+            request.session.modified = True
+            if _is_ajax(request):
+                return JsonResponse(
+                    {"success": False, "expired": True, "message": "Your OTP has expired. Please click Resend OTP."},
+                    status=400,
+                )
+            messages.error(request, "Your OTP has expired. Please click Resend OTP.")
+            return render(request, "accounts/signup_verify.html", {"remaining_seconds": 0})
+ 
 
+        if user_otp != session_data["otp"]:
+            if _is_ajax(request):
+                return JsonResponse(
+                    {"success": False, "expired": False, "message": "Invalid security code. Please try again."},
+                    status=400,
+                )
+            messages.error(request, "Invalid security code. Re-verify values.")
+            return render(request, "accounts/signup_verify.html", {"remaining_seconds": int(remaining)})
+ 
+        # Correct OTP -> create the account.
+        try:
+            with transaction.atomic():
+                referrer = None
+                referrer_id = session_data.get("referrer_id")
+                if referrer_id:
+                    referrer = User.objects.select_for_update().filter(id=referrer_id).first()
+ 
+                user = User(
+                    username=session_data["username"],
+                    email=session_data["email"],
+                    phone=session_data["phone"],
+                    referred_by=referrer,
+                )
+                user.set_password(session_data["password"])
+                user.save()
+ 
+                credit_referral_reward(user)
+ 
+            request.session.pop("signup_data", None)
+ 
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(request, user)
+ 
+            if _is_ajax(request):
+                return JsonResponse({
+                    "success": True,
+                    "message": "Collector engine unlocked! Welcome to WheelVerse.",
+                    "redirect_url": reverse("landing_page"),
+                })
+ 
+            messages.success(request, "Collector engine unlocked! Welcome to WheelVerse.")
+            return redirect("landing_page")
+ 
+        except Exception as e:
+            print("DEBUG ERROR:", e)
+            if _is_ajax(request):
+                return JsonResponse({"success": False, "message": "Database error: " + str(e)}, status=500)
+            messages.error(request, "Database error: " + str(e))
+            return redirect("signup")
+ 
 
+    issued_at = session_data.get("issued_at", 0)
+    remaining = max(0, int(OTP_VALID_SECONDS - (time.time() - issued_at)))
+ 
+    return render(request, "accounts/signup_verify.html", {"remaining_seconds": remaining})
+ 
+def _is_ajax(request):
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
+ 
+ 
 def resend_signup_otp_view(request):
-    import time
-    signup_data = request.session.get('signup_data')
-    
+    signup_data = request.session.get("signup_data")
+ 
     if not signup_data:
+        if _is_ajax(request):
+            return JsonResponse(
+                {"success": False, "message": "Registration session expired. Please signup again."},
+                status=400,
+            )
         messages.error(request, "Registration session expired. Please signup again.")
-        return redirect('signup')
-        
+        return redirect("signup")
+ 
     try:
         new_otp = str(random.randint(100000, 999999))
-        
-        signup_data['otp'] = new_otp
-        signup_data['issued_at'] = time.time()
-        request.session['signup_data'] = signup_data
-        request.session.modified = True 
-        
-        subject = "New OTP — WheelVerse Signup Verification"
-        message = f"Your new WheelVerse signup OTP is: {new_otp}"
-        
+ 
+        # This is the ONLY place issued_at is reset to "now" outside of
+        # the initial signup — i.e. the only action that restarts the
+        # countdown and issues a new code.
+        signup_data["otp"] = new_otp
+        signup_data["issued_at"] = time.time()
+        request.session["signup_data"] = signup_data
+        request.session.modified = True
+ 
         send_wheelverse_otp_email(
-            to_email=signup_data['email'],
-            username=signup_data['username'],
+            to_email=signup_data["email"],
+            username=signup_data["username"],
             otp=new_otp,
             purpose="Account Verification",
-            expiry=5
+            expiry=5,
         )
-        
+ 
+        if _is_ajax(request):
+            return JsonResponse({
+                "success": True,
+                "message": "A new OTP has been sent to your email.",
+                "remaining_seconds": OTP_VALID_SECONDS,
+            })
+ 
         messages.success(request, "A new OTP has been sent to your email.")
-        return redirect('signup_verify')
-        
+        return redirect("signup_verify")
+ 
     except Exception as e:
         print("RESEND SIGNUP OTP ERROR:", e)
+        if _is_ajax(request):
+            return JsonResponse(
+                {"success": False, "message": "Failed to resend OTP. Please try again."},
+                status=500,
+            )
         messages.error(request, "Failed to resend OTP. Please try again.")
-        return redirect('signup_verify')
-
+        return redirect("signup_verify")
+ 
 
 def login_view(request):
 
@@ -556,7 +677,7 @@ def google_login_user(request):
         return redirect("admin_dashboard")
 
     request.session["oauth_flow"] = "user"
-    base = reverse("google_login")  # allauth's built-in provider login url name
+    base = reverse("google_login") 
     qs = urlencode({"process": "login"})
     return redirect(f"{base}?{qs}")
 
@@ -596,9 +717,6 @@ def forgot_password_view(request):
                 'otp': reset_otp,
                 'verified': False
             }
-
-            # subject = 'Reset Your WheelVerse Account Security Key'
-            # message = f"Security update alert. Use this custom session matrix code to reset parameters: {reset_otp}"
             
             send_wheelverse_otp_email(
                 to_email=email,

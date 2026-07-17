@@ -1,9 +1,10 @@
+from decimal import Decimal
 import csv
 
 from django.contrib import messages
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator
-from django.db.models import Q,Count,F
+from django.db.models import Q, Count, F, Prefetch, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 
@@ -114,22 +115,260 @@ def admin_orders(request):
 
 @staff_member_required(login_url="admin_login")
 def admin_order_detail(request, order_id):
+
+    return_request_queryset = (
+        ReturnRequest.objects
+        .select_related("user")
+        .order_by("requested_at")
+    )
+
     order = get_object_or_404(
-        Order.objects.select_related("user", "shipping_address").prefetch_related(
+        Order.objects
+        .select_related(
+            "user",
+            "shipping_address",
+        )
+        .prefetch_related(
             "items",
             "items__variant",
             "items__variant__images",
+            Prefetch(
+                "items__order_return_requests",
+                queryset=return_request_queryset,
+                to_attr="loaded_return_requests",
+            ),
         ),
         id=order_id,
     )
 
-    status_steps =["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED"]
-    final_statuses = ["DELIVERED", "CANCELLED", "RETURNED"]
-    
+    items = list(order.items.all())
 
-    current_index = status_steps.index(order.status) if order.status in status_steps else -1
+    original_subtotal = Decimal("0.00")
+    original_offer_discount = Decimal("0.00")
+    original_after_offer = Decimal("0.00")
+
+    total_ordered_quantity = 0
+    total_cancelled_quantity = 0
+    total_return_requested_quantity = 0
+    total_returned_quantity = 0
+    total_active_quantity = 0
+
+    for item in items:
+        ordered_quantity = item.quantity or 0
+        cancelled_quantity = min(
+            getattr(item, "cancelled_quantity", 0) or 0,
+            ordered_quantity,
+        )
+
+        return_requests = list(
+            getattr(
+                item,
+                "loaded_return_requests",
+                [],
+            )
+        )
+
+        return_requested_quantity = sum(
+            (
+                return_request.return_quantity or 0
+                for return_request in return_requests
+                if return_request.status in {
+                    "REQUESTED",
+                    "APPROVED",
+                    "PICKED_UP",
+                }
+            ),
+            0,
+        )
+
+        returned_quantity = sum(
+            (
+                return_request.return_quantity or 0
+                for return_request in return_requests
+                if return_request.status == "REFUNDED"
+            ),
+            0,
+        )
+
+        unavailable_quantity = (
+            cancelled_quantity
+            + return_requested_quantity
+            + returned_quantity
+        )
+
+        active_quantity = max(
+            ordered_quantity - unavailable_quantity,
+            0,
+        )
+
+        item.display_ordered_quantity = ordered_quantity
+        item.display_cancelled_quantity = cancelled_quantity
+        item.display_return_requested_quantity = (
+            return_requested_quantity
+        )
+        item.display_returned_quantity = returned_quantity
+        item.display_active_quantity = active_quantity
+        item.display_return_requests = return_requests
+
+        if cancelled_quantity >= ordered_quantity:
+            item.display_quantity_status = "FULLY CANCELLED"
+            item.display_quantity_status_class = "text-red-300"
+        elif cancelled_quantity > 0:
+            item.display_quantity_status = "PARTIALLY CANCELLED"
+            item.display_quantity_status_class = "text-amber-300"
+        elif returned_quantity >= ordered_quantity:
+            item.display_quantity_status = "FULLY RETURNED"
+            item.display_quantity_status_class = "text-purple-300"
+        elif returned_quantity > 0:
+            item.display_quantity_status = "PARTIALLY RETURNED"
+            item.display_quantity_status_class = "text-purple-300"
+        elif return_requested_quantity > 0:
+            item.display_quantity_status = "RETURN IN PROGRESS"
+            item.display_quantity_status_class = "text-blue-300"
+        else:
+            item.display_quantity_status = "ACTIVE"
+            item.display_quantity_status_class = "text-green-300"
+
+        item_original_price = (
+            getattr(item, "original_price", None)
+            or item.price
+            or Decimal("0.00")
+        )
+
+        item_unit_offer_discount = (
+            getattr(item, "offer_discount", None)
+            or Decimal("0.00")
+        )
+
+        item.display_original_total = (
+            item_original_price * ordered_quantity
+        ).quantize(Decimal("0.01"))
+
+        item.display_offer_discount_total = (
+            item_unit_offer_discount * ordered_quantity
+        ).quantize(Decimal("0.01"))
+
+        item.display_current_product_total = (
+            (item.price or Decimal("0.00"))
+            * active_quantity
+        ).quantize(Decimal("0.01"))
+
+        original_subtotal += item.display_original_total
+        original_offer_discount += (
+            item.display_offer_discount_total
+        )
+
+        total_ordered_quantity += ordered_quantity
+        total_cancelled_quantity += cancelled_quantity
+        total_return_requested_quantity += (
+            return_requested_quantity
+        )
+        total_returned_quantity += returned_quantity
+        total_active_quantity += active_quantity
+
+    original_after_offer = max(
+        original_subtotal - original_offer_discount,
+        Decimal("0.00"),
+    ).quantize(Decimal("0.01"))
+
+    current_subtotal_after_offer = max(
+        order.subtotal - order.offer_discount,
+        Decimal("0.00"),
+    ).quantize(Decimal("0.01"))
+
+    calculated_current_total = max(
+        order.subtotal
+        - order.offer_discount
+        - order.coupon_discount
+        + order.shipping_fee,
+        Decimal("0.00"),
+    ).quantize(Decimal("0.01"))
+
+    cancellation_refunded_amount = (
+        WalletTransaction.objects
+        .filter(
+            order=order,
+            purpose="CANCEL_REFUND",
+            status="COMPLETED",
+            transaction_type="CREDIT",
+        )
+        .aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
+    return_refunded_amount = (
+        WalletTransaction.objects
+        .filter(
+            order=order,
+            purpose="RETURN_REFUND",
+            status="COMPLETED",
+            transaction_type="CREDIT",
+        )
+        .aggregate(total=Sum("amount"))["total"]
+        or Decimal("0.00")
+    )
+
+    total_refunded_amount = (
+        cancellation_refunded_amount
+        + return_refunded_amount
+    ).quantize(Decimal("0.01"))
+
+    if order.payment_method == "COD":
+        if order.status == "DELIVERED":
+            payment_status = "COD COLLECTED"
+            payment_status_class = "text-green-300"
+        elif order.status == "CANCELLED":
+            payment_status = "CANCELLED — NOT COLLECTED"
+            payment_status_class = "text-red-300"
+        else:
+            payment_status = "COD PENDING"
+            payment_status_class = "text-amber-300"
+
+    elif order.payment_method == "RAZORPAY":
+        if order.razorpay_payment_id:
+            payment_status = "PAID"
+            payment_status_class = "text-green-300"
+        else:
+            payment_status = "PAYMENT PENDING"
+            payment_status_class = "text-amber-300"
+
+    elif order.payment_method == "WALLET":
+        payment_status = "PAID FROM WALLET"
+        payment_status_class = "text-green-300"
+
+    else:
+        payment_status = (
+            "PAID"
+            if order.status != "PAYMENT_PENDING"
+            else "PAYMENT PENDING"
+        )
+        payment_status_class = (
+            "text-green-300"
+            if payment_status == "PAID"
+            else "text-amber-300"
+        )
+
+    status_steps = [
+        "CONFIRMED",
+        "SHIPPED",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+    ]
+
+    final_statuses = [
+        "DELIVERED",
+        "CANCELLED",
+        "RETURNED",
+    ]
+
+    current_index = (
+        status_steps.index(order.status)
+        if order.status in status_steps
+        else -1
+    )
 
     timeline = []
+
     for index, step in enumerate(status_steps):
         timeline.append({
             "key": step,
@@ -139,21 +378,72 @@ def admin_order_detail(request, order_id):
 
     allowed_status_choices = []
 
-    if order.status not in final_statuses and order.status in status_steps:
+    if (
+        order.status not in final_statuses
+        and order.status in status_steps
+    ):
         allowed_statuses = status_steps[current_index:]
+
         allowed_status_choices = [
             (value, label)
             for value, label in Order.STATUS_CHOICES
             if value in allowed_statuses
         ]
 
-    return render(request, "adminpanel/admin_order/admin_order_detail.html", {
+    context = {
         "order": order,
-        "items": order.items.all(),
+        "items": items,
         "timeline": timeline,
         "status_choices": allowed_status_choices,
         "final_statuses": final_statuses,
-    })
+
+        "payment_status": payment_status,
+        "payment_status_class": payment_status_class,
+
+        "original_subtotal": original_subtotal.quantize(
+            Decimal("0.01")
+        ),
+        "original_offer_discount": (
+            original_offer_discount.quantize(
+                Decimal("0.01")
+            )
+        ),
+        "original_after_offer": original_after_offer,
+
+        "current_subtotal_after_offer": (
+            current_subtotal_after_offer
+        ),
+        "calculated_current_total": (
+            calculated_current_total
+        ),
+
+        "cancellation_refunded_amount": (
+            cancellation_refunded_amount
+        ),
+        "return_refunded_amount": (
+            return_refunded_amount
+        ),
+        "total_refunded_amount": total_refunded_amount,
+
+        "total_ordered_quantity": total_ordered_quantity,
+        "total_cancelled_quantity": (
+            total_cancelled_quantity
+        ),
+        "total_return_requested_quantity": (
+            total_return_requested_quantity
+        ),
+        "total_returned_quantity": (
+            total_returned_quantity
+        ),
+        "total_active_quantity": total_active_quantity,
+    }
+
+    return render(
+        request,
+        "adminpanel/admin_order/admin_order_detail.html",
+        context,
+    )
+
     
     
 

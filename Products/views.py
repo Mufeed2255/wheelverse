@@ -7,7 +7,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Count, Q, Min ,Prefetch
-from adminpanel.models import Product, Category, ProductVariant
+from adminpanel.models import Product, Category, ProductVariant, Offer
 from Products.models import Cart, Wishlist
 from django.shortcuts import render
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
@@ -27,6 +27,86 @@ from adminpanel.services.offers import build_cart_offer_summary
 
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils import timezone
+
+
+def attach_collection_offer_badge(products):
+    today = timezone.localdate()
+    product_ids = [product.id for product in products]
+    category_ids = {product.category_id for product in products if product.category_id}
+
+    active_offers = (
+        Offer.objects
+        .filter(
+            is_active=True,
+            is_deleted=False,
+            start_date__lte=today,
+            end_date__gte=today,
+        )
+        .filter(
+            Q(offer_type="PRODUCT", product_id__in=product_ids)
+            | Q(offer_type="CATEGORY", category_id__in=category_ids)
+        )
+        .select_related("product", "category")
+    )
+
+    product_offer_map = {}
+    category_offer_map = {}
+
+    for offer in active_offers:
+        if offer.offer_type == "PRODUCT" and offer.product_id:
+            product_offer_map.setdefault(offer.product_id, []).append(offer)
+        elif offer.offer_type == "CATEGORY" and offer.category_id:
+            category_offer_map.setdefault(offer.category_id, []).append(offer)
+
+    for product in products:
+        product.offer_badge = ""
+        product.offer_title = ""
+        product.offer_discount_amount = Decimal("0.00")
+
+        base_price = product.min_price
+        if base_price is None or base_price <= 0:
+            continue
+
+        candidates = (
+            product_offer_map.get(product.id, [])
+            + category_offer_map.get(product.category_id, [])
+        )
+
+        best_offer = None
+        best_discount_amount = Decimal("0.00")
+
+        for offer in candidates:
+            if offer.discount_type == "PERCENTAGE":
+                discount_amount = (
+                    base_price * offer.discount_value / Decimal("100")
+                )
+            else:
+                discount_amount = min(offer.discount_value, base_price)
+
+            discount_amount = max(
+                discount_amount,
+                Decimal("0.00"),
+            ).quantize(Decimal("0.01"))
+
+            if discount_amount > best_discount_amount:
+                best_offer = offer
+                best_discount_amount = discount_amount
+
+        if not best_offer:
+            continue
+
+        product.offer_title = best_offer.title
+        product.offer_discount_amount = best_discount_amount
+
+        if best_offer.discount_type == "PERCENTAGE":
+            value = best_offer.discount_value.quantize(Decimal("0.01"))
+            value_text = str(int(value)) if value == value.to_integral() else format(value.normalize(), "f")
+            product.offer_badge = f"{value_text}% OFF"
+        else:
+            value = best_offer.discount_value.quantize(Decimal("0.01"))
+            value_text = str(int(value)) if value == value.to_integral() else format(value, ".2f")
+            product.offer_badge = f"₹{value_text} OFF"
 
 def user_collections(request):
     search_query = request.GET.get("search", "").strip()
@@ -141,6 +221,8 @@ def user_collections(request):
             product for product in products_list
             if product.total_stock == 0
         ]
+
+    attach_collection_offer_badge(products_list)
 
     wishlisted_variant_ids = set()
 
@@ -605,13 +687,8 @@ def decrease_cart_item(request, item_id):
     )
 
     if cart_item.quantity <= 1:
-        if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            return JsonResponse({
-                "success": False,
-                "message": "Minimum quantity is 1.",
-            })
-
-        messages.error(request, "Minimum quantity is 1.")
+        cart_item.remove()
+        messages.error(request, "cart removed successfully")
         return redirect("cart")
 
     cart_item.quantity -= 1

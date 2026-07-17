@@ -51,6 +51,26 @@
             box-shadow: 0 0 30px rgba(242, 202, 80, .12);
         }
 
+        .offer-badge {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            z-index: 20;
+            min-width: 78px;
+            padding: 8px 12px;
+            background: #dc2626;
+            color: #ffffff;
+            border: 1px solid rgba(255,255,255,.22);
+            box-shadow: 0 8px 20px rgba(220,38,38,.28);
+            font-family: "Orbitron", sans-serif;
+            font-size: 10px;
+            font-weight: 800;
+            line-height: 1;
+            letter-spacing: .08em;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
         .no-scrollbar::-webkit-scrollbar {
             display: none;
         }
@@ -473,17 +493,22 @@
                     </div>
 
                     {% if product.total_stock > 0 and product.total_stock <= 3 %}
-                    <div class="absolute top-4 right-4 z-10 bg-red-800/90 text-white text-[9px] font-label-caps px-2 py-1 tracking-wider">
+                    <div class="absolute {% if product.offer_badge %}top-16{% else %}top-4{% endif %} right-4 z-10 bg-red-800/90 text-white text-[9px] font-label-caps px-2 py-1 tracking-wider">
                         ONLY {{ product.total_stock }} LEFT
                     </div>
                     {% elif product.total_stock == 0 %}
-                    <div class="absolute top-4 right-4 z-10 bg-black/80 border border-red-500/40 text-red-400 text-[9px] font-label-caps px-2 py-1 tracking-wider">
+                    <div class="absolute {% if product.offer_badge %}top-16{% else %}top-4{% endif %} right-4 z-10 bg-black/80 border border-red-500/40 text-red-400 text-[9px] font-label-caps px-2 py-1 tracking-wider">
                         OUT OF STOCK
                     </div>
                     {% endif %}
 
                     <a href="{% url 'product_detail' product_id=product.id %}" class="block">
                         <div class="aspect-[16/10] bg-black/50 overflow-hidden relative">
+                            {% if product.offer_badge %}
+                                <div class="offer-badge" title="{{ product.offer_title }}">
+                                    {{ product.offer_badge }}
+                                </div>
+                            {% endif %}
                             {% with first_variant=product.active_variants.0 %}
                                 {% if first_variant %}
                                     {% with first_image=first_variant.images.first %}
