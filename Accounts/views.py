@@ -9,6 +9,8 @@ from django.shortcuts import redirect, render
 from django.http import JsonResponse
 import random
 import time
+from django.urls import reverse
+from urllib.parse import urlencode
 User = get_user_model()
 from django.shortcuts import get_object_or_404, redirect, render
 from .models import Address
@@ -662,9 +664,7 @@ def login_view(request):
     return render(request, "accounts/login.html")
 
 
-# --- Add these to Accounts/views.py ---
-from django.urls import reverse
-from urllib.parse import urlencode
+
 
 
 def google_login_user(request):

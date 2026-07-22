@@ -1,112 +1,22 @@
-from Orders.models import ProductReview
-
-from itertools import product
+import json
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
-from django.shortcuts import get_object_or_404, redirect, render
-from django.db.models import Count, Q, Min ,Prefetch
-from adminpanel.models import Product, Category, ProductVariant, Offer
-from Products.models import Cart, Wishlist
-from django.shortcuts import render
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from decimal import Decimal
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
+from django.db.models import Count, Min, Prefetch, Q, Sum
 from django.http import JsonResponse
-from django.views.decorators.http import require_POST
-from decimal import Decimal
-from Orders.models import ProductReview
-from adminpanel.services.offers import build_cart_offer_summary
-import json
-from django.shortcuts import get_object_or_404, render
-from django.db.models import Sum, Min
-from adminpanel.models import Product, ProductVariant
-from Products.models import Cart, Wishlist
-from Orders.models import ProductReview
-from adminpanel.services.offers import build_cart_offer_summary
-
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
-from django.utils import timezone
+from django.views.decorators.http import require_POST
 
+from Orders.models import ProductReview
+from adminpanel.models import Category, Product, ProductVariant
 
-def attach_collection_offer_badge(products):
-    today = timezone.localdate()
-    product_ids = [product.id for product in products]
-    category_ids = {product.category_id for product in products if product.category_id}
+from .models import Cart, Wishlist
+from .utils import attach_collection_offer_badge, cart_ajax_response, get_cart_totals, is_ajax_request
 
-    active_offers = (
-        Offer.objects
-        .filter(
-            is_active=True,
-            is_deleted=False,
-            start_date__lte=today,
-            end_date__gte=today,
-        )
-        .filter(
-            Q(offer_type="PRODUCT", product_id__in=product_ids)
-            | Q(offer_type="CATEGORY", category_id__in=category_ids)
-        )
-        .select_related("product", "category")
-    )
-
-    product_offer_map = {}
-    category_offer_map = {}
-
-    for offer in active_offers:
-        if offer.offer_type == "PRODUCT" and offer.product_id:
-            product_offer_map.setdefault(offer.product_id, []).append(offer)
-        elif offer.offer_type == "CATEGORY" and offer.category_id:
-            category_offer_map.setdefault(offer.category_id, []).append(offer)
-
-    for product in products:
-        product.offer_badge = ""
-        product.offer_title = ""
-        product.offer_discount_amount = Decimal("0.00")
-
-        base_price = product.min_price
-        if base_price is None or base_price <= 0:
-            continue
-
-        candidates = (
-            product_offer_map.get(product.id, [])
-            + category_offer_map.get(product.category_id, [])
-        )
-
-        best_offer = None
-        best_discount_amount = Decimal("0.00")
-
-        for offer in candidates:
-            if offer.discount_type == "PERCENTAGE":
-                discount_amount = (
-                    base_price * offer.discount_value / Decimal("100")
-                )
-            else:
-                discount_amount = min(offer.discount_value, base_price)
-
-            discount_amount = max(
-                discount_amount,
-                Decimal("0.00"),
-            ).quantize(Decimal("0.01"))
-
-            if discount_amount > best_discount_amount:
-                best_offer = offer
-                best_discount_amount = discount_amount
-
-        if not best_offer:
-            continue
-
-        product.offer_title = best_offer.title
-        product.offer_discount_amount = best_discount_amount
-
-        if best_offer.discount_type == "PERCENTAGE":
-            value = best_offer.discount_value.quantize(Decimal("0.01"))
-            value_text = str(int(value)) if value == value.to_integral() else format(value.normalize(), "f")
-            product.offer_badge = f"{value_text}% OFF"
-        else:
-            value = best_offer.discount_value.quantize(Decimal("0.01"))
-            value_text = str(int(value)) if value == value.to_integral() else format(value, ".2f")
-            product.offer_badge = f"₹{value_text} OFF"
 
 def user_collections(request):
     search_query = request.GET.get("search", "").strip()
@@ -129,53 +39,27 @@ def user_collections(request):
         price_min, price_max = price_max, price_min
 
     active_variants = ProductVariant.objects.filter(
-        is_active=True,
-        is_deleted=False,
+        is_active=True, is_deleted=False,
     ).prefetch_related("images").order_by("id")
 
     products_queryset = (
         Product.objects
         .filter(is_deleted=False, is_active=True)
         .select_related("category")
-        .prefetch_related(
-            Prefetch(
-                "variants",
-                queryset=active_variants,
-                to_attr="active_variants",
-            )
-        )
-        .annotate(
-            min_price=Min(
-                "variants__price",
-                filter=Q(
-                    variants__is_active=True,
-                    variants__is_deleted=False,
-                ),
-            )
-        )
+        .prefetch_related(Prefetch("variants", queryset=active_variants, to_attr="active_variants"))
+        .annotate(min_price=Min("variants__price", filter=Q(variants__is_active=True, variants__is_deleted=False)))
     )
 
     categories = (
         Category.objects
         .filter(is_active=True)
-        .annotate(
-            total_items=Count(
-                "products",
-                filter=Q(
-                    products__is_deleted=False,
-                    products__is_active=True,
-                ),
-                distinct=True,
-            )
-        )
+        .annotate(total_items=Count("products", filter=Q(products__is_deleted=False, products__is_active=True), distinct=True))
         .order_by("name")
     )
 
     if search_query:
         products_queryset = products_queryset.filter(
-            Q(name__icontains=search_query)
-            | Q(category__name__icontains=search_query)
-            | Q(sku__icontains=search_query)
+            Q(name__icontains=search_query) | Q(category__name__icontains=search_query) | Q(sku__icontains=search_query)
         )
 
     if category_id:
@@ -185,21 +69,20 @@ def user_collections(request):
         products_queryset = products_queryset.filter(rarity__iexact=rarity)
 
     products_queryset = products_queryset.filter(
-        min_price__isnull=False,
-        min_price__gte=price_min,
-        min_price__lte=price_max,
+        min_price__isnull=False, min_price__gte=price_min, min_price__lte=price_max,
     )
 
-    if sort_by == "oldest":
-        products_queryset = products_queryset.order_by("id")
-    elif sort_by == "a-z":
-        products_queryset = products_queryset.order_by("name")
-    elif sort_by == "z-a":
-        products_queryset = products_queryset.order_by("-name")
-    elif sort_by == "price-low":
-        products_queryset = products_queryset.order_by("min_price", "name")
-    elif sort_by == "price-high":
-        products_queryset = products_queryset.order_by("-min_price", "name")
+    sort_map = {
+        "oldest": "id",
+        "a-z": "name",
+        "z-a": "-name",
+        "price-low": ("min_price", "name"),
+        "price-high": ("-min_price", "name"),
+    }
+
+    if sort_by in sort_map:
+        order = sort_map[sort_by]
+        products_queryset = products_queryset.order_by(*order) if isinstance(order, tuple) else products_queryset.order_by(order)
     else:
         sort_by = "newest"
         products_queryset = products_queryset.order_by("-id")
@@ -207,30 +90,17 @@ def user_collections(request):
     products_list = list(products_queryset)
 
     if status == "in_stock":
-        products_list = [
-            product for product in products_list
-            if product.total_stock > 10
-        ]
+        products_list = [p for p in products_list if p.total_stock > 10]
     elif status == "limited":
-        products_list = [
-            product for product in products_list
-            if 0 < product.total_stock <= 10
-        ]
+        products_list = [p for p in products_list if 0 < p.total_stock <= 10]
     elif status == "out_of_stock":
-        products_list = [
-            product for product in products_list
-            if product.total_stock == 0
-        ]
+        products_list = [p for p in products_list if p.total_stock == 0]
 
     attach_collection_offer_badge(products_list)
 
     wishlisted_variant_ids = set()
-
     if request.user.is_authenticated:
-        wishlisted_variant_ids = set(
-            Wishlist.objects.filter(user=request.user)
-            .values_list("variant_id", flat=True)
-        )
+        wishlisted_variant_ids = set(Wishlist.objects.filter(user=request.user).values_list("variant_id", flat=True))
 
     for product in products_list:
         for variant in getattr(product, "active_variants", []):
@@ -247,15 +117,10 @@ def user_collections(request):
         paginated_products = paginator.page(paginator.num_pages)
 
     has_active_filters = bool(
-        search_query
-        or category_id
-        or status
-        or rarity
-        or price_min > 0
-        or price_max < 150000
+        search_query or category_id or status or rarity or price_min > 0 or price_max < 150000
     )
 
-    context = {
+    return render(request, "products/collections.html", {
         "products": paginated_products,
         "categories": categories,
         "total_products_count": len(products_list),
@@ -268,69 +133,37 @@ def user_collections(request):
         "price_max": price_max,
         "rarity_choices": [("", "All Rarities")] + list(Product.RARITY_CHOICES),
         "has_active_filters": has_active_filters,
-    }
-
-    return render(request, "products/collections.html", context)
+    })
 
 
 def product_search_suggestions(request):
-
     query = request.GET.get("q", "").strip()
 
     if len(query) < 2:
         return JsonResponse({"suggestions": []})
 
     active_variants = (
-        ProductVariant.objects
-        .filter(is_active=True, is_deleted=False)
-        .prefetch_related("images")
-        .order_by("id")
+        ProductVariant.objects.filter(is_active=True, is_deleted=False)
+        .prefetch_related("images").order_by("id")
     )
 
     products = (
         Product.objects
-        .filter(
-            is_deleted=False,
-            is_active=True,
-        )
-        .filter(
-            Q(name__icontains=query)
-            | Q(category__name__icontains=query)
-            | Q(sku__icontains=query)
-        )
+        .filter(is_deleted=False, is_active=True)
+        .filter(Q(name__icontains=query) | Q(category__name__icontains=query) | Q(sku__icontains=query))
         .select_related("category")
-        .prefetch_related(
-            Prefetch(
-                "variants",
-                queryset=active_variants,
-                to_attr="active_variants",
-            )
-        )
-        .annotate(
-            min_price=Min(
-                "variants__price",
-                filter=Q(
-                    variants__is_active=True,
-                    variants__is_deleted=False,
-                ),
-            )
-        )
+        .prefetch_related(Prefetch("variants", queryset=active_variants, to_attr="active_variants"))
+        .annotate(min_price=Min("variants__price", filter=Q(variants__is_active=True, variants__is_deleted=False)))
         .order_by("name")[:8]
     )
 
     suggestions = []
-
     for product in products:
         image_url = ""
-        first_variant = (
-            product.active_variants[0]
-            if product.active_variants
-            else None
-        )
+        first_variant = product.active_variants[0] if product.active_variants else None
 
         if first_variant:
             first_image = first_variant.images.first()
-
             if first_image and first_image.image:
                 image_url = first_image.image.url
             elif first_variant.image:
@@ -341,11 +174,7 @@ def product_search_suggestions(request):
             "name": product.name,
             "category": product.category.name if product.category else "",
             "rarity": product.rarity,
-            "price": (
-                f"{product.min_price:.2f}"
-                if product.min_price is not None
-                else ""
-            ),
+            "price": f"{product.min_price:.2f}" if product.min_price is not None else "",
             "stock": product.total_stock,
             "image_url": image_url,
             "detail_url": reverse("product_detail", kwargs={"product_id": product.id}),
@@ -353,89 +182,45 @@ def product_search_suggestions(request):
 
     return JsonResponse({"suggestions": suggestions})
 
+
 @login_required
 def product_detail(request, product_id):
     product = get_object_or_404(
-        Product.objects.filter(
-            is_deleted=False,
-            is_active=True,
-        ).annotate(
-            variant_stock=Sum(
-                "variants__stock",
-                filter=Q(
-                    variants__is_active=True,
-                    variants__is_deleted=False,
-                ),
-            ),
-            min_variant_price=Min(
-                "variants__price",
-                filter=Q(
-                    variants__is_active=True,
-                    variants__is_deleted=False,
-                ),
-            ),
+        Product.objects.filter(is_deleted=False, is_active=True).annotate(
+            variant_stock=Sum("variants__stock", filter=Q(variants__is_active=True, variants__is_deleted=False)),
+            min_variant_price=Min("variants__price", filter=Q(variants__is_active=True, variants__is_deleted=False)),
         ),
         id=product_id,
     )
 
-    variants = (
-        ProductVariant.objects.filter(
-            product=product,
-            is_active=True,
-            is_deleted=False,
-        )
-        .prefetch_related("images")
-        .order_by("id")
+    variants_list = list(
+        ProductVariant.objects.filter(product=product, is_active=True, is_deleted=False)
+        .prefetch_related("images").order_by("id")
     )
 
-    variants_list = list(variants)
-
     wishlisted_variant_ids = set(
-        Wishlist.objects.filter(
-            user=request.user,
-            variant__product=product,
-        ).values_list("variant_id", flat=True)
+        Wishlist.objects.filter(user=request.user, variant__product=product).values_list("variant_id", flat=True)
     )
 
     for variant in variants_list:
-        image_urls = [image.image.url for image in variant.images.all()]
-        variant.image_urls_json = json.dumps(image_urls)
+        variant.image_urls_json = json.dumps([image.image.url for image in variant.images.all()])
         variant.is_wishlisted = variant.id in wishlisted_variant_ids
 
     first_variant = variants_list[0] if variants_list else None
 
-    cart_count = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False,
-    ).count()
-
-    wishlist_count = Wishlist.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False,
-    ).count()
+    cart_count = Cart.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False).count()
+    wishlist_count = Wishlist.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False).count()
 
     reviews = (
-        ProductReview.objects.filter(
-            product=product,
-            is_active=True,
-        )
-        .select_related("user", "variant")
-        .prefetch_related("images")
+        ProductReview.objects.filter(product=product, is_active=True)
+        .select_related("user", "variant").prefetch_related("images")
         .order_by("-created_at")
     )
 
     review_count = reviews.count()
-    average_rating = 0
+    average_rating = round(sum(r.rating for r in reviews) / review_count, 1) if review_count else 0
 
-    if review_count:
-        average_rating = round(
-            sum(review.rating for review in reviews) / review_count,
-            1,
-        )
-
-    context = {
+    return render(request, "products/product_detail.html", {
         "product": product,
         "variants": variants_list,
         "first_variant": first_variant,
@@ -444,9 +229,7 @@ def product_detail(request, product_id):
         "reviews": reviews,
         "review_count": review_count,
         "average_rating": average_rating,
-    }
-
-    return render(request, "products/product_detail.html", context)
+    })
 
 
 @login_required
@@ -457,11 +240,8 @@ def add_to_cart(request):
 
     variant = get_object_or_404(
         ProductVariant.objects.select_related("product"),
-        id=variant_id,
-        is_active=True,
-        is_deleted=False,
-        product__is_active=True,
-        product__is_deleted=False,
+        id=variant_id, is_active=True, is_deleted=False,
+        product__is_active=True, product__is_deleted=False,
     )
 
     product = variant.product
@@ -482,180 +262,51 @@ def add_to_cart(request):
         return detail_redirect
 
     if quantity > variant.stock:
-        messages.error(
-            request,
-            f"Only {variant.stock} unit(s) are available.",
-        )
+        messages.error(request, f"Only {variant.stock} unit(s) are available.")
         return detail_redirect
 
-    existing_cart_item = Cart.objects.filter(
-        user=request.user,
-        variant=variant,
-    ).first()
+    existing_cart_item = Cart.objects.filter(user=request.user, variant=variant).first()
 
     if existing_cart_item:
         # Keep cart and wishlist mutually exclusive even when the item
         # was already in the cart.
-        Wishlist.objects.filter(
-            user=request.user,
-            variant=variant,
-        ).delete()
-
-        messages.info(
-            request,
-            "This variant is already in your cart. It was removed from your wishlist.",
-        )
+        Wishlist.objects.filter(user=request.user, variant=variant).delete()
+        messages.info(request, "This variant is already in your cart. It was removed from your wishlist.")
         return detail_redirect
 
-    Cart.objects.create(
-        user=request.user,
-        variant=variant,
-        quantity=quantity,
-    )
+    Cart.objects.create(user=request.user, variant=variant, quantity=quantity)
+    Wishlist.objects.filter(user=request.user, variant=variant).delete()
 
-    # A variant added to cart should no longer remain in wishlist.
-    Wishlist.objects.filter(
-        user=request.user,
-        variant=variant,
-    ).delete()
-
-    messages.success(
-        request,
-        "Product added to cart successfully.",
-    )
+    messages.success(request, "Product added to cart successfully.")
     return detail_redirect
-
-
-def get_cart_totals(user):
-
-    cart_items = list(
-        Cart.objects.filter(
-            user=user,
-            variant__is_active=True,
-            variant__is_deleted=False,
-        )
-        .select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        )
-        .prefetch_related(
-            "variant__images"
-        )
-        .order_by("-created_at")
-    )
-
-    offer_summary = build_cart_offer_summary(cart_items)
-
-    # Attach calculated offer information to every Cart object so the
-    # template can access item.offer_data.
-    for line in offer_summary["lines"]:
-        cart_item = line["cart_item"]
-        cart_item.offer_data = line
-
-    original_subtotal = offer_summary["original_subtotal"]
-    offer_discount = offer_summary["offer_discount"]
-    subtotal_after_offer = offer_summary["subtotal_after_offer"]
-
-    shipping = (
-        Decimal("80.00")
-        if subtotal_after_offer > 0
-        else Decimal("0.00")
-    )
-
-    grand_total = subtotal_after_offer + shipping
-
-    return {
-        "cart_items": cart_items,
-        "original_subtotal": original_subtotal,
-        "offer_discount": offer_discount,
-        "subtotal_after_offer": subtotal_after_offer,
-        "shipping": shipping,
-        "grand_total": grand_total,
-        "cart_count": len(cart_items),
-    }
 
 
 @login_required
 def cart_view(request):
     totals = get_cart_totals(request.user)
 
-    return render(
-        request,
-        "products/cart.html",
-        {
-            "cart_items": totals["cart_items"],
-            "subtotal": totals["original_subtotal"],
-            "offer_discount": totals["offer_discount"],
-            "subtotal_after_offer": totals["subtotal_after_offer"],
-            "shipping": totals["shipping"],
-            "grand_total": totals["grand_total"],
-            "cart_count": totals["cart_count"],
-        },
-    )
-
-
-def _cart_ajax_response(cart_item, totals):
-
-    current_line = None
-
-    for line in totals["cart_items"]:
-        if line.id == cart_item.id:
-            current_line = line
-            break
-
-    if current_line is None:
-        return {
-            "success": False,
-            "message": "Cart item not found.",
-        }
-
-    offer_data = current_line.offer_data
-
-    return {
-        "success": True,
-        "item_id": current_line.id,
-        "quantity": current_line.quantity,
-
-        "unit_original_price": f'{offer_data["original_unit_price"]:.2f}',
-        "unit_final_price": f'{offer_data["final_unit_price"]:.2f}',
-
-        "item_original_total": f'{offer_data["original_line_total"]:.2f}',
-        "item_offer_discount": f'{offer_data["line_offer_discount"]:.2f}',
-        "item_final_total": f'{offer_data["final_line_total"]:.2f}',
-
-        "offer_title": offer_data["offer_title"],
-        "has_offer": offer_data["line_offer_discount"] > 0,
-
-        "subtotal": f'{totals["original_subtotal"]:.2f}',
-        "offer_discount": f'{totals["offer_discount"]:.2f}',
-        "subtotal_after_offer": f'{totals["subtotal_after_offer"]:.2f}',
-        "shipping": f'{totals["shipping"]:.2f}',
-        "grand_total": f'{totals["grand_total"]:.2f}',
+    return render(request, "products/cart.html", {
+        "cart_items": totals["cart_items"],
+        "subtotal": totals["original_subtotal"],
+        "offer_discount": totals["offer_discount"],
+        "subtotal_after_offer": totals["subtotal_after_offer"],
+        "shipping": totals["shipping"],
+        "grand_total": totals["grand_total"],
         "cart_count": totals["cart_count"],
-    }
+    })
 
 
 @login_required
 @require_POST
 def increase_cart_item(request, item_id):
     cart_item = get_object_or_404(
-        Cart.objects.select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        ),
-        id=item_id,
-        user=request.user,
+        Cart.objects.select_related("variant", "variant__product", "variant__product__category"),
+        id=item_id, user=request.user,
     )
 
     if cart_item.quantity >= cart_item.variant.stock:
-        if request.headers.get("x-requested-with") == "XMLHttpRequest":
-            return JsonResponse({
-                "success": False,
-                "message": "Stock unavailable.",
-            })
-
+        if is_ajax_request(request):
+            return JsonResponse({"success": False, "message": "Stock unavailable."})
         messages.error(request, "Stock unavailable.")
         return redirect("cart")
 
@@ -664,10 +315,8 @@ def increase_cart_item(request, item_id):
 
     totals = get_cart_totals(request.user)
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse(
-            _cart_ajax_response(cart_item, totals)
-        )
+    if is_ajax_request(request):
+        return JsonResponse(cart_ajax_response(cart_item, totals))
 
     messages.success(request, "Cart updated successfully.")
     return redirect("cart")
@@ -677,18 +326,18 @@ def increase_cart_item(request, item_id):
 @require_POST
 def decrease_cart_item(request, item_id):
     cart_item = get_object_or_404(
-        Cart.objects.select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        ),
-        id=item_id,
-        user=request.user,
+        Cart.objects.select_related("variant", "variant__product", "variant__product__category"),
+        id=item_id, user=request.user,
     )
 
     if cart_item.quantity <= 1:
-        cart_item.remove()
-        messages.error(request, "cart removed successfully")
+        if is_ajax_request(request):
+            return JsonResponse({
+                "success": False,
+                "message": "Minimum quantity is 1"
+            })
+
+        messages.error(request, "Minimum quantity is 1.")
         return redirect("cart")
 
     cart_item.quantity -= 1
@@ -696,10 +345,8 @@ def decrease_cart_item(request, item_id):
 
     totals = get_cart_totals(request.user)
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
-        return JsonResponse(
-            _cart_ajax_response(cart_item, totals)
-        )
+    if is_ajax_request(request):
+        return JsonResponse(cart_ajax_response(cart_item, totals))
 
     messages.success(request, "Cart updated successfully.")
     return redirect("cart")
@@ -708,17 +355,11 @@ def decrease_cart_item(request, item_id):
 @login_required
 @require_POST
 def remove_cart_item(request, item_id):
-    cart_item = get_object_or_404(
-        Cart,
-        id=item_id,
-        user=request.user,
-    )
-
+    cart_item = get_object_or_404(Cart, id=item_id, user=request.user)
     cart_item.delete()
 
-    if request.headers.get("x-requested-with") == "XMLHttpRequest":
+    if is_ajax_request(request):
         totals = get_cart_totals(request.user)
-
         return JsonResponse({
             "success": True,
             "removed_item_id": item_id,
@@ -734,22 +375,17 @@ def remove_cart_item(request, item_id):
     messages.success(request, "Product removed from cart.")
     return redirect("cart")
 
+
 @login_required
 def wishlist_view(request):
     wishlist_items = Wishlist.objects.filter(
-    user=request.user,
-    variant__is_active=True,
-    variant__is_deleted=False
-).order_by("-created_at")
+        user=request.user, variant__is_active=True, variant__is_deleted=False,
+    ).order_by("-created_at")
 
     wishlist_value = sum(item.variant.price for item in wishlist_items)
     available_stock = sum(item.variant.stock for item in wishlist_items)
 
-    cart_count = Cart.objects.filter(
-        user=request.user,
-        variant__is_active=True,
-        variant__is_deleted=False
-    ).count()
+    cart_count = Cart.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False).count()
     wishlist_count = wishlist_items.count()
 
     return render(request, "products/wishlist.html", {
@@ -764,16 +400,13 @@ def wishlist_view(request):
 @login_required
 @require_POST
 def add_to_wishlist(request):
-
     variant_id = request.POST.get("variant_id", "").strip()
     next_url = request.POST.get("next", "").strip()
 
     fallback_url = reverse("collections")
 
     if next_url and url_has_allowed_host_and_scheme(
-        url=next_url,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
+        url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure(),
     ):
         redirect_url = next_url
     else:
@@ -785,45 +418,23 @@ def add_to_wishlist(request):
 
     variant = get_object_or_404(
         ProductVariant.objects.select_related("product"),
-        id=variant_id,
-        is_active=True,
-        is_deleted=False,
-        product__is_active=True,
-        product__is_deleted=False,
+        id=variant_id, is_active=True, is_deleted=False,
+        product__is_active=True, product__is_deleted=False,
     )
 
-    wishlist_item = Wishlist.objects.filter(
-        user=request.user,
-        variant=variant,
-    ).first()
+    wishlist_item = Wishlist.objects.filter(user=request.user, variant=variant).first()
 
     if wishlist_item:
         wishlist_item.delete()
-        messages.success(
-            request,
-            "Product removed from wishlist.",
-        )
+        messages.success(request, "Product removed from wishlist.")
         return redirect(redirect_url)
 
-    if Cart.objects.filter(
-        user=request.user,
-        variant=variant,
-    ).exists():
-        messages.info(
-            request,
-            "This variant is already in your cart.",
-        )
+    if Cart.objects.filter(user=request.user, variant=variant).exists():
+        messages.info(request, "This variant is already in your cart.")
         return redirect(redirect_url)
 
-    Wishlist.objects.create(
-        user=request.user,
-        variant=variant,
-    )
-
-    messages.success(
-        request,
-        "Product added to wishlist.",
-    )
+    Wishlist.objects.create(user=request.user, variant=variant)
+    messages.success(request, "Product added to wishlist.")
     return redirect(redirect_url)
 
 

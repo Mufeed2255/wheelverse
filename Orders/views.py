@@ -1,224 +1,83 @@
 import re
 from decimal import Decimal
 
-from django.http import HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse
+import razorpay
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db import models, transaction
+from django.db.models import Q, Sum
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.views.decorators.http import require_POST
-from django.db import transaction
+
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import ParagraphStyle, getSampleStyleSheet
+from reportlab.lib.units import mm
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
 
 from Accounts.models import Address
 from Products.models import Cart, ProductVariant
-from .models import Order, OrderItem, OrderAddress,  ReturnRequest, ReturnRequestImage ,ProductReview, ProductReviewImage
-from django.db.models import Sum
-from adminpanel.models import Product as AdminProduct
-from django.utils import timezone
-from adminpanel.models import Coupon
-from .models import CouponUsage
-
-from django.db import models
-from django.core.paginator import Paginator
-from django.db.models import Q
-
-from decimal import Decimal, ROUND_HALF_UP
-from reportlab.lib.pagesizes import A4
-from reportlab.lib import colors
-from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
-import razorpay
-from django.conf import settings
-from django.views.decorators.csrf import csrf_exempt
 from Wallet.models import Wallet, WalletTransaction
+from adminpanel.models import Coupon
+from adminpanel.models import Product as AdminProduct
+from adminpanel.services.offers import build_cart_offer_summary
 
-from adminpanel.services.offers import (
-    build_cart_offer_summary,
+from .models import (
+    CouponUsage,
+    Order,
+    OrderAddress,
+    OrderItem,
+    ProductReview,
+    ProductReviewImage,
+    ReturnRequest,
+    ReturnRequestImage,
+)
+from .utils import (
+    VALID_RETURN_REASONS,
+    calculate_coupon_discount,
+    get_item_returned_qty,
+    item_line_status,
+    pending_return_qty,
+    q,
+    refund_order_amount_to_wallet,
+    refunded_qty_and_amount,
+    sync_products_total_stock,
+    validate_checkout_address,
+    validate_images,
+    validate_return_images,
 )
 
 
- 
-from .models import Order, ReturnRequest
-
-def validate_checkout_address(data):
-    name = data.get("name", "").strip()
-    phone_number = data.get("phone_number", "").strip()
-    address_line_1 = data.get("address_line_1", "").strip()
-    address_line_2 = data.get("address_line_2", "").strip()
-    city = data.get("city", "").strip()
-    state = data.get("state", "").strip()
-    pincode = data.get("pincode", "").strip()
-    address_type = data.get("address_type", "HOME").strip().upper()
-
-
-    if not name:
-        return False, "Full name is required."
-
-    if len(name) < 2 or len(name) > 60:
-        return False, "Full name must be between 2 and 60 characters."
-
-
-    if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", name):
-        return False, (
-            "Full name must contain only letters, spaces, dots,"
-        )
-
-    if not re.search(r"[A-Za-z]", name):
-        return False, "Full name must contain letters."
-
-    if "  " in name:
-        return False, "Full name cannot contain multiple consecutive spaces."
-
-
-    if not phone_number:
-        return False, "Phone number is required."
-
-    if not phone_number.isdigit():
-        return False, "Phone number must contain only digits."
-
-    if len(phone_number) != 10:
-        return False, "Phone number must be exactly 10 digits."
-
-
-    if len(set(phone_number)) == 1:
-        return False, "Please enter a valid phone number."
-
-
-    if not address_line_1:
-        return False, "Address Line 1 is required."
-
-    if len(address_line_1) < 5 or len(address_line_1) > 150:
-        return False, (
-            "Address Line 1 must be between 5 and 150 characters."
-        )
-
-    if not re.search(r"[A-Za-z]", address_line_1):
-        return False, "Address Line 1 must contain letters."
-
-    if not re.fullmatch(
-        r"[A-Za-z0-9\s,./#()&'-]+",
-        address_line_1
-    ):
-        return False, (
-            "Address Line 1 contains invalid characters."
-        )
-
-
-    if address_line_2:
-        if len(address_line_2) > 150:
-            return False, (
-                "Address Line 2 cannot exceed 150 characters."
-            )
-
-        if not re.fullmatch(
-            r"[A-Za-z0-9\s,./#()&'-]+",
-            address_line_2
-        ):
-            return False, (
-                "Address Line 2 contains invalid characters."
-            )
-
-
-    if not city:
-        return False, "City is required."
-
-    if len(city) < 2 or len(city) > 50:
-        return False, "City must be between 2 and 50 characters."
-
-
-    if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", city):
-        return False, (
-            "City must contain only letters, spaces, dots, "
-            "apostrophes or hyphens."
-        )
-
-
-    if not state:
-        return False, "State is required."
-
-    if len(state) < 2 or len(state) > 50:
-        return False, "State must be between 2 and 50 characters."
-
-    if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", state):
-        return False, (
-            "State must contain only letters, spaces, dots, "
-            "apostrophes or hyphens."
-        )
-
-
-    if not pincode:
-        return False, "Pincode is required."
-
-    if not pincode.isdigit():
-        return False, "Pincode must contain only digits."
-
-    if not re.fullmatch(r"[1-9]\d{5}", pincode):
-        return False, (
-            "Please enter a valid 6-digit Indian pincode."
-        )
-
-
-    allowed_address_types = {"HOME", "WORK", "OTHER"}
-
-    if address_type not in allowed_address_types:
-        return False, "Please select a valid address type."
-
-    return True, ""
-
+# Checkout address add in that page
 
 @login_required
 @require_POST
 def checkout_add_address(request):
-    is_valid, error_message = validate_checkout_address(
-        request.POST
-    )
+    is_valid, error_message = validate_checkout_address(request.POST)
 
     if not is_valid:
-        return JsonResponse(
-            {
-                "success": False,
-                "message": error_message,
-            },
-            status=400,
-        )
+        return JsonResponse({"success": False, "message": error_message}, status=400)
 
     name = request.POST.get("name", "").strip()
-    phone_number = request.POST.get(
-        "phone_number",
-        "",
-    ).strip()
-    address_line_1 = request.POST.get(
-        "address_line_1",
-        "",
-    ).strip()
-    address_line_2 = request.POST.get(
-        "address_line_2",
-        "",
-    ).strip()
+    phone_number = request.POST.get("phone_number", "").strip()
+    address_line_1 = request.POST.get("address_line_1", "").strip()
+    address_line_2 = request.POST.get("address_line_2", "").strip()
     city = request.POST.get("city", "").strip()
     state = request.POST.get("state", "").strip()
     pincode = request.POST.get("pincode", "").strip()
-    address_type = request.POST.get(
-        "address_type",
-        "HOME",
-    ).strip().upper()
-
+    address_type = request.POST.get("address_type", "HOME").strip().upper()
     is_default = request.POST.get("is_default") == "on"
 
-    user_has_address = Address.objects.filter(
-        user=request.user
-    ).exists()
-
+    user_has_address = Address.objects.filter(user=request.user).exists()
     if not user_has_address:
         is_default = True
 
     if is_default:
-        Address.objects.filter(
-            user=request.user,
-            is_default=True,
-        ).update(is_default=False)
+        Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
 
     address = Address.objects.create(
         user=request.user,
@@ -243,9 +102,7 @@ def checkout_add_address(request):
                 "name": address.name,
                 "phone_number": address.phone_number,
                 "address_line_1": address.address_line_1,
-                "address_line_2": (
-                    address.address_line_2 or ""
-                ),
+                "address_line_2": address.address_line_2 or "",
                 "city": address.city,
                 "state": address.state,
                 "pincode": address.pincode,
@@ -257,268 +114,128 @@ def checkout_add_address(request):
         status=201,
     )
 
+
+
+# Checkout adn coupons
+
 @login_required
 def checkout(request):
     cart_items = list(
-        Cart.objects.filter(
-            user=request.user,
-            variant__is_active=True,
-            variant__is_deleted=False
-        )
-        .select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        )
-        .prefetch_related(
-            "variant__images"
-        )
+        Cart.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False)
+        .select_related("variant", "variant__product", "variant__product__category")
+        .prefetch_related("variant__images")
     )
 
     if not cart_items:
-        messages.error(
-            request,
-            "Your cart is empty."
-        )
+        messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
-    # Calculate product/category offers
-    offer_summary = build_cart_offer_summary(
-        cart_items
-    )
+    offer_summary = build_cart_offer_summary(cart_items)
+    original_subtotal = offer_summary["original_subtotal"]
+    offer_discount = offer_summary["offer_discount"]
+    subtotal_after_offer = offer_summary["subtotal_after_offer"]
 
-    original_subtotal = (
-        offer_summary["original_subtotal"]
-    )
-
-    offer_discount = (
-        offer_summary["offer_discount"]
-    )
-
-    subtotal_after_offer = (
-        offer_summary["subtotal_after_offer"]
-    )
-
-    # Attach offer data to each cart item
     for line in offer_summary["lines"]:
-        cart_item = line["cart_item"]
-        cart_item.offer_data = line
+        line["cart_item"].offer_data = line
 
-    shipping = (
-        Decimal("80.00")
-        if subtotal_after_offer > 0
-        else Decimal("0.00")
-    )
+    shipping = Decimal("80.00") if subtotal_after_offer > 0 else Decimal("0.00")
 
     coupon_discount = Decimal("0.00")
     applied_coupon = None
-
-    coupon_code = request.session.get(
-        "applied_coupon_code"
-    )
+    coupon_code = request.session.get("applied_coupon_code")
 
     if coupon_code:
         today = timezone.localdate()
-
         applied_coupon = Coupon.objects.filter(
-            code=coupon_code,
-            is_active=True,
-            is_deleted=False,
-            valid_from__lte=today,
-            valid_till__gte=today,
+            code=coupon_code, is_active=True, is_deleted=False,
+            valid_from__lte=today, valid_till__gte=today,
         ).first()
 
         if applied_coupon:
             usage_available = (
                 applied_coupon.usage_limit == 0
-                or
-                applied_coupon.used_count
-                < applied_coupon.usage_limit
+                or applied_coupon.used_count < applied_coupon.usage_limit
             )
-
             if usage_available:
-                coupon_discount = (
-                    calculate_coupon_discount(
-                        applied_coupon,
-                        subtotal_after_offer,
-                    )
-                )
+                coupon_discount = calculate_coupon_discount(applied_coupon, subtotal_after_offer)
             else:
-                request.session.pop(
-                    "applied_coupon_code",
-                    None
-                )
+                request.session.pop("applied_coupon_code", None)
                 applied_coupon = None
-
         else:
-            request.session.pop(
-                "applied_coupon_code",
-                None
-            )
+            request.session.pop("applied_coupon_code", None)
 
-    total_discount = (
-        offer_discount
-        + coupon_discount
-    )
+    total_discount = offer_discount + coupon_discount
+    grand_total = original_subtotal - offer_discount - coupon_discount + shipping
+    grand_total = max(grand_total, Decimal("0.00"))
 
-    grand_total = (
-        original_subtotal
-        - offer_discount
-        - coupon_discount
-        + shipping
-    )
-
-    if grand_total < 0:
-        grand_total = Decimal("0.00")
-
-    addresses = Address.objects.filter(
-        user=request.user
-    ).order_by(
-        "-is_default",
-        "-created_at"
-    )
+    addresses = Address.objects.filter(user=request.user).order_by("-is_default", "-created_at")
 
     today = timezone.localdate()
-
     available_coupons = Coupon.objects.filter(
-        is_active=True,
-        is_deleted=False,
-        valid_from__lte=today,
-        valid_till__gte=today,
+        is_active=True, is_deleted=False, valid_from__lte=today, valid_till__gte=today,
     ).order_by("-created_at")
 
-    wallet, created = Wallet.objects.get_or_create(
-        user=request.user
-    )
+    wallet, _ = Wallet.objects.get_or_create(user=request.user)
 
-    context = {
+    return render(request, "orders/checkout.html", {
         "cart_items": cart_items,
         "addresses": addresses,
         "wallet": wallet,
-
         "subtotal": original_subtotal,
         "offer_discount": offer_discount,
         "subtotal_after_offer": subtotal_after_offer,
         "coupon_discount": coupon_discount,
         "discount": total_discount,
-
         "shipping": shipping,
         "grand_total": grand_total,
-
         "cart_count": len(cart_items),
         "available_coupons": available_coupons,
         "applied_coupon": applied_coupon,
-    }
+    })
 
-    return render(
-        request,
-        "orders/checkout.html",
-        context
-    )
+
 @login_required
 @require_POST
 def apply_coupon(request):
-    code = request.POST.get(
-        "coupon_code",
-        ""
-    ).strip().upper()
+    code = request.POST.get("coupon_code", "").strip().upper()
 
     if not code:
-        messages.error(
-            request,
-            "Please enter a coupon code."
-        )
+        messages.error(request, "Please enter a coupon code.")
         return redirect("checkout")
 
     cart_items = list(
-        Cart.objects.filter(
-            user=request.user,
-            variant__is_active=True,
-            variant__is_deleted=False
-        )
-        .select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        )
+        Cart.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False)
+        .select_related("variant", "variant__product", "variant__product__category")
     )
 
     if not cart_items:
-        messages.error(
-            request,
-            "Your cart is empty."
-        )
+        messages.error(request, "Your cart is empty.")
         return redirect("cart")
 
-    offer_summary = build_cart_offer_summary(
-        cart_items
-    )
-
-    subtotal_after_offer = (
-        offer_summary["subtotal_after_offer"]
-    )
+    offer_summary = build_cart_offer_summary(cart_items)
+    subtotal_after_offer = offer_summary["subtotal_after_offer"]
 
     today = timezone.localdate()
-
     coupon = Coupon.objects.filter(
-        code=code,
-        is_active=True,
-        is_deleted=False,
-        valid_from__lte=today,
-        valid_till__gte=today,
+        code=code, is_active=True, is_deleted=False, valid_from__lte=today, valid_till__gte=today,
     ).first()
 
     if not coupon:
-        messages.error(
-            request,
-            "Invalid or expired coupon."
-        )
+        messages.error(request, "Invalid or expired coupon.")
         return redirect("checkout")
 
-    if (
-        coupon.usage_limit > 0
-        and coupon.used_count >= coupon.usage_limit
-    ):
-        messages.error(
-            request,
-            "Coupon usage limit reached."
-        )
+    if coupon.usage_limit > 0 and coupon.used_count >= coupon.usage_limit:
+        messages.error(request, "Coupon usage limit reached.")
         return redirect("checkout")
 
     if subtotal_after_offer < coupon.min_cart_amount:
-        messages.error(
-            request,
-            (
-                f"Minimum amount "
-                f"₹{coupon.min_cart_amount} "
-                f"is required after offer discount."
-            )
-        )
+        messages.error(request, f"Minimum amount \u20b9{coupon.min_cart_amount} is required after offer discount.")
         return redirect("checkout")
 
-    request.session[
-        "applied_coupon_code"
-    ] = coupon.code
-
-    messages.success(
-        request,
-        f"Coupon {coupon.code} applied successfully."
-    )
-
+    request.session["applied_coupon_code"] = coupon.code
+    messages.success(request, f"Coupon {coupon.code} applied successfully.")
     return redirect("checkout")
 
-
-def calculate_coupon_discount(coupon, subtotal):
-    if subtotal < coupon.min_cart_amount:
-        return Decimal("0.00")
-
-    if coupon.discount_type == "PERCENTAGE":
-        discount = (subtotal * coupon.discount_value) / Decimal("100")
-        if coupon.max_discount_amount > 0:
-            discount = min(discount, coupon.max_discount_amount)
-        return discount.quantize(Decimal("0.01"))
-
-    return min(coupon.discount_value, subtotal).quantize(Decimal("0.01"))
 
 @login_required
 def remove_coupon(request):
@@ -526,20 +243,16 @@ def remove_coupon(request):
     messages.success(request, "Coupon removed successfully.")
     return redirect("checkout")
 
+
+# Place order and  payment
+
 @login_required
 @require_POST
 @transaction.atomic
 def place_order(request):
     cart_items = list(
-        Cart.objects.filter(
-            user=request.user,
-            variant__is_active=True,
-            variant__is_deleted=False,
-        ).select_related(
-            "variant",
-            "variant__product",
-            "variant__product__category",
-        )
+        Cart.objects.filter(user=request.user, variant__is_active=True, variant__is_deleted=False)
+        .select_related("variant", "variant__product", "variant__product__category")
     )
 
     if not cart_items:
@@ -549,7 +262,6 @@ def place_order(request):
     selected_address_id = request.POST.get("selected_address", "").strip()
     payment_method = request.POST.get("payment_method", "COD").strip().upper()
 
-
     if payment_method not in {"COD", "WALLET", "RAZORPAY"}:
         messages.error(request, "Invalid payment method.")
         return redirect("checkout")
@@ -558,11 +270,7 @@ def place_order(request):
         messages.error(request, "Please select a delivery address.")
         return redirect("checkout")
 
-    selected_address = get_object_or_404(
-        Address,
-        id=selected_address_id,
-        user=request.user,
-    )
+    selected_address = get_object_or_404(Address, id=selected_address_id, user=request.user)
 
     phone = (selected_address.phone_number or "").strip()
     postal_code = (selected_address.pincode or "").strip()
@@ -576,34 +284,25 @@ def place_order(request):
         return redirect("checkout")
 
     locked_cart_items = []
-
     for cart_item in cart_items:
         variant = (
-            ProductVariant.objects
-            .select_for_update()
+            ProductVariant.objects.select_for_update()
             .select_related("product", "product__category")
             .get(id=cart_item.variant_id)
         )
 
         if not variant.is_active or variant.is_deleted:
-            messages.error(
-                request,
-                f"{variant.product.name} is no longer available.",
-            )
+            messages.error(request, f"{variant.product.name} is no longer available.")
             return redirect("cart")
 
         if cart_item.quantity > variant.stock:
-            messages.error(
-                request,
-                f"Only {variant.stock} unit(s) available for {variant.product.name}.",
-            )
+            messages.error(request, f"Only {variant.stock} unit(s) available for {variant.product.name}.")
             return redirect("cart")
 
         cart_item.variant = variant
         locked_cart_items.append(cart_item)
 
     offer_summary = build_cart_offer_summary(locked_cart_items)
-
     original_subtotal = offer_summary["original_subtotal"]
     offer_discount = offer_summary["offer_discount"]
     subtotal_after_offer = offer_summary["subtotal_after_offer"]
@@ -614,17 +313,9 @@ def place_order(request):
 
     if coupon_code:
         today = timezone.localdate()
-
         applied_coupon = (
-            Coupon.objects
-            .select_for_update()
-            .filter(
-                code=coupon_code,
-                is_active=True,
-                is_deleted=False,
-                valid_from__lte=today,
-                valid_till__gte=today,
-            )
+            Coupon.objects.select_for_update()
+            .filter(code=coupon_code, is_active=True, is_deleted=False, valid_from__lte=today, valid_till__gte=today)
             .first()
         )
 
@@ -633,44 +324,20 @@ def place_order(request):
             messages.error(request, "Applied coupon is invalid or expired.")
             return redirect("checkout")
 
-        if (
-            applied_coupon.usage_limit > 0
-            and applied_coupon.used_count >= applied_coupon.usage_limit
-        ):
+        if applied_coupon.usage_limit > 0 and applied_coupon.used_count >= applied_coupon.usage_limit:
             request.session.pop("applied_coupon_code", None)
             messages.error(request, "Coupon usage limit reached.")
             return redirect("checkout")
 
         if subtotal_after_offer < applied_coupon.min_cart_amount:
-            messages.error(
-                request,
-                f"Minimum amount ₹{applied_coupon.min_cart_amount} is required after offer discount.",
-            )
+            messages.error(request, f"Minimum amount \u20b9{applied_coupon.min_cart_amount} is required after offer discount.")
             return redirect("checkout")
 
-        coupon_discount = calculate_coupon_discount(
-            applied_coupon,
-            subtotal_after_offer,
-        )
+        coupon_discount = calculate_coupon_discount(applied_coupon, subtotal_after_offer)
 
-    shipping_fee = (
-        Decimal("80.00")
-        if subtotal_after_offer > 0
-        else Decimal("0.00")
-    )
-
+    shipping_fee = Decimal("80.00") if subtotal_after_offer > 0 else Decimal("0.00")
     total_discount = offer_discount + coupon_discount
-
-    grand_total = (
-        original_subtotal
-        - offer_discount
-        - coupon_discount
-        + shipping_fee
-    )
-    grand_total = max(
-        grand_total.quantize(Decimal("0.01")),
-        Decimal("0.00"),
-    )
+    grand_total = q(max(original_subtotal - offer_discount - coupon_discount + shipping_fee, Decimal("0.00")))
 
     address_str = selected_address.address_line_1
     if selected_address.address_line_2:
@@ -678,10 +345,7 @@ def place_order(request):
 
     # Remove abandoned drafts belonging to this user. They were never paid,
     # never reduced stock and never consumed a coupon.
-    Order.objects.filter(
-        user=request.user,
-        status="PAYMENT_PENDING",
-    ).delete()
+    Order.objects.filter(user=request.user, status="PAYMENT_PENDING").delete()
 
     order = Order.objects.create(
         user=request.user,
@@ -730,16 +394,12 @@ def place_order(request):
 
     return redirect("payment", order_id=order.id)
 
+
 @login_required
 def payment_view(request, order_id):
     order = get_object_or_404(
-        Order.objects.prefetch_related(
-            "items",
-            "items__variant",
-            "items__variant__images",
-        ),
-        id=order_id,
-        user=request.user,
+        Order.objects.prefetch_related("items", "items__variant", "items__variant__images"),
+        id=order_id, user=request.user,
     )
 
     if order.status == "CONFIRMED":
@@ -759,12 +419,7 @@ def payment_view(request, order_id):
     razorpay_order_id = None
 
     if order.payment_method == "RAZORPAY":
-        client = razorpay.Client(
-            auth=(
-                settings.RAZORPAY_KEY_ID,
-                settings.RAZORPAY_KEY_SECRET,
-            )
-        )
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
         if not order.razorpay_order_id:
             try:
@@ -772,16 +427,10 @@ def payment_view(request, order_id):
                     "amount": razorpay_amount,
                     "currency": "INR",
                     "payment_capture": 1,
-                    "notes": {
-                        "order_id": order.order_id,
-                        "user_id": str(request.user.id),
-                    },
+                    "notes": {"order_id": order.order_id, "user_id": str(request.user.id)},
                 })
             except Exception:
-                messages.error(
-                    request,
-                    "Unable to start Razorpay. Please try again.",
-                )
+                messages.error(request, "Unable to start Razorpay. Please try again.")
                 return redirect("checkout")
 
             order.razorpay_order_id = razorpay_order["id"]
@@ -789,42 +438,34 @@ def payment_view(request, order_id):
 
         razorpay_order_id = order.razorpay_order_id
 
-    return render(
-        request,
-        "orders/payment.html",
-        {
-            "order": order,
-            "address": address,
-            "wallet": wallet,
-            "subtotal": order.subtotal,
-            "offer_discount": order.offer_discount,
-            "subtotal_after_offer": subtotal_after_offer,
-            "coupon_discount": order.coupon_discount,
-            "total_savings": total_savings,
-            "shipping": order.shipping_fee,
-            "grand_total": order.total_amount,
-            "razorpay_key_id": settings.RAZORPAY_KEY_ID,
-            "razorpay_amount": razorpay_amount,
-            "razorpay_order_id": razorpay_order_id,
-        },
-    )
+    return render(request, "orders/payment.html", {
+        "order": order,
+        "address": address,
+        "wallet": wallet,
+        "subtotal": order.subtotal,
+        "offer_discount": order.offer_discount,
+        "subtotal_after_offer": subtotal_after_offer,
+        "coupon_discount": order.coupon_discount,
+        "total_savings": total_savings,
+        "shipping": order.shipping_fee,
+        "grand_total": order.total_amount,
+        "razorpay_key_id": settings.RAZORPAY_KEY_ID,
+        "razorpay_amount": razorpay_amount,
+        "razorpay_order_id": razorpay_order_id,
+    })
+
 
 def confirm_order_after_payment(order):
-    """
-    Finalize an order only after COD confirmation, successful wallet debit,
-    or verified Razorpay payment.
-
-    Stock, coupon usage and cart clearing happen exactly once here.
-    """
+    """Finalize an order only after COD confirmation, successful wallet
+    debit, or verified Razorpay payment. Stock, coupon usage and cart
+    clearing happen exactly once here."""
     if order.status == "CONFIRMED":
         return True, "Already confirmed."
 
     if order.status != "PAYMENT_PENDING":
         return False, "Order cannot be confirmed."
 
-    order_items = list(
-        order.items.select_related("variant", "variant__product")
-    )
+    order_items = list(order.items.select_related("variant", "variant__product"))
     updated_product_ids = set()
     locked_variants = {}
 
@@ -832,21 +473,13 @@ def confirm_order_after_payment(order):
         if not order_item.variant_id:
             return False, f"Variant unavailable for {order_item.product_name}."
 
-        variant = (
-            ProductVariant.objects
-            .select_for_update()
-            .select_related("product")
-            .get(id=order_item.variant_id)
-        )
+        variant = ProductVariant.objects.select_for_update().select_related("product").get(id=order_item.variant_id)
 
         if not variant.is_active or variant.is_deleted:
             return False, f"{order_item.product_name} is no longer available."
 
         if order_item.quantity > variant.stock:
-            return False, (
-                f"Only {variant.stock} unit(s) left for "
-                f"{order_item.product_name}."
-            )
+            return False, f"Only {variant.stock} unit(s) left for {order_item.product_name}."
 
         locked_variants[order_item.id] = variant
 
@@ -854,15 +487,8 @@ def confirm_order_after_payment(order):
     if order.coupon_code:
         today = timezone.localdate()
         coupon = (
-            Coupon.objects
-            .select_for_update()
-            .filter(
-                code=order.coupon_code,
-                is_active=True,
-                is_deleted=False,
-                valid_from__lte=today,
-                valid_till__gte=today,
-            )
+            Coupon.objects.select_for_update()
+            .filter(code=order.coupon_code, is_active=True, is_deleted=False, valid_from__lte=today, valid_till__gte=today)
             .first()
         )
 
@@ -879,11 +505,7 @@ def confirm_order_after_payment(order):
         updated_product_ids.add(variant.product_id)
 
     if coupon:
-        usage, created = CouponUsage.objects.get_or_create(
-            user=order.user,
-            coupon=coupon,
-            order=order,
-        )
+        usage, created = CouponUsage.objects.get_or_create(user=order.user, coupon=coupon, order=order)
         if created:
             coupon.used_count += 1
             coupon.save(update_fields=["used_count"])
@@ -891,24 +513,10 @@ def confirm_order_after_payment(order):
     order.status = "CONFIRMED"
     order.save(update_fields=["status", "updated_at"])
 
-    ordered_variant_ids = [
-        item.variant_id for item in order_items if item.variant_id
-    ]
-    Cart.objects.filter(
-        user=order.user,
-        variant_id__in=ordered_variant_ids,
-    ).delete()
+    ordered_variant_ids = [item.variant_id for item in order_items if item.variant_id]
+    Cart.objects.filter(user=order.user, variant_id__in=ordered_variant_ids).delete()
 
-    def sync_stock():
-        for product_id in updated_product_ids:
-            product = AdminProduct.objects.get(id=product_id)
-            total_stock = product.variants.filter(
-                is_deleted=False,
-            ).aggregate(total=Sum("stock"))["total"] or 0
-            product.total_stock = total_stock
-            product.save(update_fields=["total_stock"])
-
-    transaction.on_commit(sync_stock)
+    transaction.on_commit(lambda: sync_products_total_stock(updated_product_ids))
     return True, "Order confirmed."
 
 
@@ -916,12 +524,7 @@ def confirm_order_after_payment(order):
 @require_POST
 @transaction.atomic
 def confirm_payment(request, order_id):
-    order = get_object_or_404(
-        Order.objects.select_for_update(),
-        id=order_id,
-        user=request.user
-    )
-
+    order = get_object_or_404(Order.objects.select_for_update(), id=order_id, user=request.user)
     payment_method = request.POST.get("payment_method", "").strip().upper()
 
     if payment_method != order.payment_method:
@@ -930,7 +533,6 @@ def confirm_payment(request, order_id):
 
     if payment_method == "COD":
         success, msg = confirm_order_after_payment(order)
-
         if not success:
             messages.error(request, msg)
             return redirect("order_failed_with_order", order_id=order.id)
@@ -952,7 +554,6 @@ def confirm_payment(request, order_id):
             return redirect("payment", order_id=order.id)
 
         success, msg = confirm_order_after_payment(order)
-
         if not success:
             messages.error(request, msg)
             return redirect("order_failed_with_order", order_id=order.id)
@@ -991,9 +592,7 @@ def confirm_payment(request, order_id):
 def verify_razorpay_payment(request, order_id):
     order = get_object_or_404(
         Order.objects.select_for_update(),
-        id=order_id,
-        user=request.user,
-        payment_method="RAZORPAY",
+        id=order_id, user=request.user, payment_method="RAZORPAY",
     )
 
     if order.status == "CONFIRMED":
@@ -1007,11 +606,7 @@ def verify_razorpay_payment(request, order_id):
     razorpay_order_id = request.POST.get("razorpay_order_id", "").strip()
     razorpay_signature = request.POST.get("razorpay_signature", "").strip()
 
-    if not all([
-        razorpay_payment_id,
-        razorpay_order_id,
-        razorpay_signature,
-    ]):
+    if not all([razorpay_payment_id, razorpay_order_id, razorpay_signature]):
         messages.error(request, "Incomplete Razorpay payment response.")
         return redirect("payment", order_id=order.id)
 
@@ -1019,9 +614,7 @@ def verify_razorpay_payment(request, order_id):
         messages.error(request, "Razorpay order ID mismatch.")
         return redirect("payment", order_id=order.id)
 
-    client = razorpay.Client(
-        auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET)
-    )
+    client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
 
     try:
         client.utility.verify_payment_signature({
@@ -1043,11 +636,7 @@ def verify_razorpay_payment(request, order_id):
 
     order.razorpay_payment_id = razorpay_payment_id
     order.razorpay_signature = razorpay_signature
-    order.save(update_fields=[
-        "razorpay_payment_id",
-        "razorpay_signature",
-        "updated_at",
-    ])
+    order.save(update_fields=["razorpay_payment_id", "razorpay_signature", "updated_at"])
 
     if request.session.get("applied_coupon_code") == order.coupon_code:
         request.session.pop("applied_coupon_code", None)
@@ -1055,37 +644,20 @@ def verify_razorpay_payment(request, order_id):
     messages.success(request, "Online payment successful.")
     return redirect("order_success", order_id=order.id)
 
+
 @login_required
 def order_success(request, order_id):
     order = get_object_or_404(
-        Order.objects.prefetch_related(
-            "items",
-            "items__variant",
-            "items__variant__images"
-        ),
-        id=order_id,
-        user=request.user,
-        status="CONFIRMED",
+        Order.objects.prefetch_related("items", "items__variant", "items__variant__images"),
+        id=order_id, user=request.user, status="CONFIRMED",
     )
+    return render(request, "orders/order_success.html", {"order": order})
 
-    return render(request, "orders/order_success.html", {
-        "order": order
-    })
-    
-    
+
 @login_required
 def order_failed(request, order_id=None):
-    order = None
-    if order_id:
-        order = Order.objects.filter(
-            id=order_id,
-            user=request.user
-        ).first()
-    return render(request, "orders/order_failed.html", {
-        "order": order
-    })
-    
-
+    order = Order.objects.filter(id=order_id, user=request.user).first() if order_id else None
+    return render(request, "orders/order_failed.html", {"order": order})
 
 
 @login_required
@@ -1093,30 +665,15 @@ def my_orders(request):
     status_filter = request.GET.get("status", "all")
     search_query = request.GET.get("search", "").strip()
 
-    visible_orders = Order.objects.filter(
-        user=request.user,
-    ).exclude(
-        status="PAYMENT_PENDING",
-    )
+    visible_orders = Order.objects.filter(user=request.user).exclude(status="PAYMENT_PENDING")
 
     orders = visible_orders.prefetch_related(
-        "items",
-        "items__variant",
-        "items__variant__images",
+        "items", "items__variant", "items__variant__images",
     ).order_by("-ordered_at")
 
     allowed_filters = {
-        "all",
-        "PENDING",
-        "CONFIRMED",
-        "SHIPPED",
-        "OUT_FOR_DELIVERY",
-        "DELIVERED",
-        "CANCELLED",
-        "RETURN_REQUESTED",
-        "RETURN_APPROVED",
-        "RETURN_REJECTED",
-        "RETURNED",
+        "all", "PENDING", "CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY", "DELIVERED",
+        "CANCELLED", "RETURN_REQUESTED", "RETURN_APPROVED", "RETURN_REJECTED", "RETURNED",
     }
 
     if status_filter not in allowed_filters:
@@ -1127,8 +684,7 @@ def my_orders(request):
 
     if search_query:
         orders = orders.filter(
-            Q(order_id__icontains=search_query)
-            | Q(items__product_name__icontains=search_query)
+            Q(order_id__icontains=search_query) | Q(items__product_name__icontains=search_query)
         ).distinct()
 
     paginator = Paginator(orders, 5)
@@ -1143,29 +699,20 @@ def my_orders(request):
         "returned": visible_orders.filter(status="RETURNED").count(),
     }
 
-    return render(
-        request,
-        "orders/my_orders.html",
-        {
-            "page_obj": page_obj,
-            "orders": page_obj.object_list,
-            "status_filter": status_filter,
-            "search_query": search_query,
-            "counts": counts,
-        },
-    )
+    return render(request, "orders/my_orders.html", {
+        "page_obj": page_obj,
+        "orders": page_obj.object_list,
+        "status_filter": status_filter,
+        "search_query": search_query,
+        "counts": counts,
+    })
 
 
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(
-        Order.objects.prefetch_related(
-            "items",
-            "items__variant",
-            "items__variant__images"
-        ),
-        id=order_id,
-        user=request.user,
+        Order.objects.prefetch_related("items", "items__variant", "items__variant__images"),
+        id=order_id, user=request.user,
     )
 
     if order.status == "PAYMENT_PENDING":
@@ -1173,53 +720,25 @@ def order_detail(request, order_id):
         return redirect("payment", order_id=order.id)
 
     address = OrderAddress.objects.filter(order=order).first()
-
     first_item = order.items.first()
 
-    status_steps = [
-        "PENDING",
-        "CONFIRMED",
-        "SHIPPED",
-        "DELIVERED",
-    ]
-
+    status_steps = ["PENDING", "CONFIRMED", "SHIPPED", "DELIVERED"]
     try:
         current_step = status_steps.index(order.status)
     except ValueError:
         current_step = 0
 
     progress_percent = {
-        "PENDING": 15,
-        "CONFIRMED": 35,
-        "SHIPPED": 70,
-        "DELIVERED": 100,
-        "CANCELLED": 0,
-        "RETURN_REQUESTED": 100,
-        "RETURNED": 100,
+        "PENDING": 15, "CONFIRMED": 35, "SHIPPED": 70, "DELIVERED": 100,
+        "CANCELLED": 0, "RETURN_REQUESTED": 100, "RETURNED": 100,
     }.get(order.status, 15)
 
-    # Attach database-backed item offer totals for the template.
-    # The queryset is already prefetched, so these attributes are available
-    # when the template loops through order.items.all.
     for item in order.items.all():
-        active_quantity = max(
-            item.quantity - item.cancelled_quantity,
-            0,
-        )
+        active_quantity = max(item.quantity - item.cancelled_quantity, 0)
+        item.active_offer_discount_total = q(item.offer_discount * active_quantity)
 
-        item.active_offer_discount_total = (
-            item.offer_discount * active_quantity
-        ).quantize(Decimal("0.01"))
-
-    subtotal_after_offer = max(
-        order.subtotal - order.offer_discount,
-        Decimal("0.00"),
-    )
-
-    total_savings = (
-        order.offer_discount
-        + order.coupon_discount
-    )
+    subtotal_after_offer = max(order.subtotal - order.offer_discount, Decimal("0.00"))
+    total_savings = order.offer_discount + order.coupon_discount
 
     return render(request, "orders/order_detail.html", {
         "order": order,
@@ -1231,51 +750,18 @@ def order_detail(request, order_id):
         "total_savings": total_savings,
     })
 
-def refund_to_wallet_for_cancel(order, amount, reference_suffix):
-    if amount <= 0:
-        return False
 
-    if order.payment_method == "COD":
-        return False
 
-    reference = f"CANCEL_REFUND_{reference_suffix}"
-
-    if WalletTransaction.objects.filter(reference=reference).exists():
-        return False
-
-    wallet, created = Wallet.objects.select_for_update().get_or_create(
-        user=order.user
-    )
-
-    wallet.balance += amount
-    wallet.save(update_fields=["balance", "updated_at"])
-
-    WalletTransaction.objects.create(
-        wallet=wallet,
-        order=order,
-        transaction_type="CREDIT",
-        purpose="CANCEL_REFUND",
-        payment_method=order.payment_method,
-        amount=amount,
-        status="COMPLETED",
-        description=f"Cancel refund for order {order.order_id}",
-        reference=reference,
-    )
-
-    return True
-
+# order Cancellation
 
 @login_required
 @transaction.atomic
 def cancel_order(request, order_id):
     order = get_object_or_404(
         Order.objects.select_for_update().select_related("user").prefetch_related(
-            "items",
-            "items__variant",
-            "items__variant__product"
+            "items", "items__variant", "items__variant__product"
         ),
-        id=order_id,
-        user=request.user
+        id=order_id, user=request.user,
     )
 
     if order.status in ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REQUESTED"]:
@@ -1293,12 +779,7 @@ def cancel_order(request, order_id):
         final_reason = f"{reason}\n\n{comments}" if comments else reason
 
         product_ids_to_sync = set()
-
-        stock_should_restore = order.status in [
-            "CONFIRMED",
-            "SHIPPED",
-            "OUT_FOR_DELIVERY",
-        ]
+        stock_should_restore = order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]
 
         for item in order.items.filter(is_cancelled=False):
             if stock_should_restore and item.variant:
@@ -1311,33 +792,16 @@ def cancel_order(request, order_id):
             item.save(update_fields=["is_cancelled", "cancel_reason"])
 
         refund_done = False
-
-        if order.payment_method != "COD" and order.status in [
-            "CONFIRMED",
-            "SHIPPED",
-            "OUT_FOR_DELIVERY",
-        ]:
-            refund_done = refund_to_wallet_for_cancel(
-                order=order,
-                amount=order.total_amount,
-                reference_suffix=f"ORDER_{order.id}"
+        if order.payment_method != "COD" and order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]:
+            refund_done = refund_order_amount_to_wallet(
+                order=order, amount=order.total_amount, reference=f"CANCEL_REFUND_ORDER_{order.id}",
             )
+
         order.status = "CANCELLED"
         order.cancel_reason = final_reason
         order.save(update_fields=["status", "cancel_reason", "updated_at"])
 
-        def sync_stock(pids=product_ids_to_sync):
-            for pid in pids:
-                product = AdminProduct.objects.get(id=pid)
-                total = product.variants.filter(
-                    is_deleted=False,
-                    is_active=True
-                ).aggregate(total=Sum("stock"))["total"] or 0
-
-                product.total_stock = total
-                product.save(update_fields=["total_stock"])
-
-        transaction.on_commit(sync_stock)
+        transaction.on_commit(lambda: sync_products_total_stock(product_ids_to_sync, active_only=True))
 
         if refund_done:
             messages.success(request, "Item cancelled and amount refunded to wallet.")
@@ -1350,69 +814,39 @@ def cancel_order(request, order_id):
         "order": order,
         "first_item": order.items.filter(is_cancelled=False).first(),
     })
-    
-    
+
+
 @login_required
 @transaction.atomic
 def cancel_order_item(request, item_id):
-    
-    locked_item = get_object_or_404(
-        OrderItem.objects.select_for_update(),
-        id=item_id,
-        order__user=request.user,
-    )
+    locked_item = get_object_or_404(OrderItem.objects.select_for_update(), id=item_id, order__user=request.user)
 
-    order = get_object_or_404(
-        Order.objects.select_for_update(),
-        id=locked_item.order_id,
-        user=request.user,
-    )
+    order = get_object_or_404(Order.objects.select_for_update(), id=locked_item.order_id, user=request.user)
 
     order_item = (
         OrderItem.objects
-        .select_related(
-            "order",
-            "order__user",
-            "variant",
-            "variant__product",
-        )
+        .select_related("order", "order__user", "variant", "variant__product")
         .prefetch_related("variant__images")
         .get(id=locked_item.id)
     )
 
-    allowed_statuses = {
-        "PENDING",
-        "CONFIRMED",
-        "SHIPPED",
-        "OUT_FOR_DELIVERY",
-    }
+    allowed_statuses = {"PENDING", "CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"}
 
     if order.status not in allowed_statuses:
-        messages.error(
-            request,
-            "This item cannot be cancelled at the current order stage.",
-        )
+        messages.error(request, "This item cannot be cancelled at the current order stage.")
         return redirect("order_detail", order_id=order.id)
 
-
     if order_item.cancelled_quantity > 0 or order_item.is_cancelled:
-        messages.info(
-            request,
-            "A cancellation has already been processed for this item.",
-        )
+        messages.info(request, "A cancellation has already been processed for this item.")
         return redirect("order_detail", order_id=order.id)
 
     if request.method == "GET":
-        return render(
-            request,
-            "orders/cancel_item.html",
-            {
-                "order": order,
-                "item": order_item,
-                "first_item": order_item,
-                "available_cancel_quantity": order_item.quantity,
-            },
-        )
+        return render(request, "orders/cancel_item.html", {
+            "order": order,
+            "item": order_item,
+            "first_item": order_item,
+            "available_cancel_quantity": order_item.quantity,
+        })
 
     if request.method != "POST":
         messages.error(request, "Invalid cancellation request.")
@@ -1422,350 +856,124 @@ def cancel_order_item(request, item_id):
     comments = request.POST.get("comments", "").strip()
 
     try:
-        cancel_quantity = int(
-            request.POST.get("cancel_quantity", "0")
-        )
+        cancel_quantity = int(request.POST.get("cancel_quantity", "0"))
     except (TypeError, ValueError):
         cancel_quantity = 0
 
     allowed_reasons = {
-        "Ordered by Mistake",
-        "Found Another Collectible",
-        "Financial Reasons",
-        "Shipping Delay Concerns",
-        "Other",
+        "Ordered by Mistake", "Found Another Collectible", "Financial Reasons",
+        "Shipping Delay Concerns", "Other",
     }
 
     if reason not in allowed_reasons:
-        messages.error(
-            request,
-            "Please select a valid cancellation reason.",
-        )
-        return redirect(
-            "cancel_order_item",
-            item_id=order_item.id,
-        )
+        messages.error(request, "Please select a valid cancellation reason.")
+        return redirect("cancel_order_item", item_id=order_item.id)
 
     if cancel_quantity < 1:
-        messages.error(
-            request,
-            "Please select at least one quantity to cancel.",
-        )
-        return redirect(
-            "cancel_order_item",
-            item_id=order_item.id,
-        )
+        messages.error(request, "Please select at least one quantity to cancel.")
+        return redirect("cancel_order_item", item_id=order_item.id)
 
     if cancel_quantity > order_item.quantity:
-        messages.error(
-            request,
-            (
-                f"You can cancel a maximum of "
-                f"{order_item.quantity} unit(s)."
-            ),
-        )
-        return redirect(
-            "cancel_order_item",
-            item_id=order_item.id,
-        )
+        messages.error(request, f"You can cancel a maximum of {order_item.quantity} unit(s).")
+        return redirect("cancel_order_item", item_id=order_item.id)
 
     if comments and len(comments) > 500:
-        messages.error(
-            request,
-            "Additional comments cannot exceed 500 characters.",
-        )
-        return redirect(
-            "cancel_order_item",
-            item_id=order_item.id,
-        )
+        messages.error(request, "Additional comments cannot exceed 500 characters.")
+        return redirect("cancel_order_item", item_id=order_item.id)
 
-    final_reason = (
-        f"{reason}\n\nAdditional comments: {comments}"
-        if comments
-        else reason
-        
-        
-    )
+    final_reason = f"{reason}\n\nAdditional comments: {comments}" if comments else reason
 
     old_total_amount = order.total_amount
-    old_subtotal_after_offer = max(
-        order.subtotal - order.offer_discount,
-        Decimal("0.00"),
-    )
+    old_subtotal_after_offer = max(order.subtotal - order.offer_discount, Decimal("0.00"))
 
     product_id_to_sync = None
 
     if order_item.variant_id:
-        variant = (
-            ProductVariant.objects
-            .select_for_update()
-            .select_related("product")
-            .get(id=order_item.variant_id)
-        )
-
+        variant = ProductVariant.objects.select_for_update().select_related("product").get(id=order_item.variant_id)
         variant.stock += cancel_quantity
         variant.save(update_fields=["stock"])
         product_id_to_sync = variant.product_id
 
     order_item.cancelled_quantity = cancel_quantity
-    order_item.is_cancelled = (
-        cancel_quantity >= order_item.quantity
-    )
+    order_item.is_cancelled = cancel_quantity >= order_item.quantity
     order_item.cancel_reason = final_reason
-    order_item.save(
-        update_fields=[
-            "cancelled_quantity",
-            "is_cancelled",
-            "cancel_reason",
-        ]
-    )
+    order_item.save(update_fields=["cancelled_quantity", "is_cancelled", "cancel_reason"])
 
-    all_items = list(
-        order.items
-        .select_for_update()
-        .all()
-    )
+    all_items = list(order.items.select_for_update().all())
 
     remaining_original_subtotal = Decimal("0.00")
     remaining_offer_discount = Decimal("0.00")
     remaining_active_quantity = 0
 
     for item in all_items:
-        active_quantity = max(
-            item.quantity - item.cancelled_quantity,
-            0,
-        )
-
+        active_quantity = max(item.quantity - item.cancelled_quantity, 0)
         remaining_active_quantity += active_quantity
+        remaining_original_subtotal += item.original_price * active_quantity
+        remaining_offer_discount += item.offer_discount * active_quantity
 
-        remaining_original_subtotal += (
-            item.original_price * active_quantity
-        )
+    remaining_subtotal_after_offer = max(remaining_original_subtotal - remaining_offer_discount, Decimal("0.00"))
 
-        remaining_offer_discount += (
-            item.offer_discount * active_quantity
-        )
-
-    remaining_subtotal_after_offer = max(
-        remaining_original_subtotal
-        - remaining_offer_discount,
-        Decimal("0.00"),
-    )
-
-    if (
-        order.coupon_discount > 0
-        and old_subtotal_after_offer > 0
-        and remaining_subtotal_after_offer > 0
-    ):
-        coupon_ratio = (
-            remaining_subtotal_after_offer
-            / old_subtotal_after_offer
-        )
-
-        remaining_coupon_discount = (
-            order.coupon_discount * coupon_ratio
-        ).quantize(Decimal("0.01"))
-
-        remaining_coupon_discount = min(
-            remaining_coupon_discount,
-            remaining_subtotal_after_offer,
-        )
+    if order.coupon_discount > 0 and old_subtotal_after_offer > 0 and remaining_subtotal_after_offer > 0:
+        coupon_ratio = remaining_subtotal_after_offer / old_subtotal_after_offer
+        remaining_coupon_discount = q(order.coupon_discount * coupon_ratio)
+        remaining_coupon_discount = min(remaining_coupon_discount, remaining_subtotal_after_offer)
     else:
         remaining_coupon_discount = Decimal("0.00")
 
-    remaining_shipping_fee = (
-        order.shipping_fee
-        if remaining_active_quantity > 0
-        else Decimal("0.00")
-    )
+    remaining_shipping_fee = order.shipping_fee if remaining_active_quantity > 0 else Decimal("0.00")
+    remaining_discount_amount = remaining_offer_discount + remaining_coupon_discount
+    remaining_total = remaining_original_subtotal - remaining_offer_discount - remaining_coupon_discount + remaining_shipping_fee
 
-    remaining_discount_amount = (
-        remaining_offer_discount
-        + remaining_coupon_discount
-    )
-
-    remaining_total = (
-        remaining_original_subtotal
-        - remaining_offer_discount
-        - remaining_coupon_discount
-        + remaining_shipping_fee
-    )
-
-    order.subtotal = remaining_original_subtotal.quantize(
-        Decimal("0.01")
-    )
-    order.offer_discount = remaining_offer_discount.quantize(
-        Decimal("0.01")
-    )
-    order.coupon_discount = remaining_coupon_discount.quantize(
-        Decimal("0.01")
-    )
-    order.discount_amount = remaining_discount_amount.quantize(
-        Decimal("0.01")
-    )
-    order.shipping_fee = remaining_shipping_fee.quantize(
-        Decimal("0.01")
-    )
-    order.total_amount = max(
-        remaining_total.quantize(Decimal("0.01")),
-        Decimal("0.00"),
-    )
+    order.subtotal = q(remaining_original_subtotal)
+    order.offer_discount = q(remaining_offer_discount)
+    order.coupon_discount = q(remaining_coupon_discount)
+    order.discount_amount = q(remaining_discount_amount)
+    order.shipping_fee = q(remaining_shipping_fee)
+    order.total_amount = max(q(remaining_total), Decimal("0.00"))
 
     if remaining_active_quantity == 0:
         order.status = "CANCELLED"
         order.cancel_reason = final_reason
 
     order_update_fields = [
-        "subtotal",
-        "offer_discount",
-        "coupon_discount",
-        "discount_amount",
-        "shipping_fee",
-        "total_amount",
-        "updated_at",
+        "subtotal", "offer_discount", "coupon_discount", "discount_amount",
+        "shipping_fee", "total_amount", "updated_at",
     ]
-
     if remaining_active_quantity == 0:
-        order_update_fields.extend([
-            "status",
-            "cancel_reason",
-        ])
+        order_update_fields.extend(["status", "cancel_reason"])
 
     order.save(update_fields=order_update_fields)
 
-    refund_amount = max(
-        old_total_amount - order.total_amount,
-        Decimal("0.00"),
-    ).quantize(Decimal("0.01"))
+    refund_amount = q(max(old_total_amount - order.total_amount, Decimal("0.00")))
 
     refund_done = False
-
     if order.payment_method != "COD" and refund_amount > 0:
-        refund_done = refund_to_wallet_for_cancel(
-            order=order,
-            amount=refund_amount,
-            reference_suffix=f"ITEM_{order_item.id}",
+        refund_done = refund_order_amount_to_wallet(
+            order=order, amount=refund_amount, reference=f"CANCEL_REFUND_ITEM_{order_item.id}",
         )
 
     if product_id_to_sync:
-        def sync_product_stock(product_id=product_id_to_sync):
-            product = AdminProduct.objects.get(id=product_id)
-
-            total_stock = (
-                product.variants
-                .filter(
-                    is_deleted=False,
-                    is_active=True,
-                )
-                .aggregate(total=Sum("stock"))["total"]
-                or 0
-            )
-
-            product.total_stock = total_stock
-            product.save(update_fields=["total_stock"])
-
-        transaction.on_commit(sync_product_stock)
+        transaction.on_commit(lambda: sync_products_total_stock([product_id_to_sync], active_only=True))
 
     if refund_done:
         messages.success(
             request,
-            (
-                f"{cancel_quantity} unit(s) cancelled successfully. "
-                f"₹{refund_amount:.2f} was refunded to your wallet."
-            ),
+            f"{cancel_quantity} unit(s) cancelled successfully. \u20b9{refund_amount:.2f} was refunded to your wallet.",
         )
     else:
-        messages.success(
-            request,
-            f"{cancel_quantity} unit(s) cancelled successfully.",
-        )
+        messages.success(request, f"{cancel_quantity} unit(s) cancelled successfully.")
 
     return redirect("order_detail", order_id=order.id)
 
 
-
-
-VALID_RETURN_REASONS = [
-    "Damaged Product",
-    "Wrong Product Received",
-    "Product Quality Issue",
-    "Missing Parts",
-    "Other",
-]
-
-def refund_cancelled_order_to_wallet(order, amount):
-    if amount <= 0:
-        return False
-
-    if order.payment_method == "COD":
-        return False
-
-    reference = f"CANCEL_REFUND_ORDER_{order.id}"
-
-    if WalletTransaction.objects.filter(reference=reference).exists():
-        return False
-
-    wallet, created = Wallet.objects.select_for_update().get_or_create(
-        user=order.user
-    )
-
-    wallet.balance += amount
-    wallet.save(update_fields=["balance", "updated_at"])
-
-    WalletTransaction.objects.create(
-        wallet=wallet,
-        order=order,
-        transaction_type="CREDIT",
-        purpose="CANCEL_REFUND",
-        payment_method=order.payment_method,
-        amount=amount,
-        status="COMPLETED",
-        description=f"Refund for cancelled order {order.order_id}",
-        reference=reference,
-    )
-
-    return True
-
-def get_item_returned_qty(order_item):
-    if hasattr(order_item, "return_request"):
-        if order_item.return_request.status != "REJECTED":
-            return order_item.quantity
-    return 0
-
-
-def validate_return_images(images):
-    if not images:
-        return "Please upload at least one return proof image."
-
-    if len(images) > 5:
-        return "Maximum 5 images allowed."
-
-    allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
-    max_size = 5 * 1024 * 1024
-
-    for image in images:
-        if image.content_type not in allowed_types:
-            return "Only JPG, PNG, and WEBP images are allowed."
-
-        if image.size > max_size:
-            return "Each image must be less than 5MB."
-
-    return None
-
+# Returns
 
 @login_required
 @transaction.atomic
 def return_order_item(request, item_id):
     order_item = get_object_or_404(
-        OrderItem.objects.select_related(
-            "order",
-            "variant",
-            "variant__product"
-        ).prefetch_related(
-            "variant__images"
-        ),
-        id=item_id,
-        order__user=request.user
+        OrderItem.objects.select_related("order", "variant", "variant__product").prefetch_related("variant__images"),
+        id=item_id, order__user=request.user,
     )
 
     order = order_item.order
@@ -1817,40 +1025,24 @@ def return_order_item(request, item_id):
             return redirect("return_order_item", item_id=item_id)
 
         final_reason = f"{reason}\n\nDescription: {comments}"
-
         unit_price = order_item.item_total / order_item.quantity
         refund_amount = unit_price * return_quantity
 
         request_obj = ReturnRequest.objects.create(
-            order=order,
-            order_item=order_item,
-            user=request.user,
-            return_quantity=return_quantity,
-            reason=final_reason,
-            refund_amount=refund_amount,
+            order=order, order_item=order_item, user=request.user,
+            return_quantity=return_quantity, reason=final_reason, refund_amount=refund_amount,
         )
 
         for image in images:
-            ReturnRequestImage.objects.create(
-                return_request=request_obj,
-                image=image
-            )
+            ReturnRequestImage.objects.create(return_request=request_obj, image=image)
 
         order_item.return_requested_quantity = already_requested_qty + return_quantity
-
         if order_item.return_requested_quantity >= order_item.quantity:
             order_item.is_return_requested = True
-
         order_item.return_reason = final_reason
-        order_item.save(update_fields=[
-            "return_requested_quantity",
-            "is_return_requested",
-            "return_reason"
-        ])
+        order_item.save(update_fields=["return_requested_quantity", "is_return_requested", "return_reason"])
 
-        available_after = order.items.filter(
-            is_cancelled=False
-        ).exclude(
+        available_after = order.items.filter(is_cancelled=False).exclude(
             return_requested_quantity__gte=models.F("quantity")
         )
 
@@ -1876,13 +1068,9 @@ def return_order_item(request, item_id):
 def return_order(request, order_id):
     order = get_object_or_404(
         Order.objects.prefetch_related(
-            "items",
-            "items__variant",
-            "items__variant__images",
-            "items__variant__product",
+            "items", "items__variant", "items__variant__images", "items__variant__product",
         ),
-        id=order_id,
-        user=request.user
+        id=order_id, user=request.user,
     )
 
     if order.status != "DELIVERED":
@@ -1890,11 +1078,9 @@ def return_order(request, order_id):
         return redirect("order_detail", order.id)
 
     available_items = []
-
     for item in order.items.filter(is_cancelled=False):
         already_requested_qty = get_item_returned_qty(item)
         available_qty = item.quantity - already_requested_qty
-
         if available_qty > 0:
             item.already_requested_qty = already_requested_qty
             item.available_qty = available_qty
@@ -1923,7 +1109,6 @@ def return_order(request, order_id):
             return redirect("return_order", order.id)
 
         final_reason = f"{reason}\n\nDescription: {comments}"
-
         selected_any = False
 
         for item in available_items:
@@ -1945,43 +1130,27 @@ def return_order(request, order_id):
             refund_amount = unit_price * return_quantity
 
             request_obj = ReturnRequest.objects.create(
-                order=order,
-                order_item=item,
-                user=request.user,
-                return_quantity=return_quantity,
-                reason=final_reason,
-                refund_amount=refund_amount,
+                order=order, order_item=item, user=request.user,
+                return_quantity=return_quantity, reason=final_reason, refund_amount=refund_amount,
             )
 
             for image in images:
-                ReturnRequestImage.objects.create(
-                    return_request=request_obj,
-                    image=image
-                )
+                ReturnRequestImage.objects.create(return_request=request_obj, image=image)
 
             item.return_requested_quantity = item.already_requested_qty + return_quantity
-
             if item.return_requested_quantity >= item.quantity:
                 item.is_return_requested = True
-
             item.return_reason = final_reason
-            item.save(update_fields=[
-                "return_requested_quantity",
-                "is_return_requested",
-                "return_reason"
-            ])
+            item.save(update_fields=["return_requested_quantity", "is_return_requested", "return_reason"])
 
         if not selected_any:
             messages.error(request, "Please select at least one item quantity to return.")
             return redirect("return_order", order.id)
 
-        all_items_returned = True
-
-        for item in order.items.filter(is_cancelled=False):
-            already_requested_qty = get_item_returned_qty(item)
-            if already_requested_qty < item.quantity:
-                all_items_returned = False
-                break
+        all_items_returned = all(
+            get_item_returned_qty(item) >= item.quantity
+            for item in order.items.filter(is_cancelled=False)
+        )
 
         if all_items_returned:
             order.status = "RETURN_REQUESTED"
@@ -1998,149 +1167,47 @@ def return_order(request, order_id):
         "item": available_items[0],
     })
 
-    
-def _q(value):
-    """Quantize a Decimal to 2 places, safely handling None."""
-    if value is None:
-        value = Decimal("0.00")
-    return Decimal(value).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
- 
- 
-def _refunded_qty_and_amount(order_item):
-    """
-    Sum up quantity + amount that has actually been refunded for this
-    item (status == REFUNDED). PICKED_UP / APPROVED are "in progress"
-    and should NOT reduce the invoice yet — only a completed refund
-    changes the money the customer owes.
-    """
-    refunded = order_item.order_return_requests.filter(status="REFUNDED")
-    refunded_qty = sum(r.return_quantity for r in refunded)
-    refunded_amount = sum((r.refund_amount or Decimal("0.00")) for r in refunded)
-    return refunded_qty, _q(refunded_amount)
- 
- 
-def _pending_return_qty(order_item):
-    """Quantity that is requested/approved/picked-up but not yet refunded."""
-    pending = order_item.order_return_requests.filter(
-        status__in=["REQUESTED", "APPROVED", "PICKED_UP"]
-    )
-    return sum(r.return_quantity for r in pending)
- 
- 
-def _item_line_status(order_item, refunded_qty, pending_qty):
-    if order_item.is_cancelled and order_item.cancelled_quantity >= order_item.quantity:
-        return "Cancelled"
-    if refunded_qty >= order_item.quantity:
-        return "Returned & Refunded"
-    if pending_qty > 0:
-        return "Return In Progress"
-    if order_item.cancelled_quantity > 0:
-        return "Partially Cancelled"
-    if refunded_qty > 0:
-        return "Partially Returned"
-    return "Active"
- 
- 
-TWO_PLACES = Decimal("0.01")
- 
- 
-def _q(value):
-    if value is None:
-        value = Decimal("0.00")
-    return Decimal(value).quantize(TWO_PLACES, rounding=ROUND_HALF_UP)
- 
- 
-def _refunded_qty_and_amount(order_item):
 
-    refunded = order_item.order_return_requests.filter(status="REFUNDED")
-    refunded_qty = sum(r.return_quantity for r in refunded)
-    refunded_amount = sum((r.refund_amount or Decimal("0.00")) for r in refunded)
-    return refunded_qty, _q(refunded_amount)
- 
- 
-def _pending_return_qty(order_item):
-    """Quantity that is requested/approved/picked-up but not yet refunded."""
-    pending = order_item.order_return_requests.filter(
-        status__in=["REQUESTED", "APPROVED", "PICKED_UP"]
-    )
-    return sum(r.return_quantity for r in pending)
- 
+
 @login_required
 def download_invoice(request, order_id):
     order = get_object_or_404(
-        Order.objects
-        .select_related("shipping_address")
-        .prefetch_related("items", "items__order_return_requests"),
-        id=order_id,
-        user=request.user,
+        Order.objects.select_related("shipping_address").prefetch_related("items", "items__order_return_requests"),
+        id=order_id, user=request.user,
     )
- 
-    # Do not generate an invoice for an unpaid draft order.
+
     if order.status == "PAYMENT_PENDING":
-        messages.error(
-            request,
-            "Invoice is available only after the order is confirmed.",
-        )
+        messages.error(request, "Invoice is available only after the order is confirmed.")
         return redirect("payment", order_id=order.id)
- 
+
     address = getattr(order, "shipping_address", None)
- 
+
     response = HttpResponse(content_type="application/pdf")
-    response["Content-Disposition"] = (
-        f'attachment; filename="invoice_{order.order_id}.pdf"'
-    )
- 
+    response["Content-Disposition"] = f'attachment; filename="invoice_{order.order_id}.pdf"'
+
     doc = SimpleDocTemplate(
-        response,
-        pagesize=A4,
-        rightMargin=18 * mm,
-        leftMargin=18 * mm,
-        topMargin=18 * mm,
-        bottomMargin=18 * mm,
+        response, pagesize=A4,
+        rightMargin=18 * mm, leftMargin=18 * mm, topMargin=18 * mm, bottomMargin=18 * mm,
     )
- 
+
     styles = getSampleStyleSheet()
- 
-    title_style = ParagraphStyle(
-        "InvoiceTitle",
-        parent=styles["Title"],
-        fontSize=24,
-        textColor=colors.HexColor("#d4af37"),
-        spaceAfter=14,
-    )
- 
-    heading_style = ParagraphStyle(
-        "Heading",
-        parent=styles["Heading2"],
-        fontSize=13,
-        textColor=colors.HexColor("#111111"),
-        spaceAfter=8,
-    )
- 
-    normal_style = ParagraphStyle(
-        "NormalCustom",
-        parent=styles["Normal"],
-        fontSize=10,
-        leading=14,
-    )
- 
-    small_muted_style = ParagraphStyle(
-        "SmallMuted",
-        parent=styles["Normal"],
-        fontSize=8,
-        leading=11,
-        textColor=colors.HexColor("#777777"),
-    )
- 
-    story = []
- 
-    story.append(Paragraph("WHEELVERSE INVOICE", title_style))
-    story.append(Paragraph("Enter the Universe of Wheels", normal_style))
-    story.append(Spacer(1, 12))
- 
+    title_style = ParagraphStyle("InvoiceTitle", parent=styles["Title"], fontSize=24,
+                                  textColor=colors.HexColor("#d4af37"), spaceAfter=14)
+    heading_style = ParagraphStyle("Heading", parent=styles["Heading2"], fontSize=13,
+                                    textColor=colors.HexColor("#111111"), spaceAfter=8)
+    normal_style = ParagraphStyle("NormalCustom", parent=styles["Normal"], fontSize=10, leading=14)
+    small_muted_style = ParagraphStyle("SmallMuted", parent=styles["Normal"], fontSize=8, leading=11,
+                                        textColor=colors.HexColor("#777777"))
+
+    story = [
+        Paragraph("WHEELVERSE INVOICE", title_style),
+        Paragraph("Enter the Universe of Wheels", normal_style),
+        Spacer(1, 12),
+    ]
+
     is_fully_cancelled = order.status == "CANCELLED"
     is_fully_returned = order.status == "RETURNED"
- 
+
     invoice_info = [
         ["Invoice No", f"INV-{order.order_id}"],
         ["Order ID", order.order_id],
@@ -2148,11 +1215,8 @@ def download_invoice(request, order_id):
         ["Payment Method", order.get_payment_method_display()],
         ["Order Status", order.get_status_display()],
     ]
- 
-    invoice_table = Table(
-        invoice_info,
-        colWidths=[45 * mm, 110 * mm],
-    )
+
+    invoice_table = Table(invoice_info, colWidths=[45 * mm, 110 * mm])
     invoice_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (0, -1), colors.HexColor("#f2ca50")),
         ("TEXTCOLOR", (0, 0), (0, -1), colors.HexColor("#241a00")),
@@ -2161,50 +1225,42 @@ def download_invoice(request, order_id):
         ("FONTSIZE", (0, 0), (-1, -1), 10),
         ("PADDING", (0, 0), (-1, -1), 8),
     ]))
- 
     story.append(invoice_table)
- 
+
     if is_fully_cancelled:
         story.append(Spacer(1, 8))
         story.append(Paragraph(
-            "<b>This order was cancelled in full.</b> "
-            f"Reason: {order.cancel_reason or 'Not specified'}",
+            f"<b>This order was cancelled in full.</b> Reason: {order.cancel_reason or 'Not specified'}",
             normal_style,
         ))
     elif is_fully_returned:
         story.append(Spacer(1, 8))
         story.append(Paragraph(
-            "<b>This order was returned in full.</b> "
-            f"Reason: {order.return_reason or 'Not specified'}",
+            f"<b>This order was returned in full.</b> Reason: {order.return_reason or 'Not specified'}",
             normal_style,
         ))
- 
+
     story.append(Spacer(1, 16))
     story.append(Paragraph("Billing / Delivery Address", heading_style))
- 
+
     if address:
         address_text = (
-            f"<b>{address.full_name}</b><br/>"
-            f"{address.address}<br/>"
+            f"<b>{address.full_name}</b><br/>{address.address}<br/>"
             f"{address.city}, {address.state} - {address.postal_code}<br/>"
-            f"Phone: {address.phone}<br/>"
-            f"Email: {address.email}"
+            f"Phone: {address.phone}<br/>Email: {address.email}"
         )
     else:
         address_text = "Address not available."
- 
+
     story.append(Paragraph(address_text, normal_style))
     story.append(Spacer(1, 16))
- 
     story.append(Paragraph("Order Items", heading_style))
- 
-    item_data = [
-        ["Product", "Variant", "Qty", "Unit Price", "Total", "Status"]
-    ]
- 
+
+    item_data = [["Product", "Variant", "Qty", "Unit Price", "Total", "Status"]]
+
     running_active_subtotal = Decimal("0.00")
     running_refunded_amount = Decimal("0.00")
- 
+
     for item in order.items.all():
         variant_parts = []
         if item.variant_color:
@@ -2212,24 +1268,22 @@ def download_invoice(request, order_id):
         if item.variant_size:
             variant_parts.append(item.variant_size)
         variant_text = " / ".join(variant_parts) or "-"
- 
-        refunded_qty, refunded_amount = _refunded_qty_and_amount(item)
-        pending_qty = _pending_return_qty(item)
-        line_status = _item_line_status(item, refunded_qty, pending_qty)
- 
-        # Quantity still counted as "kept" by the customer right now.
+
+        refunded_qty, refunded_amount = refunded_qty_and_amount(item)
+        pending_qty = pending_return_qty(item)
+        line_status = item_line_status(item, refunded_qty, pending_qty)
+
         effective_qty = max(item.quantity - item.cancelled_quantity - refunded_qty, 0)
- 
         unit_price = item.price
-        effective_total = _q(unit_price * effective_qty)
- 
+        effective_total = q(unit_price * effective_qty)
+
         running_active_subtotal += effective_total
         running_refunded_amount += refunded_amount
- 
+
         qty_display = str(item.quantity)
         if item.cancelled_quantity or refunded_qty:
             qty_display = f"{effective_qty} / {item.quantity}"
- 
+
         item_data.append([
             Paragraph(str(item.product_name), normal_style),
             Paragraph(variant_text, normal_style),
@@ -2238,13 +1292,8 @@ def download_invoice(request, order_id):
             f"Rs. {effective_total:.2f}",
             Paragraph(line_status, small_muted_style),
         ])
- 
-    item_table = Table(
-        item_data,
-        colWidths=[50 * mm, 28 * mm, 18 * mm, 24 * mm, 26 * mm, 30 * mm],
-        repeatRows=1,
-    )
- 
+
+    item_table = Table(item_data, colWidths=[50 * mm, 28 * mm, 18 * mm, 24 * mm, 26 * mm, 30 * mm], repeatRows=1)
     item_table.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#111111")),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.HexColor("#f2ca50")),
@@ -2256,35 +1305,20 @@ def download_invoice(request, order_id):
         ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
         ("PADDING", (0, 0), (-1, -1), 7),
     ]))
- 
     story.append(item_table)
     story.append(Spacer(1, 16))
- 
+
     original_subtotal = order.subtotal or Decimal("0.00")
- 
-    if original_subtotal > 0:
-        active_ratio = running_active_subtotal / original_subtotal
-    else:
-        active_ratio = Decimal("0.00")
- 
-    adjusted_offer_discount = _q(order.offer_discount * active_ratio)
-    adjusted_coupon_discount = _q(order.coupon_discount * active_ratio)
-    adjusted_total_discount = _q(order.discount_amount * active_ratio)
- 
-    subtotal_after_offer = _q(running_active_subtotal - adjusted_offer_discount)
- 
+    active_ratio = (running_active_subtotal / original_subtotal) if original_subtotal > 0 else Decimal("0.00")
 
-    if running_active_subtotal <= 0:
-        shipping_charge = Decimal("0.00")
-    else:
-        shipping_charge = order.shipping_fee or Decimal("0.00")
- 
-    final_amount = _q(
-        subtotal_after_offer - adjusted_coupon_discount + shipping_charge
-    )
+    adjusted_offer_discount = q(order.offer_discount * active_ratio)
+    adjusted_coupon_discount = q(order.coupon_discount * active_ratio)
+    subtotal_after_offer = q(running_active_subtotal - adjusted_offer_discount)
 
-    adjusted_total_discount = _q(adjusted_offer_discount + adjusted_coupon_discount)
- 
+    shipping_charge = order.shipping_fee or Decimal("0.00") if running_active_subtotal > 0 else Decimal("0.00")
+    final_amount = q(subtotal_after_offer - adjusted_coupon_discount + shipping_charge)
+    adjusted_total_discount = q(adjusted_offer_discount + adjusted_coupon_discount)
+
     summary_data = [
         ["Original Subtotal", f"Rs. {original_subtotal:.2f}"],
         ["Active Subtotal (excl. cancelled/returned)", f"Rs. {running_active_subtotal:.2f}"],
@@ -2293,14 +1327,11 @@ def download_invoice(request, order_id):
         ["Coupon Discount (adjusted)", f"- Rs. {adjusted_coupon_discount:.2f}"],
         ["Total Discount", f"- Rs. {adjusted_total_discount:.2f}"],
         ["Shipping Charge", f"Rs. {shipping_charge:.2f}"],
-        ["Refunded Amount", f"- Rs. {_q(running_refunded_amount):.2f}"],
+        ["Refunded Amount", f"- Rs. {q(running_refunded_amount):.2f}"],
         ["Payable / Final Amount", f"Rs. {final_amount:.2f}"],
     ]
- 
-    summary_table = Table(
-        summary_data,
-        colWidths=[120 * mm, 55 * mm],
-    )
+
+    summary_table = Table(summary_data, colWidths=[120 * mm, 55 * mm])
     summary_table.setStyle(TableStyle([
         ("GRID", (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
         ("BACKGROUND", (0, -1), (-1, -1), colors.HexColor("#f2ca50")),
@@ -2309,42 +1340,31 @@ def download_invoice(request, order_id):
         ("ALIGN", (1, 0), (1, -1), "RIGHT"),
         ("PADDING", (0, 0), (-1, -1), 8),
     ]))
- 
     story.append(summary_table)
     story.append(Spacer(1, 12))
- 
+
     if running_refunded_amount > 0:
         story.append(Paragraph(
-            f"Rs. {_q(running_refunded_amount):.2f} has been refunded against this order.",
+            f"Rs. {q(running_refunded_amount):.2f} has been refunded against this order.",
             small_muted_style,
         ))
         story.append(Spacer(1, 8))
- 
+
     story.append(Spacer(1, 12))
     story.append(Paragraph(
-        (
-            "Thank you for shopping with WheelVerse. "
-            "This is a computer-generated invoice."
-        ),
+        "Thank you for shopping with WheelVerse. This is a computer-generated invoice.",
         normal_style,
     ))
- 
+
     doc.build(story)
     return response
-
-
 
 
 @login_required
 def add_product_review(request, item_id):
     item = get_object_or_404(
-        OrderItem.objects.select_related(
-            "order",
-            "variant",
-            "variant__product"
-        ).prefetch_related("variant__images"),
-        id=item_id,
-        order__user=request.user
+        OrderItem.objects.select_related("order", "variant", "variant__product").prefetch_related("variant__images"),
+        id=item_id, order__user=request.user,
     )
 
     order = item.order
@@ -2371,7 +1391,6 @@ def add_product_review(request, item_id):
             return redirect("add_product_review", item_id=item.id)
 
         rating = int(rating)
-
         if rating < 1 or rating > 5:
             messages.error(request, "Invalid rating selected.")
             return redirect("add_product_review", item_id=item.id)
@@ -2384,36 +1403,18 @@ def add_product_review(request, item_id):
             messages.error(request, "Review cannot exceed 1000 characters.")
             return redirect("add_product_review", item_id=item.id)
 
-        if len(images) > 5:
-            messages.error(request, "Maximum 5 images allowed.")
+        image_error = validate_images(images, required=False)
+        if image_error:
+            messages.error(request, image_error)
             return redirect("add_product_review", item_id=item.id)
 
-        allowed_types = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
-        max_size = 5 * 1024 * 1024
-
-        for image in images:
-            if image.content_type not in allowed_types:
-                messages.error(request, "Only JPG, PNG and WEBP images are allowed.")
-                return redirect("add_product_review", item_id=item.id)
-
-            if image.size > max_size:
-                messages.error(request, "Each image must be less than 5MB.")
-                return redirect("add_product_review", item_id=item.id)
-
         review = ProductReview.objects.create(
-            user=request.user,
-            order_item=item,
-            product=item.variant.product,
-            variant=item.variant,
-            rating=rating,
-            review=review_text,
+            user=request.user, order_item=item, product=item.variant.product,
+            variant=item.variant, rating=rating, review=review_text,
         )
 
         for image in images:
-            ProductReviewImage.objects.create(
-                review=review,
-                image=image
-            )
+            ProductReviewImage.objects.create(review=review, image=image)
 
         messages.success(request, "Review submitted successfully.")
         return redirect("product_detail", product_id=item.variant.product.id)
