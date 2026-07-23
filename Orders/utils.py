@@ -39,9 +39,7 @@ def calculate_coupon_discount(coupon, subtotal):
 
 
 def refund_order_amount_to_wallet(order, amount, reference):
-    """Credits `amount` to the order owner's wallet, guarded by a unique
-    `reference` so retries/duplicate calls can never double-refund.
-    Never refunds COD orders (nothing was pre-paid)."""
+
     if amount <= 0:
         return False
 
@@ -69,17 +67,9 @@ def refund_order_amount_to_wallet(order, amount, reference):
     return True
 
 
-# ---------------------------------------------------------------------------
-# Stock resync (previously a copy-pasted closure in 3 different views)
-# ---------------------------------------------------------------------------
+# Stock resync 
 def sync_products_total_stock(product_ids, *, active_only=False):
-    """Recomputes AdminProduct.total_stock from the sum of its variants'
-    stock. Pass this to `transaction.on_commit` after adjusting variant
-    stock so the cached total stays correct.
 
-    active_only=True also filters on variant.is_active (used by the
-    cancellation flows, which only want to count sellable variants).
-    """
     for product_id in product_ids:
         product = AdminProduct.objects.get(id=product_id)
         variants = product.variants.filter(is_deleted=False)
@@ -90,9 +80,7 @@ def sync_products_total_stock(product_ids, *, active_only=False):
         product.save(update_fields=["total_stock"])
 
 
-# ---------------------------------------------------------------------------
 # Returns
-# ---------------------------------------------------------------------------
 VALID_RETURN_REASONS = [
     "Damaged Product",
     "Wrong Product Received",
@@ -110,14 +98,11 @@ def get_item_returned_qty(order_item):
 
 
 ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
-MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  
 
 
 def validate_images(images, *, required=True):
-    """Shared image-upload validation for return proofs and review photos.
-    `required=True` (returns) demands at least one image;
-    `required=False` (reviews) allows zero images but still validates any
-    that are present."""
+
     if not images:
         return "Please upload at least one return proof image." if required else None
 
@@ -138,10 +123,7 @@ def validate_return_images(images):
 
 
 def refunded_qty_and_amount(order_item):
-    """Sum up quantity + amount that has actually been refunded for this
-    item (status == REFUNDED). PICKED_UP / APPROVED are "in progress" and
-    should NOT reduce the invoice yet â€” only a completed refund changes
-    the money the customer owes."""
+
     refunded = order_item.order_return_requests.filter(status="REFUNDED")
     refunded_qty = sum(r.return_quantity for r in refunded)
     refunded_amount = sum((r.refund_amount or Decimal("0.00")) for r in refunded)
@@ -149,7 +131,6 @@ def refunded_qty_and_amount(order_item):
 
 
 def pending_return_qty(order_item):
-    """Quantity that is requested/approved/picked-up but not yet refunded."""
     pending = order_item.order_return_requests.filter(status__in=["REQUESTED", "APPROVED", "PICKED_UP"])
     return sum(r.return_quantity for r in pending)
 

@@ -8,13 +8,10 @@ from adminpanel.services.offers import build_cart_offer_summary
 
 from .models import Cart
 
-from Accounts.utils import is_ajax_request  # noqa: F401
-
+from Accounts.utils import is_ajax_request  
 
 def attach_collection_offer_badge(products):
-    """Attaches `.offer_badge`, `.offer_title`, `.offer_discount_amount`
-    to each product in `products` based on the best currently-active
-    PRODUCT or CATEGORY offer."""
+
     today = timezone.localdate()
     product_ids = [product.id for product in products]
     category_ids = {product.category_id for product in products if product.category_id}
@@ -50,6 +47,7 @@ def attach_collection_offer_badge(products):
         best_discount_amount = Decimal("0.00")
 
         for offer in candidates:
+
             if offer.discount_type == "PERCENTAGE":
                 discount_amount = base_price * offer.discount_value / Decimal("100")
             else:
@@ -78,9 +76,7 @@ def attach_collection_offer_badge(products):
 
 
 def get_cart_totals(user):
-    """Computes cart items + offer-adjusted totals for a user. Shared by
-    cart_view and the AJAX increase/decrease/remove cart endpoints, which
-    previously each recomputed this inline."""
+
     cart_items = list(
         Cart.objects.filter(user=user, variant__is_active=True, variant__is_deleted=False)
         .select_related("variant", "variant__product", "variant__product__category")

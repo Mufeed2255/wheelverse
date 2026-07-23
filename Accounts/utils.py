@@ -13,7 +13,7 @@ from django.db.models import F
 
 from Wallet.models import Wallet, WalletTransaction
 
-# Generic request helpers (shared across Accounts / Orders / Products)
+# this is shere to Accounts / Orders / Products)
 def is_ajax_request(request):
     return request.headers.get("x-requested-with") == "XMLHttpRequest"
 

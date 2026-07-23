@@ -233,11 +233,7 @@ function setSubmitLoading(loading) {
     }
 }
 
-// ------------------------------------------------------------------
-// Submit OTP via AJAX. On a WRONG otp, the page does NOT reload and
-// the countdown timer is left completely untouched — only the error
-// message is shown and the boxes are cleared for retry.
-// ------------------------------------------------------------------
+
 otpForm.addEventListener("submit", async function (e) {
     e.preventDefault();
     otpError.innerText = "";
@@ -291,11 +287,7 @@ otpForm.addEventListener("submit", async function (e) {
     }
 });
 
-// ------------------------------------------------------------------
-// Timer: starts from the server-computed remaining time so a browser
-// reload resumes the real countdown instead of resetting it. Nothing
-// here ever calls resend automatically.
-// ------------------------------------------------------------------
+
 let timeLeft = {{ remaining_seconds }};
 let timerHandle = null;
 
@@ -331,11 +323,7 @@ function startTimer() {
 
 startTimer();
 
-// ------------------------------------------------------------------
-// Resend button: ONLY this action resends the OTP and resets the
-// timer back to full. It's disabled the whole time timeLeft > 0, so
-// it can only fire once the countdown has actually hit zero.
-// ------------------------------------------------------------------
+
 resendBtn.addEventListener("click", async function () {
     if (timeLeft > 0) return;
 

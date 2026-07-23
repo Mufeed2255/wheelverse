@@ -456,9 +456,7 @@ def payment_view(request, order_id):
 
 
 def confirm_order_after_payment(order):
-    """Finalize an order only after COD confirmation, successful wallet
-    debit, or verified Razorpay payment. Stock, coupon usage and cart
-    clearing happen exactly once here."""
+
     if order.status == "CONFIRMED":
         return True, "Already confirmed."
 
