@@ -15,29 +15,29 @@
         .glass-card { background: rgba(26, 26, 26, 0.7); backdrop-filter: blur(20px); border: 1px solid rgba(242, 202, 80, 0.15); }
     </style>
 </head>
-<body class="bg-background text-on-background font-body-md overflow-hidden">
+<body class="bg-background text-on-background font-body-md min-h-screen md:h-screen overflow-x-hidden md:overflow-hidden">
 
     {% include 'adminpanel/includes/admin_sidebar.html' %}
     {% include 'adminpanel/includes/admin_topbar.html' %}
     {% include 'adminpanel/includes/messages.html' %}
 
-    <main class="ml-64 mt-20 h-[calc(100vh-5rem)] carbon-texture p-6 relative overflow-y-auto">
+    <main class="ml-0 md:ml-64 mt-16 md:mt-20 min-h-[calc(100vh-4rem)] md:h-[calc(100vh-5rem)] carbon-texture p-4 md:p-6 relative overflow-y-auto">
         <div class="relative z-10 max-w-7xl mx-auto">
             
-            <div class="flex justify-between items-end mb-10">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 md:gap-0 mb-6 md:mb-10">
                 <div>
-                    <nav class="flex items-center space-x-2 text-gray-500 font-label-caps text-[10px] tracking-widest mb-4">
+                    <nav class="flex items-center space-x-2 text-gray-500 font-label-caps text-[10px] tracking-widest mb-3 md:mb-4 flex-wrap">
                         <a class="hover:text-primary transition-colors" href="{% url 'admin_dashboard' %}">DASHBOARD</a>
                         <span class="material-symbols-outlined text-[12px]">chevron_right</span>
                         <a class="hover:text-primary transition-colors" href="{% url 'admin_products' %}">PRODUCTS</a>
                         <span class="material-symbols-outlined text-[12px]">chevron_right</span>
                         <span class="text-primary">VARIANTS</span>
                     </nav>
-                    <h2 class="font-headline-md text-2xl text-on-background uppercase tracking-tighter">
+                    <h2 class="font-headline-md text-xl md:text-2xl text-on-background uppercase tracking-tighter">
                         Manage Variants for <span class="text-primary">{{ product.name }}</span>
                     </h2>
                 </div>
-                <a href="{% url 'add_variant' product.id %}" class="bg-gradient-to-br from-[#d4af37] to-primary text-black font-label-caps py-4 px-8 flex items-center gap-3 transition-transform active:scale-95 shadow-[0_0_20px_rgba(242,202,80,0.3)]">
+                <a href="{% url 'add_variant' product.id %}" class="w-full md:w-auto justify-center bg-gradient-to-br from-[#d4af37] to-primary text-black font-label-caps py-3 md:py-4 px-6 md:px-8 flex items-center gap-3 transition-transform active:scale-95 shadow-[0_0_20px_rgba(242,202,80,0.3)] rounded-sm">
                     <span class="material-symbols-outlined text-lg">add_circle</span>
                     <span class="tracking-widest font-bold text-xs">ADD NEW VARIANT</span>
                 </a>
@@ -45,42 +45,42 @@
 
             <div class="glass-card rounded-xl overflow-hidden shadow-2xl">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full text-left border-collapse min-w-[650px]">
                         <thead>
                             <tr class="bg-black/40 border-b border-outline-variant/20 text-gray-400 font-label-caps text-xs tracking-widest">
-                                <th class="px-8 py-5 uppercase">Size / Spec</th>
-                                <th class="px-8 py-5 uppercase text-center">Stock Level</th>
-                                <th class="px-8 py-5 uppercase text-center">Availability</th>
-                                <th class="px-8 py-5 uppercase text-center">Status Toggle</th>
-                                <th class="px-8 py-5 uppercase text-right">Actions</th>
+                                <th class="px-4 md:px-8 py-4 md:py-5 uppercase">Size / Spec</th>
+                                <th class="px-4 md:px-8 py-4 md:py-5 uppercase text-center">Stock Level</th>
+                                <th class="px-4 md:px-8 py-4 md:py-5 uppercase text-center">Availability</th>
+                                <th class="px-4 md:px-8 py-4 md:py-5 uppercase text-center">Status Toggle</th>
+                                <th class="px-4 md:px-8 py-4 md:py-5 uppercase text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-outline-variant/10">
                             {% for variant in variants %}
                             <tr class="hover:bg-white/[0.03] transition-colors">
-                                <td class="px-8 py-6">
-                                    <div class="flex items-center gap-4">
-                                        <div class="h-12 w-12 rounded bg-surface-container-high flex items-center justify-center border border-primary/20">
-                                            <span class="font-headline-md text-sm text-primary">{{ variant.size }}</span>
+                                <td class="px-4 md:px-8 py-4 md:py-6">
+                                    <div class="flex items-center gap-3 md:gap-4">
+                                        <div class="h-10 w-10 md:h-12 md:w-12 rounded bg-surface-container-high flex items-center justify-center border border-primary/20 shrink-0">
+                                            <span class="font-headline-md text-xs md:text-sm text-primary">{{ variant.size }}</span>
                                         </div>
                                         <div>
-                                            <div class="font-semibold text-sm">{{ product.name }} ({{ variant.size }})</div>
+                                            <div class="font-semibold text-xs md:text-sm">{{ product.name }} ({{ variant.size }})</div>
                                             <div class="text-[10px] font-label-caps text-primary/70 uppercase tracking-wider">Finish: {{ variant.color }}</div>
                                             <div class="text-[11px] text-gray-400 mt-0.5">Price: INR {{ variant.price }}</div>
                                         </div>
                                     </div>
                                 </td>
-                                <td class="px-8 py-6 text-center font-headline-md text-lg">
+                                <td class="px-4 md:px-8 py-4 md:py-6 text-center font-headline-md text-base md:text-lg">
                                     {% if variant.stock < 10 %}0{% endif %}{{ variant.stock }}
                                 </td>
-                                <td class="px-8 py-6 text-center">
+                                <td class="px-4 md:px-8 py-4 md:py-6 text-center">
                                     {% if variant.stock > 0 %}
-                                        <span class="px-3 py-1 rounded bg-green-500/10 text-green-400 font-label-caps text-[10px] tracking-widest border border-green-500/30">IN STOCK</span>
+                                        <span class="px-2.5 py-1 rounded bg-green-500/10 text-green-400 font-label-caps text-[9px] md:text-[10px] tracking-widest border border-green-500/30 whitespace-nowrap">IN STOCK</span>
                                     {% else %}
-                                        <span class="px-3 py-1 rounded bg-red-500/10 text-error font-label-caps text-[10px] tracking-widest border border-red-500/30">OUT OF STOCK</span>
+                                        <span class="px-2.5 py-1 rounded bg-red-500/10 text-error font-label-caps text-[9px] md:text-[10px] tracking-widest border border-red-500/30 whitespace-nowrap">OUT OF STOCK</span>
                                     {% endif %}
                                 </td>
-                                <td class="px-8 py-6 text-center">
+                                <td class="px-4 md:px-8 py-4 md:py-6 text-center">
                                     <div class="flex items-center justify-center">
                                         <label class="relative inline-flex items-center cursor-pointer select-none">
                                             <input type="checkbox" 
@@ -88,21 +88,21 @@
                                                    {% if variant.is_active %}checked{% endif %}
                                                    onchange="toggleVariantStatus('{% url 'toggle_variant_status' variant.id %}', this)">
                                             <div class="w-11 h-6 bg-surface-container-high rounded-full peer peer-focus:ring-1 peer-focus:ring-primary/30 peer-checked:after:translate-x-full peer-checked:after:border-black after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-gray-400 after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary peer-checked:after:bg-black peer-checked:after:border-primary"></div>
-                                            <span class="ml-3 font-label-caps text-[10px] tracking-wider {% if variant.is_active %}text-primary{% else %}text-gray-500{% endif %} status-text">
+                                            <span class="ml-2 md:ml-3 font-label-caps text-[10px] tracking-wider {% if variant.is_active %}text-primary{% else %}text-gray-500{% endif %} status-text hidden lg:inline-block">
                                                 {% if variant.is_active %}ACTIVE{% else %}DISABLED{% endif %}
                                             </span>
                                         </label>
                                     </div>
                                 </td>
-                                <td class="px-8 py-6 text-right">
-                                    <div class="flex justify-end items-center gap-6">
-                                        <a href="{% url 'edit_variant' variant.id %}" class="text-primary hover:scale-110 transition-transform flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-lg">edit</span>
-                                            <span class="font-label-caps text-[11px] tracking-widest">EDIT</span>
+                                <td class="px-4 md:px-8 py-4 md:py-6 text-right">
+                                    <div class="flex justify-end items-center gap-3 md:gap-6">
+                                        <a href="{% url 'edit_variant' variant.id %}" class="text-primary hover:scale-110 transition-transform flex items-center gap-1 md:gap-2">
+                                            <span class="material-symbols-outlined text-base md:text-lg">edit</span>
+                                            <span class="font-label-caps text-[10px] md:text-[11px] tracking-widest">EDIT</span>
                                         </a>
-                                        <button onclick="openDeleteModal('{% url 'delete_variant' variant.id %}', '{{ variant.size }} - {{ variant.color }}')" class="text-error hover:scale-110 transition-transform flex items-center gap-2">
-                                            <span class="material-symbols-outlined text-lg">delete</span>
-                                            <span class="font-label-caps text-[11px] tracking-widest">DELETE</span>
+                                        <button onclick="openDeleteModal('{% url 'delete_variant' variant.id %}', '{{ variant.size }} - {{ variant.color }}')" class="text-error hover:scale-110 transition-transform flex items-center gap-1 md:gap-2">
+                                            <span class="material-symbols-outlined text-base md:text-lg">delete</span>
+                                            <span class="font-label-caps text-[10px] md:text-[11px] tracking-widest">DELETE</span>
                                         </button>
                                     </div>
                                 </td>
@@ -120,18 +120,18 @@
     </main>
 
     <div id="deleteModal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
-        <div class="glass-card max-w-md w-full p-8 rounded border border-red-500/30 shadow-[0_0_50px_rgba(255,180,171,0.1)]">
+        <div class="glass-card max-w-md w-full p-6 md:p-8 rounded border border-red-500/30 shadow-[0_0_50px_rgba(255,180,171,0.1)]">
             <div class="flex items-center gap-3 text-error mb-4">
-                <span class="material-symbols-outlined text-3xl">warning</span>
-                <h3 class="font-headline-md text-lg tracking-wider uppercase">TERMINATE VARIANT?</h3>
+                <span class="material-symbols-outlined text-2xl md:text-3xl shrink-0">warning</span>
+                <h3 class="font-headline-md text-base md:text-lg tracking-wider uppercase">TERMINATE VARIANT?</h3>
             </div>
             <p class="text-xs text-gray-400 mb-6 leading-relaxed">
                 You are about to purge <span id="deleteVariantName" class="text-on-background font-bold"></span> from the active showrooms. This action cannot be auto-recovered.
             </p>
-            <form id="deleteForm" method="POST" class="flex justify-end gap-4">
+            <form id="deleteForm" method="POST" class="flex flex-col-reverse sm:flex-row justify-end gap-3 md:gap-4">
                 {% csrf_token %}
-                <button type="button" onclick="closeDeleteModal()" class="px-5 py-3 border border-white/10 font-label-caps text-xs tracking-widest hover:bg-white/5">CANCEL</button>
-                <button type="submit" class="px-5 py-3 bg-red-600 text-white font-label-caps text-xs font-bold tracking-widest hover:bg-red-700">CONFIRM PURGE</button>
+                <button type="button" onclick="closeDeleteModal()" class="w-full sm:w-auto px-5 py-3 border border-white/10 font-label-caps text-xs tracking-widest hover:bg-white/5 rounded-sm">CANCEL</button>
+                <button type="submit" class="w-full sm:w-auto px-5 py-3 bg-red-600 text-white font-label-caps text-xs font-bold tracking-widest hover:bg-red-700 rounded-sm">CONFIRM PURGE</button>
             </form>
         </div>
     </div>
@@ -141,35 +141,34 @@
     </form>
 
     <script>
-        // FIXED JavaScript syntax error (Changed 'def' to 'function')
         function openDeleteModal(url, name) {
             document.getElementById('deleteForm').action = url;
             document.getElementById('deleteVariantName').innerText = name;
             document.getElementById('deleteModal').classList.remove('hidden');
         }
 
-         Kakao
         function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
         }
 
-        // 🆕 Dynamic Status Toggler Function
         function toggleVariantStatus(url, checkbox) {
             const form = document.getElementById('statusToggleForm');
             const statusTextSpan = checkbox.parentElement.querySelector('.status-text');
             
-            // UI പീപ്പിൾ പെട്ടെന്ന് തന്നെ മാറ്റം കാണാൻ
             if (checkbox.checked) {
-                statusTextSpan.innerText = "ACTIVE";
-                statusTextSpan.classList.remove('text-gray-500');
-                statusTextSpan.classList.add('text-primary');
+                if (statusTextSpan) {
+                    statusTextSpan.innerText = "ACTIVE";
+                    statusTextSpan.classList.remove('text-gray-500');
+                    statusTextSpan.classList.add('text-primary');
+                }
             } else {
-                statusTextSpan.innerText = "DISABLED";
-                statusTextSpan.classList.remove('text-primary');
-                statusTextSpan.classList.add('text-gray-500');
+                if (statusTextSpan) {
+                    statusTextSpan.innerText = "DISABLED";
+                    statusTextSpan.classList.remove('text-primary');
+                    statusTextSpan.classList.add('text-gray-500');
+                }
             }
 
-            // Fetch API വഴി പേജ് റീഫ്രഷ് ചെയ്യാതെ ബാക്ക്-എൻഡിലേക്ക് സ്റ്റാറ്റസ് മാറ്റം അയക്കുന്നു
             fetch(url, {
                 method: 'POST',
                 headers: {
@@ -180,7 +179,6 @@
                 if (!response.ok) {
                     alert('Something went wrong. Reverting status.');
                     checkbox.checked = !checkbox.checked;
-                    toggleVariantStatus(url, checkbox); // Revert UI
                 }
             })
             .catch(error => {

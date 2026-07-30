@@ -6,12 +6,31 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0 40px 0 280px; 
+    padding: 0 24px 0 260px; /* Sidebar Width 240px + 20px Spacing */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
-    z-index: 10;
+    z-index: 50;
+    box-sizing: border-box;
+    transition: padding .3s ease;
+}
+
+.wv-hamburger {
+    display: none;
+    background: none;
+    border: none;
+    color: #f1c82c;
+    cursor: pointer;
+    padding: 6px;
+    margin-right: 12px;
+    border-radius: 4px;
+}
+.wv-hamburger:hover { background: #1a1a1a; }
+
+.header-left {
+    display: flex;
+    align-items: center;
 }
 
 .header-title {
@@ -20,6 +39,7 @@
     font-weight: 700;
     color: #fff;
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
 .header-title span {
@@ -44,6 +64,7 @@
     align-items: center;
     gap: 6px;
     letter-spacing: 1px;
+    white-space: nowrap;
 }
 
 .admin-profile-circle {
@@ -56,6 +77,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
 
 .admin-profile-circle img {
@@ -77,20 +99,55 @@
     justify-content: center;
 }
 
-@media(max-width: 1050px) {
+/* ===== TABLET / DESKTOP RESPONSIVE BREAKPOINTS ===== */
+@media (max-width: 1024px) {
     .admin-header {
-        padding: 0 20px;
+        padding: 0 16px;
+        height: 60px;
     }
+    .wv-hamburger { 
+        display: flex; 
+        align-items: center;
+        justify-content: center;
+    }
+    .header-title { font-size: 16px; }
+
+    /* Collapse real-time badge on smaller screens */
+    .feed-status span:last-child { display: none; }
+    .feed-status .material-symbols-outlined { font-size: 0; }
+    .feed-status {
+        width: 12px;
+        height: 12px;
+        padding: 0;
+        border-radius: 50%;
+        border: none;
+        background: #32e96d;
+        box-shadow: 0 0 6px rgba(50,233,109,.6);
+    }
+
+    .header-right { gap: 12px; }
+    .admin-profile-circle { width: 32px; height: 32px; }
+}
+
+@media (max-width: 380px) {
+    .header-title { font-size: 13px; }
 }
 </style>
 
 <header class="admin-header">
-    <div class="header-title">WHEELVERSE <span>ADMIN</span></div>
+    <div class="header-left">
+        <button class="wv-hamburger" onclick="wvToggleSidebar()">
+            <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="header-title">WHEELVERSE <span>ADMIN</span></div>
+    </div>
+
     <div class="header-right">
         <div class="feed-status">
-            <span class="material-symbols-outlined" style="font-size: 14px;">sensors</span> REAL-TIME FEED ACTIVE
+            <span class="material-symbols-outlined" style="font-size: 14px;">sensors</span>
+            <span>REAL-TIME FEED ACTIVE</span>
         </div>
-        
+
         <div class="admin-profile-circle">
             {% if request.user.profile_picture %}
                 <img src="{{ request.user.profile_picture.url }}" alt="{{ request.user.username }}">

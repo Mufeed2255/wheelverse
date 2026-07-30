@@ -1,310 +1,306 @@
 <!DOCTYPE html>
-
-<html class="dark" lang="en"><head>
+<html class="dark" lang="en">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>WheelVerse | Secure Verification</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&amp;family=Poppins:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
 <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "on-tertiary-container": "#454544",
-                        "on-secondary-fixed-variant": "#474646",
-                        "inverse-on-surface": "#343027",
-                        "error-container": "#93000a",
-                        "primary-container": "#d4af37",
-                        "surface-bright": "#3d392f",
-                        "outline": "#99907c",
-                        "tertiary-fixed-dim": "#c8c6c5",
-                        "on-error-container": "#ffdad6",
-                        "on-primary-container": "#554300",
-                        "surface-variant": "#38342b",
-                        "on-primary": "#3c2f00",
-                        "surface-container-low": "#1f1b13",
-                        "secondary-fixed": "#e5e2e1",
-                        "outline-variant": "#4d4635",
-                        "surface-container-highest": "#38342b",
-                        "inverse-primary": "#735c00",
-                        "on-background": "#eae1d4",
-                        "background": "#16130b",
-                        "on-surface": "#eae1d4",
-                        "surface-container-high": "#2d2a21",
-                        "on-tertiary-fixed": "#1c1b1b",
-                        "surface-container-lowest": "#110e07",
-                        "on-tertiary": "#313030",
-                        "tertiary-fixed": "#e5e2e1",
-                        "primary-fixed": "#ffe088",
-                        "on-error": "#690005",
-                        "on-secondary-container": "#bab8b7",
-                        "secondary": "#c9c6c5",
-                        "secondary-container": "#4a4949",
-                        "on-tertiary-fixed-variant": "#474746",
-                        "on-primary-fixed": "#241a00",
-                        "primary-fixed-dim": "#e9c349",
-                        "surface-tint": "#e9c349",
-                        "surface-dim": "#16130b",
-                        "secondary-fixed-dim": "#c9c6c5",
-                        "on-secondary-fixed": "#1c1b1b",
-                        "tertiary": "#d0cdcd",
-                        "tertiary-container": "#b4b2b2",
-                        "surface": "#16130b",
-                        "on-primary-fixed-variant": "#574500",
-                        "inverse-surface": "#eae1d4",
-                        "surface-container": "#231f17",
-                        "primary": "#f2ca50",
-                        "on-surface-variant": "#d0c5af",
-                        "on-secondary": "#313030",
-                        "error": "#ffb4ab"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.125rem",
-                        "lg": "0.25rem",
-                        "xl": "0.5rem",
-                        "full": "0.75rem"
-                    },
-                    "spacing": {
-                        "container-max": "1440px",
-                        "margin-mobile": "20px",
-                        "gutter": "24px",
-                        "unit": "8px",
-                        "margin-desktop": "80px"
-                    },
-                    "fontFamily": {
-                        "headline-md": ["Orbitron"],
-                        "body-lg": ["Poppins"],
-                        "body-md": ["Poppins"],
-                        "label-caps": ["Orbitron"],
-                        "display-lg-mobile": ["Orbitron"],
-                        "display-lg": ["Orbitron"]
-                    },
-                    "fontSize": {
-                        "headline-md": ["32px", {"lineHeight": "40px", "letterSpacing": "0.03em", "fontWeight": "600"}],
-                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
-                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
-                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500"}],
-                        "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "0.05em", "fontWeight": "700"}],
-                        "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "0.05em", "fontWeight": "700"}]
-                    }
+    tailwind.config = {
+        darkMode: "class",
+        theme: {
+            extend: {
+                "colors": {
+                    "on-tertiary-container": "#454544",
+                    "on-secondary-fixed-variant": "#474646",
+                    "inverse-on-surface": "#343027",
+                    "error-container": "#93000a",
+                    "primary-container": "#d4af37",
+                    "surface-bright": "#3d392f",
+                    "outline": "#99907c",
+                    "tertiary-fixed-dim": "#c8c6c5",
+                    "on-error-container": "#ffdad6",
+                    "on-primary-container": "#554300",
+                    "surface-variant": "#38342b",
+                    "on-primary": "#3c2f00",
+                    "surface-container-low": "#1f1b13",
+                    "secondary-fixed": "#e5e2e1",
+                    "outline-variant": "#4d4635",
+                    "surface-container-highest": "#38342b",
+                    "inverse-primary": "#735c00",
+                    "on-background": "#eae1d4",
+                    "background": "#16130b",
+                    "on-surface": "#eae1d4",
+                    "surface-container-high": "#2d2a21",
+                    "on-tertiary-fixed": "#1c1b1b",
+                    "surface-container-lowest": "#110e07",
+                    "on-tertiary": "#313030",
+                    "tertiary-fixed": "#e5e2e1",
+                    "primary-fixed": "#ffe088",
+                    "on-error": "#690005",
+                    "on-secondary-container": "#bab8b7",
+                    "secondary": "#c9c6c5",
+                    "secondary-container": "#4a4949",
+                    "on-tertiary-fixed-variant": "#474746",
+                    "on-primary-fixed": "#241a00",
+                    "primary-fixed-dim": "#e9c349",
+                    "surface-tint": "#e9c349",
+                    "surface-dim": "#16130b",
+                    "secondary-fixed-dim": "#c9c6c5",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "tertiary": "#d0cdcd",
+                    "tertiary-container": "#b4b2b2",
+                    "surface": "#16130b",
+                    "on-primary-fixed-variant": "#574500",
+                    "inverse-surface": "#eae1d4",
+                    "surface-container": "#231f17",
+                    "primary": "#f2ca50",
+                    "on-surface-variant": "#d0c5af",
+                    "on-secondary": "#313030",
+                    "error": "#ffb4ab"
                 },
+                "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+                },
+                "spacing": {
+                    "container-max": "1440px",
+                    "margin-mobile": "16px",
+                    "gutter": "24px",
+                    "unit": "8px",
+                    "margin-desktop": "80px"
+                },
+                "fontFamily": {
+                    "headline-md": ["Orbitron", "sans-serif"],
+                    "body-lg": ["Poppins", "sans-serif"],
+                    "body-md": ["Poppins", "sans-serif"],
+                    "label-caps": ["Orbitron", "sans-serif"],
+                    "display-lg-mobile": ["Orbitron", "sans-serif"],
+                    "display-lg": ["Orbitron", "sans-serif"]
+                },
+                "fontSize": {
+                    "headline-md": ["32px", {"lineHeight": "40px", "letterSpacing": "0.03em", "fontWeight": "600"}],
+                    "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                    "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                    "display-lg-mobile": ["36px", {"lineHeight": "44px", "letterSpacing": "0.05em", "fontWeight": "700"}],
+                    "display-lg": ["64px", {"lineHeight": "72px", "letterSpacing": "0.05em", "fontWeight": "700"}]
+                }
             },
-        }
-    </script>
+        },
+    }
+</script>
 <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
+    .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .glass-panel {
+        background: rgba(10, 10, 10, 0.75);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        border: 1px solid rgba(242, 202, 80, 0.2);
+    }
+    /* Dynamic clip-path angled look for desktop/tablet, smooth rounded box on mobile */
+    @media (min-width: 640px) {
         .glass-panel {
-            background: rgba(10, 10, 10, 0.7);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(242, 202, 80, 0.2);
-            clip-path: polygon(0 5%, 95% 0, 100% 95%, 5% 100%);
+            clip-path: polygon(0 3%, 97% 0, 100% 97%, 3% 100%);
         }
-        .carbon-texture {
-            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
-            background-size: 4px 4px;
-        }
-        .otp-input:focus {
-            box-shadow: 0 0 15px rgba(242, 202, 80, 0.4);
-            border-color: #f2ca50;
-            background: rgba(242, 202, 80, 0.05);
-        }
-        .neon-underglow-gold {
-            box-shadow: 0 0 20px rgba(242, 202, 80, 0.3);
-        }
-        .speed-streak {
-            background: linear-gradient(90deg, transparent, #f2ca50, transparent);
-            height: 1px;
-            width: 100px;
-            opacity: 0.3;
-        }
-    </style>
+    }
+    .carbon-texture {
+        background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+        background-size: 4px 4px;
+    }
+    .otp-input:focus {
+        box-shadow: 0 0 15px rgba(242, 202, 80, 0.4);
+        border-color: #f2ca50;
+        background: rgba(242, 202, 80, 0.08);
+    }
+    .neon-underglow-gold {
+        box-shadow: 0 0 20px rgba(242, 202, 80, 0.3);
+    }
+    .speed-streak {
+        background: linear-gradient(90deg, transparent, #f2ca50, transparent);
+        height: 1px;
+        width: 100px;
+        opacity: 0.3;
+    }
+</style>
 </head>
-<body class="bg-background text-on-background font-body-md overflow-hidden selection:bg-primary/30">
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col justify-between selection:bg-primary/30 antialiased overflow-x-hidden">
+
 <!-- Hero Background Layer -->
-<div class="fixed inset-0 z-0">
-<img class="w-full h-full object-cover opacity-60" data-alt="A futuristic luxury underground garage setting at night with deep matte black surfaces and polished metallic floors. Blurred crimson sports car taillights glow in the distance, while cinematic golden speed streaks and soft atmospheric smoke drift through the air. The scene is illuminated by neon blue and red accent lights reflecting off carbon fiber textures, creating an elite automotive performance aesthetic with high-fidelity detail." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIdBAl4P0VMv5WgjDfz6MOolUyfQD1AXNZh-exICjzE21dM_JRINt-h1Ag_Q5Yo6xQ79Kv9md1A-HbQ2_VMxXOHV-WpqSGh-VlO8EsPrY-8NFyhL8JyHIYJ5WxrBlY8oZk13xBGLo3F_f-bu3Wcg60ow14JTFSyy76aZMshC3yyp97wGqdDaqSl1WQpushZ9PdGYxPuMR-JqJxACZ4_pYw-ct4QNSFRFdJxGCKE7S28-RN9t0CwEHMxtTcRt1lRaXDXadaiGY9pOY"/>
-<div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
-<!-- Speed Particles & Streaks -->
-<div class="absolute top-1/4 left-1/4 speed-streak animate-pulse"></div>
-<div class="absolute top-3/4 right-1/4 speed-streak animate-pulse" style="animation-delay: 1s;"></div>
+<div class="fixed inset-0 z-0 pointer-events-none">
+    <img class="w-full h-full object-cover opacity-50 md:opacity-60" 
+         alt="Futuristic luxury automotive garage background" 
+         src="https://lh3.googleusercontent.com/aida-public/AB6AXuDIdBAl4P0VMv5WgjDfz6MOolUyfQD1AXNZh-exICjzE21dM_JRINt-h1Ag_Q5Yo6xQ79Kv9md1A-HbQ2_VMxXOHV-WpqSGh-VlO8EsPrY-8NFyhL8JyHIYJ5WxrBlY8oZk13xBGLo3F_f-bu3Wcg60ow14JTFSyy76aZMshC3yyp97wGqdDaqSl1WQpushZ9PdGYxPuMR-JqJxACZ4_pYw-ct4QNSFRFdJxGCKE7S28-RN9t0CwEHMxtTcRt1lRaXDXadaiGY9pOY"/>
+    <div class="absolute inset-0 bg-gradient-to-b from-background/50 via-background/80 to-background"></div>
+    <!-- Speed Particles & Streaks -->
+    <div class="absolute top-1/4 left-1/4 speed-streak animate-pulse"></div>
+    <div class="absolute top-3/4 right-1/4 speed-streak animate-pulse" style="animation-delay: 1s;"></div>
 </div>
 
+<main class="relative z-10 my-auto w-full py-8 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <!-- Verification Panel Container -->
+    <div class="relative w-full max-w-[580px]">
+        <!-- Decorative Glow Behind -->
+        <div class="absolute -inset-2 sm:-inset-4 bg-primary/10 blur-[60px] sm:blur-[100px] rounded-full pointer-events-none"></div>
 
-<main class="relative z-10 min-h-screen flex items-center justify-center pt-20 px-margin-mobile md:px-0">
-<!-- Verification Panel -->
-<div class="relative w-full max-w-[600px]">
-<!-- Decorative Glow Behind -->
-<div class="absolute -inset-4 bg-primary/10 blur-[100px] rounded-full"></div>
-<div class="glass-panel p-12 relative carbon-texture overflow-hidden">
-<!-- Branding Header -->
-<div class="text-center mb-10">
-<div class="flex flex-col items-center gap-1 mb-6">
-<span class="font-display-lg text-headline-md text-primary italic font-extrabold tracking-tighter uppercase">WheelVerse</span>
-<span class="font-label-caps text-[10px] tracking-[0.3em] text-on-surface-variant uppercase">Enter the Universe of Wheels</span>
-</div>
-<h1 class="font-headline-md text-headline-md text-on-surface mb-2">Verification Required</h1>
-<p class="text-on-surface-variant font-body-md max-w-md mx-auto">Enter the secure verification code sent to your collector email.</p>
-</div>
-{% if messages %}
-<div id="messageBox" class="w-full mb-5">
-    {% for message in messages %}
-        <div class="px-4 py-3 rounded-lg text-sm text-center border
-            {% if message.tags == 'error' %}
-                bg-red-500/20 text-red-400 border-red-500/30
-            {% elif message.tags == 'success' %}
-                bg-green-500/20 text-green-400 border-green-500/30
+        <div class="glass-panel p-6 sm:p-10 md:p-12 relative carbon-texture rounded-2xl sm:rounded-none overflow-hidden">
+            
+            <!-- Branding Header -->
+            <div class="text-center mb-6 sm:mb-8">
+                <div class="flex flex-col items-center gap-1 mb-4 sm:mb-6">
+                    <span class="font-headline-md text-2xl sm:text-3xl md:text-4xl text-primary italic font-extrabold tracking-tighter uppercase">WheelVerse</span>
+                    <span class="font-label-caps text-[9px] sm:text-[10px] tracking-[0.25em] sm:tracking-[0.3em] text-on-surface-variant uppercase">Enter the Universe of Wheels</span>
+                </div>
+                <h1 class="font-headline-md text-xl sm:text-2xl md:text-3xl text-on-surface mb-2">Verification Required</h1>
+                <p class="text-on-surface-variant text-xs sm:text-sm font-body-md max-w-sm mx-auto">
+                    Enter the secure verification code sent to your collector email.
+                </p>
+            </div>
+
+            {% if messages %}
+            <div id="messageBox" class="w-full mb-6 transition-all duration-500">
+                {% for message in messages %}
+                    <div class="px-4 py-3 rounded-lg text-xs sm:text-sm text-center border
+                        {% if message.tags == 'error' %}
+                            bg-red-500/20 text-red-400 border-red-500/30
+                        {% elif message.tags == 'success' %}
+                            bg-green-500/20 text-green-400 border-green-500/30
+                        {% else %}
+                            bg-primary/20 text-primary border-primary/30
+                        {% endif %}
+                    ">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
             {% endif %}
-        ">
-            {{ message }}
+
+            <form method="POST" action="{% url 'verify_otp' %}" class="w-full">
+                {% csrf_token %}
+                <input type="hidden" name="otp" id="otp">
+
+                <!-- OTP 6 Columns (Responsive grid/flex) -->
+                <div class="flex justify-between sm:justify-center gap-1.5 sm:gap-3 mb-6 sm:mb-8">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                    <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]*" class="otp-input w-11 h-14 sm:w-14 sm:h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-lg sm:rounded-xl text-center text-xl sm:text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
+                </div>
+
+                <!-- Timer & Resend Controls -->
+                <div class="flex flex-col items-center gap-3 sm:gap-4 mb-8 sm:mb-10">
+                    <div class="flex items-center gap-2 font-label-caps text-primary/80 bg-primary/5 px-4 py-1.5 sm:py-2 rounded-full border border-primary/20">
+                        <span class="material-symbols-outlined text-[16px]">timer</span>
+                        <span id="otpTimer" class="text-xs sm:text-sm font-bold tracking-widest">01:00</span>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-xs text-on-surface-variant/70 font-body-md">
+                            Didn't receive the code?
+                            <a id="resendBtn" href="{% url 'resend_otp' %}" class="text-primary hover:text-primary-container font-semibold transition-colors underline underline-offset-4 tracking-wider ml-1 uppercase text-[10px] sm:text-[11px] font-label-caps pointer-events-none opacity-50 cursor-not-allowed">
+                                Resend Code
+                            </a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-primary hover:bg-primary-container text-on-primary py-4 sm:py-5 rounded-lg sm:rounded-xl font-headline-md text-xs sm:text-sm font-bold uppercase tracking-wider flex items-center justify-center gap-2 sm:gap-3 group transition-all active:scale-95 neon-underglow-gold">
+                    <span>Unlock WheelVerse</span>
+                    <span class="material-symbols-outlined group-hover:translate-x-1 sm:group-hover:translate-x-2 transition-transform text-lg sm:text-xl">
+                        arrow_forward
+                    </span>
+                </button>
+            </form>
         </div>
-    {% endfor %}
-</div>
-{% endif %}
-<form method="POST" action="{% url 'verify_otp' %}" class="w-full">
-
-    {% csrf_token %}
-
-    <input type="hidden" name="otp" id="otp">
-
-    <!-- OTP 6 Columns -->
-    <div class="flex justify-center gap-3 mb-8">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
-        <input maxlength="1" type="text" class="otp-input w-14 h-16 bg-surface-container-high/60 border border-outline-variant/30 rounded-xl text-center text-2xl font-bold text-primary focus:outline-none transition-all duration-300">
-
     </div>
-
-    <!-- Timer -->
-    <div class="flex flex-col items-center gap-4 mb-10">
-
-        <div class="flex items-center gap-2 font-label-caps text-primary/80 bg-primary/5 px-4 py-2 rounded-full border border-primary/20">
-            <span class="material-symbols-outlined text-[16px]">timer</span>
-
-            <span id="otpTimer" class="text-sm font-bold tracking-widest">
-                01:00
-            </span>
-        </div>
-
-        <div class="mt-6 text-center">
-            <p class="text-xs text-on-surface-variant/60 font-body-md">
-
-                <a
-                    id="resendBtn"
-                    href="{% url 'resend_otp' %}"
-                    class="text-primary hover:text-primary-container font-semibold transition-colors underline underline-offset-4 tracking-wider ml-1 uppercase text-[11px] font-label-caps pointer-events-none opacity-50 cursor-not-allowed"
-                >
-                    Resend Code
-                </a>
-
-            </p>
-        </div>
-
-    </div>
-
-    <!-- Submit Button -->
-    <button
-        type="submit"
-        class="w-full bg-primary text-on-primary py-5 rounded-lg font-headline-md text-label-caps flex items-center justify-center gap-3 group transition-all active:scale-95 neon-underglow-gold"
-    >
-        Unlock WheelVerse
-
-        <span class="material-symbols-outlined group-hover:translate-x-2 transition-transform">
-            arrow_forward
-        </span>
-    </button>
-
-</form>
+</main>
 
 <script>
 const inputs = document.querySelectorAll(".otp-input");
 const hiddenOtp = document.getElementById("otp");
 
-inputs.forEach((input, index) => {
+function updateHiddenOtp() {
+    hiddenOtp.value = Array.from(inputs).map(i => i.value).join("");
+}
 
-    input.addEventListener("input", () => {
+inputs.forEach((input, index) => {
+    // Handle digit entry & auto-focus
+    input.addEventListener("input", (e) => {
         input.value = input.value.replace(/[^0-9]/g, "");
 
         if (input.value && index < inputs.length - 1) {
             inputs[index + 1].focus();
         }
-
-        hiddenOtp.value = Array.from(inputs)
-            .map(i => i.value)
-            .join("");
+        updateHiddenOtp();
     });
 
+    // Handle backspace navigation
     input.addEventListener("keydown", (e) => {
         if (e.key === "Backspace" && !input.value && index > 0) {
             inputs[index - 1].focus();
         }
     });
 
+    // Support full code pasting (e.g., from SMS / Email)
+    input.addEventListener("paste", (e) => {
+        e.preventDefault();
+        const pastedData = (e.clipboardData || window.clipboardData)
+            .getData("text")
+            .replace(/[^0-9]/g, "")
+            .slice(0, inputs.length);
+
+        if (pastedData) {
+            pastedData.split("").forEach((char, idx) => {
+                if (inputs[idx]) inputs[idx].value = char;
+            });
+            updateHiddenOtp();
+            const nextFocusIndex = Math.min(pastedData.length, inputs.length - 1);
+            inputs[nextFocusIndex].focus();
+        }
+    });
 });
 
+// Countdown Timer logic
 let timeLeft = 60;
-
 const timerText = document.getElementById("otpTimer");
 const resendBtn = document.getElementById("resendBtn");
 
 const countdown = setInterval(() => {
-
     let minutes = Math.floor(timeLeft / 60);
     let seconds = timeLeft % 60;
 
-    timerText.innerText =
-        `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+    timerText.innerText = `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
     if (timeLeft <= 0) {
-
         clearInterval(countdown);
-
         timerText.innerText = "00:00";
-
-        resendBtn.classList.remove(
-            "pointer-events-none",
-            "opacity-50",
-            "cursor-not-allowed"
-        );
-
-        resendBtn.classList.add(
-            "cursor-pointer",
-            "hover:underline"
-        );
-
-        resendBtn.innerText = "Resend Code";
+        resendBtn.classList.remove("pointer-events-none", "opacity-50", "cursor-not-allowed");
+        resendBtn.classList.add("cursor-pointer", "hover:underline");
     }
 
     timeLeft--;
-
 }, 1000);
 
+// Django messages auto-fadeout
 setTimeout(function () {
     const messageBox = document.getElementById("messageBox");
-
     if (messageBox) {
-        messageBox.style.transition = "all 0.5s ease";
         messageBox.style.opacity = "0";
-        messageBox.style.transform = "translateY(-10px)";
-
+        messageBox.style.transform = "translateY(-8px)";
         setTimeout(function () {
             messageBox.remove();
         }, 500);
     }
-}, 3000);
-
+}, 3500);
 </script>
+</body>
+</html>

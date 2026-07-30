@@ -3,6 +3,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Return Action | WheelVerse</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -37,7 +38,7 @@
             background: #090805;
             color: #eae1d4;
             font-family: Poppins, sans-serif;
-            overflow: hidden;
+            min-height: 100vh;
         }
 
         .grid-bg {
@@ -52,6 +53,7 @@
             backdrop-filter: blur(24px);
             border: 1px solid rgba(242, 202, 80, .28);
             box-shadow: 0 0 55px rgba(0,0,0,.85), inset 0 0 0 1px rgba(255,255,255,.05);
+            transition: transform 0.2s ease-out;
         }
 
         .carbon {
@@ -69,160 +71,171 @@
     </style>
 </head>
 
-<body>
+<body class="overflow-x-hidden">
 {% include 'adminpanel/includes/admin_sidebar.html' %}
 {% include 'adminpanel/includes/admin_topbar.html' %}
-{% include 'adminpanel/includes/messages.html' %}
 
-<div class="fixed inset-0 z-0">
+<div class="fixed inset-0 z-0 pointer-events-none">
     <div class="absolute inset-0 bg-[#0b0905]/90 grid-bg"></div>
     <div class="absolute inset-0 backdrop-blur-sm"></div>
 </div>
 
-<main class="relative z-10 min-h-screen flex items-center justify-center p-6">
+<main class="relative z-10 ml-0 md:ml-64 min-h-screen flex items-center justify-center p-4 sm:p-6 pt-20 md:pt-28 pb-12">
+    <div class="w-full max-w-2xl">
+        {% include 'adminpanel/includes/messages.html' %}
 
-    <div class="glass-panel w-full max-w-2xl rounded-lg overflow-hidden">
+        <div class="glass-panel w-full rounded-lg overflow-hidden">
 
-        <div class="h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60"></div>
+            <div class="h-1 bg-gradient-to-r from-transparent via-primary to-transparent opacity-60"></div>
 
-        <div class="p-8 md:p-10 text-center">
+            <div class="p-5 sm:p-8 md:p-10 text-center">
 
-            <div class="inline-flex px-4 py-2 rounded-full bg-primary/10 border border-primary/30 mb-6">
-                <span class="font-orbitron text-xs tracking-widest text-primary uppercase">
-                    Return ID: #RET-{{ return_request.id }}
-                </span>
-            </div>
-
-            <h1 class="font-orbitron text-4xl text-primary uppercase font-bold">
-                Action Required
-            </h1>
-
-            <p class="text-muted text-lg mt-2">
-                Approve or reject this return request?
-            </p>
-
-            <div class="carbon bg-[#1f1b13] border border-outline mt-8 p-6 flex gap-6 text-left relative overflow-hidden">
-
-                <div class="w-24 h-24 flex-shrink-0 bg-black border border-outline overflow-hidden">
-                    {% if variant and variant.images.first %}
-                        <img src="{{ variant.images.first.image.url }}" class="w-full h-full object-cover grayscale">
-                    {% elif variant and variant.image %}
-                        <img src="{{ variant.image.url }}" class="w-full h-full object-cover grayscale">
-                    {% else %}
-                        <div class="w-full h-full flex items-center justify-center text-primary">
-                            <span class="material-symbols-outlined text-5xl">directions_car</span>
-                        </div>
-                    {% endif %}
+                <div class="inline-flex px-4 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/30 mb-4 sm:mb-6">
+                    <span class="font-orbitron text-[10px] sm:text-xs tracking-widest text-primary uppercase">
+                        Return ID: #RET-{{ return_request.id }}
+                    </span>
                 </div>
 
-                <div class="flex-1">
-                    <div class="flex justify-between gap-6">
-                        <div>
-                            <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
-                                Customer
-                            </p>
-                            <h3 class="font-orbitron text-xl text-white mt-1">
-                                {{ return_request.user.username }}
-                            </h3>
-                        </div>
+                <h1 class="font-orbitron text-2xl sm:text-3xl md:text-4xl text-primary uppercase font-bold">
+                    Action Required
+                </h1>
 
-                        <div class="text-right">
-                            <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
-                                Amount
-                            </p>
-                            <p class="font-orbitron text-2xl text-primary mt-1">
-                                ₹{{ return_request.refund_amount|default:item.item_total }}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-outline mt-4 pt-4">
-                        <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
-                            Item
-                        </p>
-                        <p class="text-muted mt-1">
-                            {{ item.product_name }}
-                            {% if item.variant_size %} / {{ item.variant_size }}{% endif %}
-                            {% if item.variant_color %} / {{ item.variant_color }}{% endif %}
-                        </p>
-                    </div>
-
-                    <div class="border-t border-outline mt-4 pt-4">
-                        <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
-                            Reason
-                        </p>
-                        <p class="text-red-200 mt-1 text-sm">
-                            {{ return_request.reason }}
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-8 flex gap-4 p-4 bg-errorbg/80 border-l-4 border-error text-left">
-                <span class="material-symbols-outlined text-error">warning</span>
-                <p class="text-muted text-sm leading-relaxed">
-                    Processing this action will update the return request and order status.
-                    <span class="text-error font-semibold">This action cannot be undone.</span>
+                <p class="text-muted text-sm sm:text-base md:text-lg mt-2">
+                    Approve or reject this return request?
                 </p>
+
+                <!-- Details Card -->
+                <div class="carbon bg-[#1f1b13] border border-outline mt-6 sm:mt-8 p-4 sm:p-6 flex flex-col sm:flex-row gap-4 sm:gap-6 text-left relative overflow-hidden">
+
+                    <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-black border border-outline overflow-hidden mx-auto sm:mx-0">
+                        {% if variant and variant.images.first %}
+                            <img src="{{ variant.images.first.image.url }}" class="w-full h-full object-cover grayscale">
+                        {% elif variant and variant.image %}
+                            <img src="{{ variant.image.url }}" class="w-full h-full object-cover grayscale">
+                        {% else %}
+                            <div class="w-full h-full flex items-center justify-center text-primary">
+                                <span class="material-symbols-outlined text-4xl sm:text-5xl">directions_car</span>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex flex-col sm:flex-row justify-between gap-2 sm:gap-6">
+                            <div>
+                                <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
+                                    Customer
+                                </p>
+                                <h3 class="font-orbitron text-lg sm:text-xl text-white mt-0.5 break-words">
+                                    {{ return_request.user.username }}
+                                </h3>
+                            </div>
+
+                            <div class="text-left sm:text-right">
+                                <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
+                                    Amount
+                                </p>
+                                <p class="font-orbitron text-xl sm:text-2xl text-primary mt-0.5">
+                                    ₹{{ return_request.refund_amount|default:item.item_total }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="border-t border-outline mt-3 pt-3 sm:mt-4 sm:pt-4">
+                            <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
+                                Item
+                            </p>
+                            <p class="text-muted text-xs sm:text-sm mt-1 break-words">
+                                {{ item.product_name }}
+                                {% if item.variant_size %} / {{ item.variant_size }}{% endif %}
+                                {% if item.variant_color %} / {{ item.variant_color }}{% endif %}
+                            </p>
+                        </div>
+
+                        <div class="border-t border-outline mt-3 pt-3 sm:mt-4 sm:pt-4">
+                            <p class="font-orbitron text-[10px] text-muted uppercase tracking-widest">
+                                Reason
+                            </p>
+                            <p class="text-red-200 mt-1 text-xs sm:text-sm break-words">
+                                {{ return_request.reason }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Warning Alert -->
+                <div class="mt-6 sm:mt-8 flex gap-3 sm:gap-4 p-3.5 sm:p-4 bg-errorbg/80 border-l-4 border-error text-left items-start">
+                    <span class="material-symbols-outlined text-error text-xl shrink-0">warning</span>
+                    <p class="text-muted text-xs sm:text-sm leading-relaxed">
+                        Processing this action will update the return request and order status.
+                        <span class="text-error font-semibold block sm:inline">This action cannot be undone.</span>
+                    </p>
+                </div>
+
+                <!-- Action Form Buttons -->
+                <form method="post" class="mt-6 sm:mt-10 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                    {% csrf_token %}
+
+                    <button type="submit" name="action" value="approve"
+                            class="approve-btn w-full flex items-center justify-center gap-2 sm:gap-3 bg-primary text-[#3c2f00] py-3.5 sm:py-4 px-6 font-orbitron text-xs sm:text-sm uppercase font-bold tracking-widest transition active:scale-95">
+                        <span class="material-symbols-outlined">check_circle</span>
+                        Approve
+                    </button>
+
+                    <button type="submit" name="action" value="reject"
+                            class="reject-btn w-full flex items-center justify-center gap-2 sm:gap-3 border border-error/60 text-error py-3.5 sm:py-4 px-6 font-orbitron text-xs sm:text-sm uppercase font-bold tracking-widest hover:bg-error/10 transition active:scale-95">
+                        <span class="material-symbols-outlined">cancel</span>
+                        Reject
+                    </button>
+                </form>
+
+                <a href="{% url 'admin_returns' %}"
+                   class="inline-flex items-center gap-2 mt-6 sm:mt-8 font-orbitron text-xs text-muted hover:text-primary uppercase tracking-[0.2em] transition">
+                    <span class="material-symbols-outlined text-sm">arrow_back</span>
+                    Return to List
+                </a>
             </div>
 
-            <form method="post" class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-5">
-                {% csrf_token %}
-
-                <button type="submit" name="action" value="approve"
-                        class="approve-btn flex items-center justify-center gap-3 bg-primary text-[#3c2f00] py-4 px-8 font-orbitron text-sm uppercase tracking-widest transition active:scale-95">
-                    <span class="material-symbols-outlined">check_circle</span>
-                    Approve
-                </button>
-
-                <button type="submit" name="action" value="reject"
-                        class="reject-btn flex items-center justify-center gap-3 border border-error/60 text-error py-4 px-8 font-orbitron text-sm uppercase tracking-widest hover:bg-error/10 transition active:scale-95">
-                    <span class="material-symbols-outlined">cancel</span>
-                    Reject
-                </button>
-            </form>
-
-            <a href="{% url 'admin_returns' %}"
-               class="inline-flex items-center gap-2 mt-8 font-orbitron text-xs text-muted hover:text-primary uppercase tracking-[0.2em]">
-                <span class="material-symbols-outlined text-sm">arrow_back</span>
-                Return to List
-            </a>
-        </div>
-
-        <div class="bg-[#1f1b13] px-8 py-4 border-t border-outline flex justify-between items-center">
-            <span class="font-orbitron text-[10px] text-muted tracking-widest">
-                PROTOCOL: 88-ALPHA
-            </span>
-
-            <div class="flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
-                <span class="font-orbitron text-[10px] text-primary tracking-widest uppercase">
-                    System Ready
+            <!-- Footer Status Bar -->
+            <div class="bg-[#1f1b13] px-5 sm:px-8 py-3.5 sm:py-4 border-t border-outline flex flex-row justify-between items-center gap-2">
+                <span class="font-orbitron text-[9px] sm:text-[10px] text-muted tracking-widest">
+                    PROTOCOL: 88-ALPHA
                 </span>
+
+                <div class="flex items-center gap-2 shrink-0">
+                    <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    <span class="font-orbitron text-[9px] sm:text-[10px] text-primary tracking-widest uppercase">
+                        System Ready
+                    </span>
+                </div>
             </div>
+
         </div>
-
     </div>
-
 </main>
 
 <script>
-    document.addEventListener("mousemove", function (e) {
-        const panel = document.querySelector(".glass-panel");
-        const x = e.clientX / window.innerWidth;
-        const y = e.clientY / window.innerHeight;
+    // Desktop 3D Tilt Effect
+    if (window.matchMedia("(hover: hover)").matches) {
+        document.addEventListener("mousemove", function (e) {
+            const panel = document.querySelector(".glass-panel");
+            if (!panel) return;
 
-        const moveX = (x - 0.5) * 10;
-        const moveY = (y - 0.5) * 10;
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
 
-        panel.style.transform =
-            `perspective(1000px) rotateX(${-moveY}deg) rotateY(${moveX}deg)`;
-    });
+            const moveX = (x - 0.5) * 8;
+            const moveY = (y - 0.5) * 8;
 
-    document.addEventListener("mouseleave", function () {
-        document.querySelector(".glass-panel").style.transform =
-            "perspective(1000px) rotateX(0deg) rotateY(0deg)";
-    });
+            panel.style.transform = `perspective(1000px) rotateX(${-moveY}deg) rotateY(${moveX}deg)`;
+        });
+
+        document.addEventListener("mouseleave", function () {
+            const panel = document.querySelector(".glass-panel");
+            if (panel) {
+                panel.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg)";
+            }
+        });
+    }
 </script>
 
 </body>

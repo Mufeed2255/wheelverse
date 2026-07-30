@@ -37,22 +37,36 @@
             display: block;
             color: #f2ca50;
             font-size: 11px;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
             font-family: Orbitron, sans-serif;
             letter-spacing: .12em;
             text-transform: uppercase;
         }
 
+        @media (min-width: 640px) {
+            .label {
+                margin-bottom: 12px;
+            }
+        }
+
         .input-box {
             width: 100%;
-            min-height: 56px;
+            min-height: 48px;
             background: #000;
             border: 1px solid rgba(242, 202, 80, 0.18);
             color: #eae1d4;
-            padding: 14px 16px;
+            padding: 12px 16px;
             outline: none;
             font-size: 14px;
+            border-radius: 2px;
             transition: .25s ease;
+        }
+
+        @media (min-width: 640px) {
+            .input-box {
+                min-height: 56px;
+                padding: 14px 16px;
+            }
         }
 
         .input-box:focus {
@@ -70,8 +84,8 @@
         .error-text {
             color: #f87171;
             font-size: 12px;
-            margin-top: 8px;
-            line-height: 1.6;
+            margin-top: 6px;
+            line-height: 1.5;
         }
 
         select.input-box option {
@@ -81,26 +95,27 @@
     </style>
 </head>
 
-<body>
+<body class="overflow-x-hidden min-h-screen bg-[#050505] text-[#eae1d4]">
 
 {% include "adminpanel/includes/admin_sidebar.html" %}
 {% include "adminpanel/includes/admin_topbar.html" %}
-{% include "adminpanel/includes/messages.html" %}
 
 <main
     class="min-h-screen bg-[#050505]
            text-[#eae1d4]
-           pl-[300px] pt-28 pr-10 pb-12">
+           pl-0 md:pl-64 pt-20 md:pt-28 px-4 sm:px-6 md:pr-10 pb-12 relative z-10">
+
+    {% include "adminpanel/includes/messages.html" %}
 
     <h1
-        class="text-4xl font-bold uppercase
-               tracking-widest mb-6
+        class="text-2xl sm:text-3xl md:text-4xl font-bold uppercase
+               tracking-widest mb-4 sm:mb-6
                font-orbitron">
 
         Add New Coupon
     </h1>
 
-    <p class="text-[#8f8776] text-sm mb-9 max-w-3xl leading-7">
+    <p class="text-[#8f8776] text-xs sm:text-sm mb-6 sm:mb-9 max-w-3xl leading-6 sm:leading-7">
         Percentage coupons require a maximum discount
         amount. Fixed coupons do not use a maximum cap,
         but their minimum cart amount must be greater than
@@ -113,7 +128,7 @@
         class="border border-[#f2ca50]/20
                bg-gradient-to-br
                from-[#151515] to-[#050505]
-               p-10 rounded shadow-2xl"
+               p-5 sm:p-8 md:p-10 rounded shadow-2xl"
         novalidate>
 
         {% csrf_token %}
@@ -121,7 +136,7 @@
         <div
             class="grid grid-cols-1
                    md:grid-cols-2
-                   gap-x-12 gap-y-8">
+                   gap-y-6 md:gap-x-12 md:gap-y-8">
 
             <!-- Coupon name -->
             <div>
@@ -262,7 +277,7 @@
 
                 <p
                     id="discountHelp"
-                    class="text-xs text-[#777] mt-2">
+                    class="text-xs text-[#777] mt-1.5 sm:mt-2">
 
                     Percentage cannot exceed 100%.
                 </p>
@@ -308,7 +323,7 @@
 
                 <p
                     id="minimumCartHelp"
-                    class="text-xs text-[#777] mt-2">
+                    class="text-xs text-[#777] mt-1.5 sm:mt-2">
 
                     Minimum cart value required to use this coupon.
                 </p>
@@ -352,7 +367,7 @@
                         value="{{ form_data.max_discount_amount|default:'' }}">
                 </div>
 
-                <p class="text-xs text-[#777] mt-2">
+                <p class="text-xs text-[#777] mt-1.5 sm:mt-2">
                     Required only for percentage coupons.
                 </p>
 
@@ -368,7 +383,7 @@
                 id="fixedCouponInfo"
                 class="hidden border
                        border-[#f2ca50]/15
-                       bg-black p-5">
+                       bg-black p-4 sm:p-5">
 
                 <p
                     class="font-orbitron
@@ -379,7 +394,7 @@
                     Fixed Coupon Rule
                 </p>
 
-                <p class="text-xs text-[#8f8776] mt-3 leading-6">
+                <p class="text-xs text-[#8f8776] mt-2 sm:mt-3 leading-5 sm:leading-6">
                     Fixed coupons do not require a maximum
                     discount amount. The minimum cart amount
                     must be greater than the fixed discount.
@@ -387,7 +402,7 @@
 
                 <p
                     id="fixedCalculationPreview"
-                    class="text-xs text-[#f2ca50] mt-3">
+                    class="text-xs text-[#f2ca50] mt-2 sm:mt-3">
                 </p>
             </div>
 
@@ -413,7 +428,7 @@
                     {% endif %}"
                     value="{{ form_data.usage_limit|default:'0' }}">
 
-                <p class="text-xs text-[#777] mt-2">
+                <p class="text-xs text-[#777] mt-1.5 sm:mt-2">
                     Enter 0 for unlimited usage.
                 </p>
 
@@ -484,14 +499,14 @@
                     Status
                 </label>
 
-                <div class="flex items-center gap-4 mt-4">
-                    <span class="text-xs text-[#8f8776]">
+                <div class="flex items-center gap-4 mt-3 sm:mt-4">
+                    <span class="text-xs text-[#8f8776] uppercase tracking-wider font-orbitron">
                         Block
                     </span>
 
                     <label
                         class="relative inline-flex
-                               items-center cursor-pointer">
+                               items-center cursor-pointer shrink-0">
 
                         <input
                             type="checkbox"
@@ -524,7 +539,7 @@
                         </div>
                     </label>
 
-                    <span class="text-xs text-[#8f8776]">
+                    <span class="text-xs text-[#8f8776] uppercase tracking-wider font-orbitron">
                         Unblock
                     </span>
                 </div>
@@ -533,35 +548,35 @@
 
         <div
             id="clientError"
-            class="hidden mt-8 px-5 py-4
+            class="hidden mt-6 sm:mt-8 px-4 sm:px-5 py-3 sm:py-4
                    border border-red-500/30
                    bg-red-500/10
-                   text-red-300 text-sm">
+                   text-red-300 text-xs sm:text-sm">
         </div>
 
         <div
             class="border-t border-white/10
-                   mt-16 pt-8
-                   flex justify-end gap-6">
+                   mt-10 sm:mt-16 pt-6 sm:pt-8
+                   flex flex-col-reverse sm:flex-row justify-end gap-3 sm:gap-6">
 
             <a
                 href="{% url 'admin_coupons' %}"
-                class="px-10 py-4
+                class="w-full sm:w-auto text-center px-8 sm:px-10 py-3.5 sm:py-4
                        border border-white/10
-                       text-[#eae1d4]
+                       text-[#eae1d4] text-xs sm:text-sm
                        font-orbitron tracking-widest
-                       hover:border-[#f2ca50]/40">
+                       hover:border-[#f2ca50]/40 hover:bg-white/5 transition">
 
                 Cancel
             </a>
 
             <button
                 type="submit"
-                class="px-12 py-4
-                       bg-[#f2ca50] text-black
+                class="w-full sm:w-auto text-center px-8 sm:px-12 py-3.5 sm:py-4
+                       bg-[#f2ca50] text-black text-xs sm:text-sm
                        font-orbitron font-bold
                        tracking-widest
-                       shadow-[0_0_25px_rgba(242,202,80,.35)]">
+                       shadow-[0_0_25px_rgba(242,202,80,.35)] hover:brightness-110 transition">
 
                 Add Coupon
             </button>

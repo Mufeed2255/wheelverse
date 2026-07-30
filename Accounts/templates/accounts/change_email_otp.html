@@ -74,12 +74,12 @@
                         "margin-desktop": "80px"
                     },
                     "fontFamily": {
-                        "label-caps": ["Orbitron"],
-                        "display-lg-mobile": ["Orbitron"],
-                        "headline-md": ["Orbitron"],
-                        "body-md": ["Poppins"],
-                        "display-lg": ["Orbitron"],
-                        "body-lg": ["Poppins"]
+                        "label-caps": ["Orbitron", "sans-serif"],
+                        "display-lg-mobile": ["Orbitron", "sans-serif"],
+                        "headline-md": ["Orbitron", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"],
+                        "display-lg": ["Orbitron", "sans-serif"],
+                        "body-lg": ["Poppins", "sans-serif"]
                     },
                     "fontSize": {
                         "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500"}],
@@ -105,19 +105,26 @@
             background-size: 4px 4px;
         }
         .otp-cell {
-            width: 52px;
-            height: 60px;
+            width: 44px;
+            height: 52px;
             background: rgba(17, 14, 7, 0.8);
             border: 1px solid rgba(77, 70, 53, 0.6);
             border-radius: 8px;
             text-align: center;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             color: #f2ca50;
             font-family: 'Orbitron', monospace;
             outline: none;
             transition: all 0.2s ease;
             caret-color: #f2ca50;
+        }
+        @media (min-width: 640px) {
+            .otp-cell {
+                width: 52px;
+                height: 60px;
+                font-size: 24px;
+            }
         }
         .otp-cell:focus {
             border-color: #f2ca50;
@@ -132,10 +139,10 @@
             border-color: rgba(255, 180, 171, 0.6);
             box-shadow: 0 0 12px rgba(255, 180, 171, 0.2);
         }
-        .neon-underglow:hover {
+        .neon-underglow:hover:not(:disabled) {
             box-shadow: 0 0 28px rgba(242, 202, 80, 0.6);
         }
-        .neon-underglow:active {
+        .neon-underglow:active:not(:disabled) {
             transform: scale(0.98);
         }
         .speed-streak {
@@ -171,13 +178,13 @@
         }
     </style>
 </head>
-<body class="bg-background text-on-background min-h-screen font-body-md">
+<body class="bg-background text-on-background min-h-screen font-body-md flex flex-col justify-between">
 
 <!-- Background Layer -->
-<div class="fixed inset-0 z-0">
-    <img class="w-full h-full object-cover opacity-50 grayscale contrast-125 scale-105 blur-sm"
+<div class="fixed inset-0 z-0 pointer-events-none">
+    <img class="w-full h-full object-cover opacity-40 grayscale contrast-125 scale-105 blur-sm"
          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBU7n9alKwp7fMCnUrVv1MjGEtOefsEojpPi5Ea75HoyT99TmXgh9S0s0xeXUetgNSo5cPUUvbzTWeZMz-HBDurCrCOP2WQkuFp4a5CfW1m4BVzQb4Ogr5Jp9tBN2dwqN0JnpzjqOuSBXMKLqHd5NugDVuqr3sBn6ctYtVBNF7-DfCsGEbegeJEjiqLTyfrsJvvQhHtCma8Gu6wQKcmtYTIQfHw_cE2t6onR3y4Wy72sNEQ4yYvlp_vndOu9K3oyTMqb9AEtq-5iQ"
-         alt=""/>
+         alt="Background Graphic"/>
     <div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
     <div class="absolute inset-0 carbon-texture opacity-25"></div>
     <!-- Decorative streaks -->
@@ -187,51 +194,51 @@
 
 <!-- Header -->
 <header class="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface-container/60 backdrop-blur-md shadow-[0_0_20px_rgba(242,202,80,0.08)]">
-    <div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
-        <a href="/" class="font-display-lg text-primary tracking-widest" style="font-size:22px;">WheelVerse</a>
-        <a href="{% url 'change_email' %}" class="flex items-center gap-2 font-label-caps text-[10px] text-on-surface-variant hover:text-primary transition-colors tracking-widest">
+    <div class="flex justify-between items-center px-4 sm:px-gutter py-4 max-w-container-max mx-auto">
+        <a href="/" class="font-display-lg text-primary tracking-widest text-xl sm:text-22px">WheelVerse</a>
+        <a href="{% url 'change_email' %}" class="flex items-center gap-2 font-label-caps text-[10px] sm:text-xs text-on-surface-variant hover:text-primary transition-colors tracking-widest">
             <span class="material-symbols-outlined text-base">arrow_back</span>
             CHANGE EMAIL
         </a>
     </div>
 </header>
 
-<main class="relative z-10 flex items-center justify-center min-h-screen px-margin-mobile md:px-margin-desktop pb-16 pt-24">
-    <div class="glass-panel w-full max-w-[520px] p-8 md:p-12 rounded-xl relative overflow-hidden flex flex-col items-center">
+<main class="relative z-10 flex-1 flex items-center justify-center pt-24 pb-20 px-4 sm:px-margin-mobile md:px-margin-desktop">
+    <div class="glass-panel w-full max-w-[520px] p-6 sm:p-8 md:p-12 rounded-xl relative overflow-hidden flex flex-col items-center my-auto">
 
         <!-- Carbon texture overlay -->
         <div class="absolute inset-0 carbon-texture opacity-10 pointer-events-none rounded-xl"></div>
 
         <!-- Close / back button -->
-        <a href="{% url 'edit_profile_view' %}" class="absolute top-5 right-5 text-on-surface-variant hover:text-primary transition-all duration-200 active:scale-90 hover:rotate-90 z-10">
+        <a href="{% url 'edit_profile_view' %}" class="absolute top-5 right-5 text-on-surface-variant hover:text-primary transition-all duration-200 active:scale-90 hover:rotate-90 z-10" aria-label="Close">
             <span class="material-symbols-outlined text-2xl">close</span>
         </a>
 
         <!-- Icon -->
-        <div class="relative mb-7">
-            <div class="w-20 h-20 rounded-full flex items-center justify-center border-2 border-primary/30 bg-primary/5 relative z-10">
-                <span class="material-symbols-outlined text-primary text-[36px]" style="font-variation-settings: 'FILL' 1;">mark_email_read</span>
+        <div class="relative mb-6 sm:mb-7">
+            <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-full flex items-center justify-center border-2 border-primary/30 bg-primary/5 relative z-10">
+                <span class="material-symbols-outlined text-primary text-[30px] sm:text-[36px]" style="font-variation-settings: 'FILL' 1;">mark_email_read</span>
             </div>
             <div class="absolute inset-0 rounded-full border-2 border-primary/20 pulse-ring"></div>
             <div class="absolute inset-0 rounded-full bg-primary/8 blur-2xl -z-10"></div>
         </div>
 
-        <!-- Title + subtitle -->
+        <!-- Title + Subtitle -->
         <div class="text-center mb-6 w-full">
-            <h1 class="font-headline-md text-primary mb-2 tracking-wider uppercase" style="font-size:22px; font-weight:700;">Verify OTP</h1>
-            <p class="font-body-md text-on-surface-variant max-w-xs mx-auto leading-relaxed text-sm">
+            <h1 class="font-headline-md text-primary mb-2 tracking-wider uppercase text-xl sm:text-22px font-bold">Verify OTP</h1>
+            <p class="font-body-md text-on-surface-variant max-w-xs mx-auto leading-relaxed text-xs sm:text-sm">
                 Enter the 6-digit code sent to your <span class="text-primary font-semibold">current email address</span>.
             </p>
-            <p class="font-body-md text-on-surface-variant/60 text-xs mt-1">
+            <p class="font-body-md text-on-surface-variant/60 text-xs mt-1 truncate max-w-xs mx-auto">
                 {{ request.user.email }}
             </p>
         </div>
 
-        <!-- Django Messages -->
+        <!-- Django Server Messages -->
         {% if messages %}
         <div class="w-full mb-5 space-y-2" id="msgBox">
             {% for message in messages %}
-            <div class="px-4 py-3 rounded-lg font-body-md text-sm text-center border
+            <div class="px-4 py-3 rounded-lg font-body-md text-xs sm:text-sm text-center border
                 {% if message.tags == 'error' %}
                     bg-error-container/70 text-on-error-container border-error/25
                 {% else %}
@@ -252,20 +259,20 @@
             <input type="hidden" name="otp" id="otpHidden">
 
             <!-- 6 OTP input cells -->
-            <div class="flex justify-center gap-2 md:gap-3 mb-6" id="otpCells">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_0" autocomplete="off">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_1" autocomplete="off">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_2" autocomplete="off">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_3" autocomplete="off">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_4" autocomplete="off">
-                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_5" autocomplete="off">
+            <div class="flex justify-center gap-1.5 sm:gap-2 md:gap-3 mb-6" id="otpCells">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_0" autocomplete="off" aria-label="Digit 1">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_1" autocomplete="off" aria-label="Digit 2">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_2" autocomplete="off" aria-label="Digit 3">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_3" autocomplete="off" aria-label="Digit 4">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_4" autocomplete="off" aria-label="Digit 5">
+                <input type="text" inputmode="numeric" maxlength="1" class="otp-cell" id="otp_5" autocomplete="off" aria-label="Digit 6">
             </div>
 
             <!-- Timer + Resend -->
             <div class="flex flex-col items-center gap-3 mb-7">
-                <div class="flex items-center gap-2 bg-primary/5 border border-primary/15 rounded-full px-5 py-2">
-                    <span class="material-symbols-outlined text-primary/70 text-base">timer</span>
-                    <span id="timerDisplay" class="font-label-caps text-sm text-primary/80 tracking-widest font-bold">10:00</span>
+                <div class="flex items-center gap-2 bg-primary/5 border border-primary/15 rounded-full px-4 sm:px-5 py-1.5 sm:py-2">
+                    <span class="material-symbols-outlined text-primary/70 text-sm sm:text-base">timer</span>
+                    <span id="timerDisplay" class="font-label-caps text-xs sm:text-sm text-primary/80 tracking-widest font-bold">10:00</span>
                 </div>
                 <p class="font-body-md text-xs text-on-surface-variant/60 text-center">
                     Didn't receive the code?
@@ -281,7 +288,7 @@
             <button
                 type="submit"
                 id="submitOtpBtn"
-                class="w-full group relative py-4 bg-gradient-to-r from-primary-container to-primary rounded-lg overflow-hidden transition-all duration-500 neon-underglow font-label-caps text-on-primary font-bold tracking-[0.2em] text-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                class="w-full group relative py-3.5 sm:py-4 bg-gradient-to-r from-primary-container to-primary rounded-lg overflow-hidden transition-all duration-300 neon-underglow font-label-caps text-on-primary font-bold tracking-[0.2em] text-xs disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled
             >
                 <span id="otpBtnText">CONFIRM &amp; UPDATE EMAIL</span>
@@ -290,13 +297,13 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
-                    VERIFYING...
+                    <span>VERIFYING...</span>
                 </span>
             </button>
         </form>
 
-        <!-- Workflow breadcrumb -->
-        <div class="mt-8 flex items-center gap-2 text-[9px] font-label-caps text-on-surface-variant/40 tracking-wider">
+        <!-- Workflow Breadcrumb -->
+        <div class="mt-6 sm:mt-8 flex items-center gap-2 text-[8px] sm:text-[9px] font-label-caps text-on-surface-variant/40 tracking-wider">
             <span class="text-primary/50">✓ ENTER EMAIL</span>
             <span class="text-outline/30">›</span>
             <span class="text-primary font-bold">VERIFY OTP</span>
@@ -305,9 +312,9 @@
         </div>
 
         <!-- Security Badge -->
-        <div class="mt-5 flex items-center gap-2 py-2.5 px-5 bg-surface-container-high/40 rounded-full border border-outline-variant/20">
-            <span class="material-symbols-outlined text-primary text-base" style="font-variation-settings: 'FILL' 1;">verified_user</span>
-            <p class="font-label-caps text-[9px] text-on-surface-variant/60 uppercase tracking-widest">
+        <div class="mt-5 flex items-center gap-2 py-2 sm:py-2.5 px-4 sm:px-5 bg-surface-container-high/40 rounded-full border border-outline-variant/20">
+            <span class="material-symbols-outlined text-primary text-sm sm:text-base" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+            <p class="font-label-caps text-[8px] sm:text-[9px] text-on-surface-variant/60 uppercase tracking-widest text-center">
                 Email updates only after successful OTP verification
             </p>
         </div>
@@ -315,130 +322,125 @@
     </div>
 </main>
 
-<!-- Footer -->
-<footer class="fixed bottom-0 w-full z-40 border-t border-outline-variant/30 bg-surface-container-lowest py-3">
-    <div class="flex justify-between items-center px-margin-desktop max-w-container-max mx-auto">
-        <div class="font-display-lg text-primary text-xs tracking-widest font-semibold">WHEELVERSE PROTOCOLS</div>
-        <div class="font-label-caps text-[9px] text-on-tertiary-container/40 tracking-wide">© 2026 WHEELVERSE PROTOCOLS.</div>
-    </div>
-</footer>
 
 <script>
-    // ── OTP cell management ────────────────────────────────────────────────
-    const cells = document.querySelectorAll('.otp-cell');
-    const hiddenInput = document.getElementById('otpHidden');
-    const submitBtn = document.getElementById('submitOtpBtn');
+    document.addEventListener("DOMContentLoaded", function () {
+        // OTP cell management
+        const cells = document.querySelectorAll('.otp-cell');
+        const hiddenInput = document.getElementById('otpHidden');
+        const submitBtn = document.getElementById('submitOtpBtn');
 
-    function syncHidden() {
-        const val = Array.from(cells).map(c => c.value).join('');
-        hiddenInput.value = val;
-        // Enable submit only when all 6 digits filled
-        submitBtn.disabled = val.length < 6;
-    }
+        function syncHidden() {
+            const val = Array.from(cells).map(c => c.value).join('');
+            hiddenInput.value = val;
+            // Enable submit button only when all 6 digits are typed
+            submitBtn.disabled = val.length < 6;
+        }
 
-    cells.forEach((cell, idx) => {
-        cell.addEventListener('input', e => {
-            // Allow only digits
-            cell.value = cell.value.replace(/[^0-9]/g, '').slice(-1);
-            if (cell.value) {
-                cell.classList.add('filled');
-                if (idx < cells.length - 1) cells[idx + 1].focus();
-            } else {
-                cell.classList.remove('filled');
-            }
-            syncHidden();
-        });
-
-        cell.addEventListener('keydown', e => {
-            if (e.key === 'Backspace') {
-                if (!cell.value && idx > 0) {
-                    cells[idx - 1].value = '';
-                    cells[idx - 1].classList.remove('filled');
-                    cells[idx - 1].focus();
-                    syncHidden();
+        cells.forEach((cell, idx) => {
+            cell.addEventListener('input', e => {
+                // Keep only numeric characters
+                cell.value = cell.value.replace(/[^0-9]/g, '').slice(-1);
+                if (cell.value) {
+                    cell.classList.add('filled');
+                    if (idx < cells.length - 1) cells[idx + 1].focus();
+                } else {
+                    cell.classList.remove('filled');
                 }
-            }
-            if (e.key === 'ArrowLeft' && idx > 0) cells[idx - 1].focus();
-            if (e.key === 'ArrowRight' && idx < cells.length - 1) cells[idx + 1].focus();
-        });
+                syncHidden();
+            });
 
-        // Handle paste across all cells
-        cell.addEventListener('paste', e => {
-            e.preventDefault();
-            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
-            pasted.split('').slice(0, 6).forEach((ch, i) => {
-                if (cells[i]) {
-                    cells[i].value = ch;
-                    cells[i].classList.add('filled');
+            cell.addEventListener('keydown', e => {
+                if (e.key === 'Backspace') {
+                    if (!cell.value && idx > 0) {
+                        cells[idx - 1].value = '';
+                        cells[idx - 1].classList.remove('filled');
+                        cells[idx - 1].focus();
+                        syncHidden();
+                    }
                 }
+                if (e.key === 'ArrowLeft' && idx > 0) cells[idx - 1].focus();
+                if (e.key === 'ArrowRight' && idx < cells.length - 1) cells[idx + 1].focus();
             });
-            const nextEmpty = Array.from(cells).findIndex(c => !c.value);
-            if (nextEmpty !== -1) cells[nextEmpty].focus();
-            else cells[5].focus();
-            syncHidden();
+
+            // Handle pasting complete 6-digit codes
+            cell.addEventListener('paste', e => {
+                e.preventDefault();
+                const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+                pasted.split('').slice(0, 6).forEach((ch, i) => {
+                    if (cells[i]) {
+                        cells[i].value = ch;
+                        cells[i].classList.add('filled');
+                    }
+                });
+                const nextEmpty = Array.from(cells).findIndex(c => !c.value);
+                if (nextEmpty !== -1) cells[nextEmpty].focus();
+                else cells[5].focus();
+                syncHidden();
+            });
         });
-    });
 
-    // Auto-focus first cell
-    cells[0].focus();
-
-    // ── Shake animation on error message ──────────────────────────────────
-    const msgBox = document.getElementById('msgBox');
-    if (msgBox) {
-        const isError = msgBox.querySelector('.bg-error-container\\/70');
-        if (isError) {
-            document.getElementById('otpCells').classList.add('shake');
-            // Mark cells red briefly
-            cells.forEach(c => {
-                c.classList.add('error-cell');
-                setTimeout(() => c.classList.remove('error-cell'), 800);
-            });
-            // Auto-fade message after 4 seconds
-            setTimeout(() => {
-                msgBox.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-                msgBox.style.opacity = '0';
-                msgBox.style.transform = 'translateY(-8px)';
-                setTimeout(() => msgBox.remove(), 500);
-            }, 4000);
-        }
-    }
-
-    // ── 10-minute countdown timer ─────────────────────────────────────────
-    const timerDisplay = document.getElementById('timerDisplay');
-    const resendLink = document.getElementById('resendLink');
-    let totalSeconds = 30;
-
-    const countdown = setInterval(() => {
-        totalSeconds--;
-        const m = Math.floor(totalSeconds / 60);
-        const s = totalSeconds % 60;
-        timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-
-        // Turn timer red in last 60 seconds
-        if (totalSeconds <= 10) {
-            timerDisplay.classList.add('timer-urgent');
+        // Focus first OTP field automatically
+        if (cells.length > 0) {
+            cells[0].focus();
         }
 
-        if (totalSeconds <= 0) {
-            clearInterval(countdown);
-            timerDisplay.textContent = '00:00';
-            // Activate resend link
-            resendLink.classList.remove('resend-disabled');
-            resendLink.classList.add('resend-active');
+        // Shake animation on server-side error messages
+        const msgBox = document.getElementById('msgBox');
+        if (msgBox) {
+            const isError = msgBox.querySelector('.bg-error-container\\/70');
+            if (isError) {
+                document.getElementById('otpCells').classList.add('shake');
+                cells.forEach(c => {
+                    c.classList.add('error-cell');
+                    setTimeout(() => c.classList.remove('error-cell'), 800);
+                });
+                // Auto fade-out error message banner
+                setTimeout(() => {
+                    msgBox.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                    msgBox.style.opacity = '0';
+                    msgBox.style.transform = 'translateY(-8px)';
+                    setTimeout(() => msgBox.remove(), 500);
+                }, 4000);
+            }
         }
-    }, 1000);
 
-    // ── Submit button loading state ───────────────────────────────────────
-    document.getElementById('otpForm').addEventListener('submit', function () {
-        const btn = document.getElementById('submitOtpBtn');
-        const txt = document.getElementById('otpBtnText');
-        const ldr = document.getElementById('otpBtnLoader');
-        btn.disabled = true;
-        txt.classList.add('hidden');
-        ldr.classList.remove('hidden');
-        ldr.classList.add('flex');
+        // 10-Minute Countdown Timer
+        const timerDisplay = document.getElementById('timerDisplay');
+        const resendLink = document.getElementById('resendLink');
+        let totalSeconds = 600; // 10 minutes
+
+        const countdown = setInterval(() => {
+            totalSeconds--;
+            const m = Math.floor(totalSeconds / 60);
+            const s = totalSeconds % 60;
+            timerDisplay.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+
+            // Turn timer red in final minute
+            if (totalSeconds <= 60) {
+                timerDisplay.classList.add('timer-urgent');
+            }
+
+            if (totalSeconds <= 0) {
+                clearInterval(countdown);
+                timerDisplay.textContent = '00:00';
+                resendLink.classList.remove('resend-disabled');
+                resendLink.classList.add('resend-active');
+            }
+        }, 1000);
+
+        // Loading spinner transition on submit
+        document.getElementById('otpForm').addEventListener('submit', function () {
+            const btn = document.getElementById('submitOtpBtn');
+            const txt = document.getElementById('otpBtnText');
+            const ldr = document.getElementById('otpBtnLoader');
+            btn.disabled = true;
+            txt.classList.add('hidden');
+            ldr.classList.remove('hidden');
+            ldr.classList.add('flex');
+        });
     });
 </script>
 
 </body>
-</html>
+</html>        

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>WheelVerse Admin | View User — {{ user_obj.full_name }}</title>
+<title>WheelVerse Admin | View User — {{ user_obj.full_name|default:user_obj.username }}</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
@@ -36,7 +36,9 @@ body{background:#050505;color:#eee;font-family:Poppins,sans-serif}
 .messages{margin-bottom:20px}
 .msg{padding:14px 18px;border-radius:6px;margin-bottom:10px;font-size:13px;display:flex;align-items:center;gap:10px;font-family:Poppins,sans-serif;}
 .msg-success{background:rgba(50,233,109,.08);border:1px solid rgba(50,233,109,.25);color:#32e96d}
-.msg-error{background:rgba(255,100,80,.08);border:1px solid rgba(255,100,80,.25);color:#ff9b90}
+.msg-error, .msg-danger{background:rgba(255,100,80,.08);border:1px solid rgba(255,100,80,.25);color:#ff9b90}
+.msg-warning{background:rgba(241,200,46,.08);border:1px solid rgba(241,200,46,.25);color:#f1c82c}
+.msg-info{background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);color:#60a5fa}
 
 /* Profile Card Layout */
 .profile-card{
@@ -93,18 +95,18 @@ body{background:#050505;color:#eee;font-family:Poppins,sans-serif}
 .status-inactive{color:#aaa}
 
 .info-box{background:#211d16;padding:13px 16px;margin-top:5px;font-size:14px;word-break:break-all;display:flex;align-items:center;gap:8px;border:1px solid #2d2619;border-radius:4px;}
-.info-box .material-symbols-outlined { font-size: 18px; color: #d3aa1d; }
+.info-box .material-symbols-outlined { font-size: 18px; color: #d3aa1d; flex-shrink: 0; }
 
 /* Action Buttons */
 .action-area{display:flex;justify-content:flex-end;align-items:start;margin-bottom:20px}
-.status-btn{height:44px;padding:0 28px;background:transparent;border:1px solid #875346;color:#ffb2a5;font-family:Orbitron,sans-serif;cursor:pointer;font-size:13px;border-radius:4px;transition:.3s;display:inline-flex;align-items:center;gap:8px;}
+.status-btn{height:44px;padding:0 28px;background:transparent;border:1px solid #875346;color:#ffb2a5;font-family:Orbitron,sans-serif;cursor:pointer;font-size:13px;border-radius:4px;transition:.3s;display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;}
 .status-btn:hover{background:rgba(135,83,70,.15)}
 .activate-btn{border-color:#2e8f52;color:#42ff86}
 .activate-btn:hover{background:rgba(46,143,82,.12)}
 
 /* Address block */
 .address-block{margin-top:8px; background: #16140e; padding: 15px; border-radius: 6px; border: 1px solid #2d2619;}
-.address-line{color:#ddd2c4;font-size:13px;line-height:1.6}
+.address-line{color:#ddd2c4;font-size:13px;line-height:1.6;word-break:break-word;}
 .address-type-tag{display:inline-block;background:#271f10;border:1px solid #4a3c1d;color:#d3aa1d;font-family:Orbitron,sans-serif;font-size:9px;padding:3px 10px;border-radius:20px;margin-bottom:8px}
 
 /* Section Header */
@@ -121,43 +123,104 @@ body{background:#050505;color:#eee;font-family:Poppins,sans-serif}
 .referral-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:30px}
 .ref-box{border:1px solid #342b16;background:#15130e;padding:18px 22px;border-radius:6px}
 .ref-box .label{margin-bottom:8px}
-.ref-code{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:18px;letter-spacing:3px}
+.ref-code{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:18px;letter-spacing:3px;word-break:break-all;}
 .ref-none{color:#555;font-size:13px;font-style:italic}
 
 /* Table */
-.table-box{border:1px solid #352b16;border-radius:7px;overflow:hidden;margin-bottom:32px}
-table{width:100%;border-collapse:collapse}
+.table-box{border:1px solid #352b16;border-radius:7px;overflow-x:auto;margin-bottom:32px;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;min-width:600px;}
 thead{background:#28241b}
-th{font-family:Orbitron,sans-serif;text-align:left;color:#a99f8d;font-size:11px;padding:18px}
-td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px}
+th{font-family:Orbitron,sans-serif;text-align:left;color:#a99f8d;font-size:11px;padding:18px;white-space:nowrap;}
+td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-size:13px;white-space:nowrap;}
 .order-empty{text-align:center;padding:40px;color:#666;font-size:12px}
 
 /* Navigation Buttons */
-.breadcrumb{font-family:Orbitron,sans-serif;font-size:11px;color:#888;margin-bottom:20px}
+.breadcrumb{font-family:Orbitron,sans-serif;font-size:11px;color:#888;margin-bottom:20px;line-height:1.6;word-break:break-word;}
 .breadcrumb a{color:#d3aa1d;text-decoration:none}
 .breadcrumb a:hover{color:#f1c82c}
-.back-btn{display:inline-flex;align-items:center;gap:8px;background:#f4cf3e;color:#3a2c00;text-decoration:none;padding:10px 28px;border-radius:9px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s;margin-top:10px;font-weight:600;}
+.back-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:#f4cf3e;color:#3a2c00;text-decoration:none;padding:10px 28px;border-radius:9px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s;margin-top:10px;font-weight:600;}
 .back-btn:hover{background:#e8c02e}
 
 /* Confirmation Popup */
-.popup{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99}
-.popup-box{width:440px;background:#15130e;border:1px solid #f1c82c;padding:36px 30px;text-align:center;box-shadow:0 0 60px rgba(241,200,46,.18);border-radius:6px}
+.popup{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;z-index:99;padding:15px;}
+.popup-box{width:100%;max-width:440px;background:#15130e;border:1px solid #f1c82c;padding:36px 30px;text-align:center;box-shadow:0 0 60px rgba(241,200,46,.18);border-radius:6px}
 .popup-box h3{font-family:Orbitron,sans-serif;font-size:18px;margin-bottom:10px}
 .popup-box p{color:#bbb;margin-bottom:28px;font-size:14px;line-height:1.6}
-.popup-user{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:13px;margin-bottom:22px}
-.popup-actions{display:flex;gap:14px;justify-content:center}
-.cancel-btn{background:#27231b;color:#ddd;border:1px solid #555;padding:12px 28px;cursor:pointer;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s}
+.popup-user{font-family:Orbitron,sans-serif;color:#f1c82c;font-size:13px;margin-bottom:22px;word-break:break-all;}
+.popup-actions{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;}
+.cancel-btn{background:#27231b;color:#ddd;border:1px solid #555;padding:12px 28px;cursor:pointer;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s;flex:1;min-width:120px;}
 .cancel-btn:hover{background:#322c22;color:#fff}
-.confirm-btn{background:#f4cf3e;color:#211700;border:0;padding:12px 28px;cursor:pointer;font-weight:700;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s}
+.confirm-btn{background:#f4cf3e;color:#211700;border:0;padding:12px 28px;cursor:pointer;font-weight:700;border-radius:4px;font-family:Orbitron,sans-serif;font-size:12px;transition:.3s;width:100%;}
 .confirm-btn:hover{background:#e8c02e}
 .confirm-btn.danger{background:#c0392b;color:#fff}
 .confirm-btn.danger:hover{background:#a93226}
+.popup-actions form{flex:1;min-width:120px;}
 
-@media(max-width:1050px){
-    .content{margin-left:0; margin-top: 110px; padding:20px}
-    .profile-card{grid-template-columns:1fr}
-    .stats{grid-template-columns:1fr 1fr}
-    .referral-grid{grid-template-columns:1fr}
+/* Responsive Media Queries */
+@media (max-width: 1200px) {
+    .profile-card {
+        grid-template-columns: 190px 1fr;
+    }
+    .profile-card > div:nth-child(3) {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 1050px) {
+    .content {
+        margin-left: 0; 
+        margin-top: 110px; 
+        padding: 20px;
+    }
+    .stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .profile-card {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 20px;
+    }
+    .profile-card > div:nth-child(3) {
+        grid-column: span 1;
+    }
+    .profile-img {
+        margin: 0 auto;
+    }
+    .user-name {
+        font-size: 24px;
+        text-align: center;
+    }
+    .collector-id {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+    .referral-grid {
+        grid-template-columns: 1fr;
+    }
+    .action-area {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 15px 10px;
+    }
+    .stats {
+        grid-template-columns: 1fr;
+    }
+    .popup-box {
+        padding: 24px 18px;
+    }
+    .back-btn {
+        width: 100%;
+    }
 }
 </style>
 </head>
@@ -175,11 +238,25 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
         <p class="breadcrumb">
             <a href="{% url 'admin_dashboard' %}">Dashboard</a> ›
             <a href="{% url 'admin_users' %}">User Management</a> ›
-            {{ user_obj.full_name }}
+            {{ user_obj.full_name|default:user_obj.username }}
         </p>
 
-        {% include 'adminpanel/includes/messages.html' %}
-            
+        <!-- Dynamic Django Messages Fix -->
+        {% if messages %}
+        <div class="messages">
+            {% for message in messages %}
+                <div class="msg msg-{{ message.tags }}">
+                    <span class="material-symbols-outlined" style="font-size: 18px;">
+                        {% if message.tags == 'success' %}check_circle
+                        {% elif message.tags == 'error' or message.tags == 'danger' %}error
+                        {% elif message.tags == 'warning' %}warning
+                        {% else %}info{% endif %}
+                    </span>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
+        {% endif %}
 
         <div class="profile-card">
 
@@ -198,7 +275,7 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
             </div>
 
             <div>
-                <h2 class="user-name">{{ user_obj.full_name }}</h2>
+                <h2 class="user-name">{{ user_obj.full_name|default:user_obj.username }}</h2>
                 <p class="collector-id">Collector ID: #WV-{{ user_obj.id|stringformat:"04d" }}</p>
 
                 <div class="info-grid">
@@ -253,7 +330,7 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
                 <p class="label">Default Address</p>
                 {% if default_address %}
                     <div class="address-block">
-                        <span class="address-type-tag">{{ default_address.address_type }}</span>
+                        <span class="address-type-tag">{{ default_address.address_type|default:"HOME" }}</span>
                         <p class="address-line"><strong>{{ default_address.name }}</strong></p>
                         <p class="address-line">{{ default_address.address_line_1 }}</p>
                         {% if default_address.address_line_2 %}
@@ -282,11 +359,11 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
             </div>
             <div class="stat">
                 <h4>TOTAL ORDERS</h4>
-                <p>{{ total_orders|default:"0" }} Orders</p>
+                <p>{{ total_orders|stringformat:"02d" }} Orders</p>
             </div>
             <div class="stat highlight">
                 <h4>TOTAL SPEND</h4>
-                <p>₹ {{ total_spend|default:"0.00" }}</p>
+                <p>₹ {{ total_spend|floatformat:2 }}</p>
             </div>
         </div>
 
@@ -328,16 +405,13 @@ td{padding:18px;color:#ddd;border-bottom:1px solid rgba(255,255,255,.03);font-si
                     {% if orders %}
                         {% for order in orders %}
                         <tr>
-                            <td style="font-family: 'Orbitron', sans-serif; color: #f1c82c;">#{{ order.order_id }}</td>
+                            <td style="font-family: 'Orbitron', sans-serif; color: #f1c82c;">#{{ order.order_id|default:order.id }}</td>
                             <td>{{ order.created_at|date:"M d, Y" }}</td>
                             <td>₹ {{ order.total_amount }}</td>
-                            <td>{{ order.payment_method }}</td>
+                            <td>{{ order.payment_method|default:"N/A" }}</td>
                             <td>
-                                <span style="color: {% if order.status == "RETURNED" %}
-                                    <p class="font-headline-md text-blue-400 text-xl">RETURNED</p>
-                                {% else %}
-                                    <p class="font-headline-md text-primary text-xl">{{ order.status }}</p>
-                                {% endif %}">
+                                <span style="color: {% if order.status == 'CANCELLED' %}#ef4444{% elif order.status == 'RETURNED' %}#60a5fa{% else %}#f1c82c{% endif %}; font-family: 'Orbitron', sans-serif; font-size: 13px;">
+                                    {{ order.status|default:"PENDING" }}
                                 </span>
                             </td>
                         </tr>

@@ -74,12 +74,12 @@
                         "margin-desktop": "80px"
                     },
                     "fontFamily": {
-                        "label-caps": ["Orbitron"],
-                        "display-lg-mobile": ["Orbitron"],
-                        "headline-md": ["Orbitron"],
-                        "body-md": ["Poppins"],
-                        "display-lg": ["Orbitron"],
-                        "body-lg": ["Poppins"]
+                        "label-caps": ["Orbitron", "sans-serif"],
+                        "display-lg-mobile": ["Orbitron", "sans-serif"],
+                        "headline-md": ["Orbitron", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"],
+                        "display-lg": ["Orbitron", "sans-serif"],
+                        "body-lg": ["Poppins", "sans-serif"]
                     },
                     "fontSize": {
                         "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "500"}],
@@ -95,7 +95,7 @@
     </script>
     <style>
         .glass-panel {
-            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(10, 10, 10, 0.9) 100%);
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.85) 0%, rgba(10, 10, 10, 0.95) 100%);
             backdrop-filter: blur(24px);
             border: 1px solid rgba(242, 202, 80, 0.2);
             box-shadow: 0 0 40px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(242, 202, 80, 0.05);
@@ -104,7 +104,7 @@
             background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.05) 1px, transparent 0);
             background-size: 4px 4px;
         }
-        .neon-underglow:hover {
+        .neon-underglow:hover:not(:disabled) {
             box-shadow: 0 0 25px rgba(242, 202, 80, 0.6);
         }
         .dashboard-ring {
@@ -116,68 +116,77 @@
             to { transform: rotate(360deg); }
         }
         .spin-slow { animation: spin-slow 8s linear infinite; }
+        
+        /* Custom Input Validation Glow */
+        .field-wrapper {
+            transition: all 0.2s ease-in-out;
+        }
+        .field-wrapper.field-error {
+            border-color: #ffb4ab !important;
+            box-shadow: 0 0 10px rgba(255, 180, 171, 0.25);
+        }
     </style>
 </head>
-<body class="bg-background text-on-background min-h-screen font-body-md">
+<body class="bg-background text-on-background min-h-screen font-body-md flex flex-col justify-between">
 
 <!-- Background Layer -->
-<div class="fixed inset-0 z-0">
-    <img class="w-full h-full object-cover opacity-50 grayscale contrast-125 scale-105 blur-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBU7n9alKwp7fMCnUrVv1MjGEtOefsEojpPi5Ea75HoyT99TmXgh9S0s0xeXUetgNSo5cPUUvbzTWeZMz-HBDurCrCOP2WQkuFp4a5CfW1m4BVzQb4Ogr5Jp9tBN2dwqN0JnpzjqOuSBXMKLqHd5NugDVuqr3sBn6ctYtVBNF7-DfCsGEbegeJEjiqLTyfrsJvvQhHtCma8Gu6wQKcmtYTIQfHw_cE2t6onR3y4Wy72sNEQ4yYvlp_vndOu9K3oyTMqb9AEtq-5iQ" alt=""/>
+<div class="fixed inset-0 z-0 pointer-events-none">
+    <img class="w-full h-full object-cover opacity-40 grayscale contrast-125 scale-105 blur-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBBU7n9alKwp7fMCnUrVv1MjGEtOefsEojpPi5Ea75HoyT99TmXgh9S0s0xeXUetgNSo5cPUUvbzTWeZMz-HBDurCrCOP2WQkuFp4a5CfW1m4BVzQb4Ogr5Jp9tBN2dwqN0JnpzjqOuSBXMKLqHd5NugDVuqr3sBn6ctYtVBNF7-DfCsGEbegeJEjiqLTyfrsJvvQhHtCma8Gu6wQKcmtYTIQfHw_cE2t6onR3y4Wy72sNEQ4yYvlp_vndOu9K3oyTMqb9AEtq-5iQ" alt="Background pattern"/>
     <div class="absolute inset-0 bg-gradient-to-b from-background/40 via-background/80 to-background"></div>
     <div class="absolute inset-0 carbon-texture opacity-30"></div>
 </div>
 
 <!-- Header -->
 <header class="fixed top-0 w-full z-50 border-b border-outline-variant/20 bg-surface-container/60 backdrop-blur-md shadow-[0_0_20px_rgba(242,202,80,0.1)]">
-    <div class="flex justify-between items-center px-gutter py-4 max-w-container-max mx-auto">
-        <a href="/" class="font-display-lg text-headline-md text-primary tracking-widest" style="font-size:22px;">WheelVerse</a>
-        <a href="{% url 'edit_profile_view' %}" class="flex items-center gap-2 font-label-caps text-[10px] text-on-surface-variant hover:text-primary transition-colors tracking-widest">
+    <div class="flex justify-between items-center px-4 sm:px-gutter py-4 max-w-container-max mx-auto">
+        <a href="/" class="font-display-lg text-headline-md text-primary tracking-widest text-xl sm:text-22px">WheelVerse</a>
+        <a href="{% url 'edit_profile_view' %}" class="flex items-center gap-2 font-label-caps text-[10px] sm:text-xs text-on-surface-variant hover:text-primary transition-colors tracking-widest">
             <span class="material-symbols-outlined text-base">arrow_back</span>
             BACK TO PROFILE
         </a>
     </div>
 </header>
 
-<main class="relative z-10 flex items-center justify-center min-h-screen p-margin-mobile md:p-margin-desktop pb-24">
-    <div class="glass-panel w-full max-w-[520px] p-8 md:p-12 rounded-xl relative overflow-hidden flex flex-col items-center">
+<main class="relative z-10 flex-1 flex items-center justify-center pt-24 pb-20 px-4 sm:px-margin-mobile md:px-margin-desktop">
+    <div class="glass-panel w-full max-w-[520px] p-6 sm:p-8 md:p-12 rounded-xl relative overflow-hidden flex flex-col items-center my-auto">
 
         <!-- Decorative close button -->
-        <a href="{% url 'edit_profile_view' %}" class="absolute top-5 right-5 text-on-surface-variant hover:text-primary transition-all duration-200 active:scale-90 hover:rotate-90 z-10">
+        <a href="{% url 'edit_profile_view' %}" class="absolute top-5 right-5 text-on-surface-variant hover:text-primary transition-all duration-200 active:scale-90 hover:rotate-90 z-10" aria-label="Close">
             <span class="material-symbols-outlined text-2xl">close</span>
         </a>
 
         <!-- Icon -->
-        <div class="relative mb-8">
-            <div class="w-24 h-24 rounded-full flex items-center justify-center bg-primary/5 dashboard-ring spin-slow border border-primary/20">
+        <div class="relative mb-6 sm:mb-8">
+            <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-full flex items-center justify-center bg-primary/5 dashboard-ring spin-slow border border-primary/20">
             </div>
             <div class="absolute inset-0 flex items-center justify-center">
-                <span class="material-symbols-outlined text-primary text-[40px]" style="font-variation-settings: 'FILL' 1;">mail</span>
+                <span class="material-symbols-outlined text-primary text-[36px] sm:text-[40px]" style="font-variation-settings: 'FILL' 1;">mail</span>
             </div>
             <div class="absolute inset-0 rounded-full bg-primary/10 blur-xl -z-10"></div>
         </div>
 
         <!-- Title -->
-        <div class="text-center mb-8 w-full">
-            <h1 class="font-headline-md text-primary mb-3 tracking-wider text-2xl font-bold uppercase">Change Email</h1>
-            <p class="font-body-md text-on-surface-variant max-w-sm mx-auto leading-relaxed text-sm">
+        <div class="text-center mb-6 sm:mb-8 w-full">
+            <h1 class="font-headline-md text-primary mb-3 tracking-wider text-xl sm:text-2xl font-bold uppercase">Change Email</h1>
+            <p class="font-body-md text-on-surface-variant max-w-sm mx-auto leading-relaxed text-xs sm:text-sm">
                 Enter your new email address below. A 6-digit verification code will be sent to your <span class="text-primary font-semibold">current email</span> for confirmation.
             </p>
         </div>
 
         <!-- Current Email Display -->
         <div class="w-full mb-6 bg-surface-container/50 border border-outline-variant/30 rounded-lg px-4 py-3 flex items-center gap-3">
-            <span class="material-symbols-outlined text-outline text-lg">verified_user</span>
-            <div>
-                <p class="font-label-caps text-[9px] text-outline tracking-widest">CURRENT EMAIL</p>
-                <p class="font-body-md text-on-surface-variant text-sm mt-0.5">{{ request.user.email }}</p>
+            <span class="material-symbols-outlined text-outline text-lg shrink-0">verified_user</span>
+            <div class="min-w-0 flex-1">
+                <p class="font-label-caps text-[9px] text-outline tracking-widest uppercase">CURRENT EMAIL</p>
+                <p id="currentEmailValue" class="font-body-md text-on-surface-variant text-xs sm:text-sm mt-0.5 truncate">{{ request.user.email }}</p>
             </div>
         </div>
 
-        <!-- Django Messages -->
+        <!-- Django Server Messages -->
         {% if messages %}
         <div class="w-full mb-5 space-y-2">
             {% for message in messages %}
-            <div class="p-3 rounded-lg font-body-md text-sm text-center
+            <div class="p-3 rounded-lg font-body-md text-xs sm:text-sm text-center
                 {% if message.tags == 'error' %}
                     bg-error-container/60 text-on-error-container border border-error/20
                 {% else %}
@@ -190,20 +199,20 @@
         {% endif %}
 
         <!-- Form: Enter New Email -->
-        <form method="POST" action="{% url 'change_email' %}" class="w-full space-y-6" id="changeEmailForm">
+        <form method="POST" action="{% url 'change_email' %}" class="w-full space-y-6" id="changeEmailForm" novalidate>
             {% csrf_token %}
 
             <div class="space-y-2">
-                <label class="font-label-caps text-[10px] text-primary/80 tracking-widest font-semibold block" for="new_email_input">
+                <label class="font-label-caps text-[10px] sm:text-xs text-primary/80 tracking-widest font-semibold block" for="new_email_input">
                     NEW EMAIL ADDRESS
                 </label>
-                <div class="relative group">
+                <div id="inputContainer" class="field-wrapper relative group rounded-lg border border-outline-variant/50 bg-surface-container-lowest/80 transition-all">
                     <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                         <span class="material-symbols-outlined text-outline text-lg group-focus-within:text-primary transition-colors">alternate_email</span>
                     </div>
                     <input
                         id="new_email_input"
-                        class="w-full bg-surface-container-lowest/80 border border-outline-variant/50 focus:border-primary px-12 py-4 rounded-lg text-on-surface font-body-md text-sm placeholder:text-outline-variant outline-none transition-all focus:ring-1 focus:ring-primary/20"
+                        class="w-full bg-transparent border-none px-12 py-3.5 sm:py-4 rounded-lg text-on-surface font-body-md text-xs sm:text-sm placeholder:text-outline-variant/60 outline-none focus:ring-0"
                         placeholder="yournew@email.com"
                         type="email"
                         name="new_email"
@@ -211,13 +220,18 @@
                         autocomplete="email"
                     />
                 </div>
+                <!-- Dynamic Client-Side Error Message -->
+                <p id="emailError" class="text-error font-body-md text-xs hidden flex items-center gap-1 mt-1.5">
+                    <span class="material-symbols-outlined text-sm">error</span>
+                    <span id="emailErrorText"></span>
+                </p>
             </div>
 
-            <!-- Info note -->
-            <div class="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-lg p-4">
+            <!-- Info Note -->
+            <div class="flex items-start gap-3 bg-primary/5 border border-primary/15 rounded-lg p-3.5 sm:p-4">
                 <span class="material-symbols-outlined text-primary text-base mt-0.5 flex-shrink-0">info</span>
                 <p class="font-body-md text-on-surface-variant text-xs leading-relaxed">
-                    The OTP will be sent to your <strong class="text-primary">current email address</strong> ({{ request.user.email }}), not to the new one. This ensures only you can authorise this change.
+                    The OTP will be sent to your <strong class="text-primary">current email address</strong> ({{ request.user.email }}), not to the new one. This ensures only you can authorize this change.
                 </p>
             </div>
 
@@ -225,7 +239,7 @@
             <button
                 type="submit"
                 id="submitBtn"
-                class="w-full group relative py-4 bg-gradient-to-r from-primary-container to-primary rounded-lg overflow-hidden transition-all duration-500 neon-underglow font-label-caps text-on-primary font-bold tracking-[0.2em] text-xs"
+                class="w-full group relative py-3.5 sm:py-4 bg-gradient-to-r from-primary-container to-primary rounded-lg overflow-hidden transition-all duration-300 neon-underglow font-label-caps text-on-primary font-bold tracking-[0.2em] text-xs disabled:opacity-50 disabled:cursor-not-allowed"
             >
                 <span id="btnText">SEND VERIFICATION CODE</span>
                 <span id="btnLoader" class="hidden items-center justify-center gap-2">
@@ -233,7 +247,7 @@
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
                     </svg>
-                    SENDING...
+                    <span>SENDING...</span>
                 </span>
             </button>
 
@@ -243,9 +257,9 @@
         </form>
 
         <!-- Security Badge -->
-        <div class="mt-8 flex items-center gap-3 py-3 px-6 bg-surface-container-high/40 rounded-full border border-outline-variant/20">
-            <span class="material-symbols-outlined text-primary text-lg" style="font-variation-settings: 'FILL' 1;">verified_user</span>
-            <p class="font-label-caps text-[9px] text-on-surface-variant/70 uppercase tracking-widest text-center">
+        <div class="mt-6 sm:mt-8 flex items-center gap-3 py-2.5 px-5 sm:py-3 sm:px-6 bg-surface-container-high/40 rounded-full border border-outline-variant/20">
+            <span class="material-symbols-outlined text-primary text-base sm:text-lg" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+            <p class="font-label-caps text-[8px] sm:text-[9px] text-on-surface-variant/70 uppercase tracking-widest text-center">
                 Your identity is protected with encrypted OTP verification
             </p>
         </div>
@@ -254,23 +268,78 @@
 </main>
 
 <!-- Footer -->
-<footer class="fixed bottom-0 w-full z-40 border-t border-outline-variant/30 bg-surface-container-lowest py-3">
-    <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto gap-3 text-center md:text-left">
+<footer class="relative z-10 border-t border-outline-variant/30 bg-surface-container-lowest py-3 mt-auto">
+    <div class="flex flex-col md:flex-row justify-between items-center px-4 sm:px-margin-desktop max-w-container-max mx-auto gap-2 sm:gap-3 text-center md:text-left">
         <div class="font-display-lg text-primary text-xs tracking-widest font-semibold">WHEELVERSE PROTOCOLS</div>
         <div class="font-label-caps text-[9px] text-on-tertiary-container/50 tracking-wide">© 2026 WHEELVERSE PROTOCOLS. ALL RIGHTS RESERVED.</div>
     </div>
 </footer>
 
 <script>
-    // Show loading spinner on form submit
-    document.getElementById('changeEmailForm').addEventListener('submit', function() {
+    document.addEventListener("DOMContentLoaded", function () {
+        const form = document.getElementById('changeEmailForm');
+        const emailInput = document.getElementById('new_email_input');
+        const inputContainer = document.getElementById('inputContainer');
+        const errorContainer = document.getElementById('emailError');
+        const errorText = document.getElementById('emailErrorText');
         const btn = document.getElementById('submitBtn');
         const btnText = document.getElementById('btnText');
         const btnLoader = document.getElementById('btnLoader');
-        btn.disabled = true;
-        btnText.classList.add('hidden');
-        btnLoader.classList.remove('hidden');
-        btnLoader.classList.add('flex');
+        const currentEmail = "{{ request.user.email }}".trim().toLowerCase();
+
+        // Validation Rules
+        function validateEmail(email) {
+            const trimmed = email.trim().toLowerCase();
+            const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+            if (!trimmed) {
+                return "Please enter a new email address.";
+            }
+            if (!emailRegex.test(trimmed)) {
+                return "Please enter a valid email address (e.g., name@example.com).";
+            }
+            if (trimmed === currentEmail) {
+                return "New email address must be different from your current email.";
+            }
+            return null;
+        }
+
+        function showError(message) {
+            errorText.textContent = message;
+            errorContainer.classList.remove('hidden');
+            inputContainer.classList.add('field-error');
+        }
+
+        function clearError() {
+            errorText.textContent = '';
+            errorContainer.classList.add('hidden');
+            inputContainer.classList.remove('field-error');
+        }
+
+        // Live validation on typing
+        emailInput.addEventListener('input', function() {
+            if (!errorContainer.classList.contains('hidden')) {
+                clearError();
+            }
+        });
+
+        // Form submission handling
+        form.addEventListener('submit', function(event) {
+            const validationError = validateEmail(emailInput.value);
+
+            if (validationError) {
+                event.preventDefault();
+                showError(validationError);
+                emailInput.focus();
+                return;
+            }
+
+            clearError();
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoader.classList.remove('hidden');
+            btnLoader.classList.add('flex');
+        });
     });
 </script>
 

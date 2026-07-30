@@ -87,22 +87,23 @@
 
 {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-<main class="ml-[270px] w-[calc(100%-270px)] min-h-screen bg-[#0d0b07] overflow-x-hidden">
+<main class="ml-0 md:ml-[270px] w-full md:w-[calc(100%-270px)] min-h-screen bg-[#0d0b07] overflow-x-hidden">
 
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    <div class="px-10 pt-32 pb-10">
+    <div class="px-4 sm:px-6 md:px-10 pt-20 md:pt-32 pb-10">
         <div class="max-w-[1480px] mx-auto w-full">
 
             {% include 'adminpanel/includes/messages.html' %}
 
-            <div class="flex justify-between items-end mb-7">
+            <!-- Top Header & Action -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 mb-7">
                 <div>
-                    <h1 class="font-orbitron text-3xl font-bold tracking-wide">
+                    <h1 class="font-orbitron text-2xl sm:text-3xl font-bold tracking-wide break-words">
                         Return Detail – #RET-{{ return_request.id }}
                     </h1>
 
-                    <div class="flex flex-wrap items-center gap-4 mt-3 text-xs">
+                    <div class="flex flex-wrap items-center gap-3 md:gap-4 mt-3 text-xs">
                         <span class="text-[#d0c5af] flex items-center gap-1">
                             <span class="material-symbols-outlined text-sm">calendar_today</span>
                             Requested: {{ return_request.requested_at|date:"F d, Y" }}
@@ -120,16 +121,17 @@
                 </div>
 
                 <a href="{% url 'admin_returns' %}"
-                   class="border border-[#d0c5af]/50 px-6 py-2 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center gap-2">
+                   class="border border-[#d0c5af]/50 px-5 py-2 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center gap-2 shrink-0">
                     <span class="material-symbols-outlined text-sm">arrow_back</span>
                     Back to Returns
                 </a>
             </div>
 
+            <!-- Return Summary & Address Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7">
 
-                <section class="lg:col-span-2 glass-panel p-7 relative overflow-hidden">
-                    <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5">
+                <section class="lg:col-span-2 glass-panel p-5 sm:p-7 relative overflow-hidden">
+                    <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5 hidden sm:block">
                         assignment_return
                     </span>
 
@@ -137,15 +139,15 @@
                         Return Summary
                     </h3>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                         <div>
                             <p class="field-label">Customer</p>
-                            <p class="font-semibold mt-1">{{ return_request.user.username }}</p>
+                            <p class="font-semibold mt-1 break-words">{{ return_request.user.username }}</p>
                         </div>
 
                         <div>
                             <p class="field-label">Email Address</p>
-                            <p class="mt-1">{{ return_request.user.email }}</p>
+                            <p class="mt-1 break-all">{{ return_request.user.email }}</p>
                         </div>
 
                         <div>
@@ -157,7 +159,7 @@
 
                         <div>
                             <p class="field-label">Order ID</p>
-                            <p class="mt-1">{{ order.order_id }}</p>
+                            <p class="mt-1 break-words">{{ order.order_id }}</p>
                         </div>
 
                         <div>
@@ -174,24 +176,24 @@
                     </div>
                 </section>
 
-                <section class="glass-panel p-7 border-l-4 border-[#f2ca50]">
+                <section class="glass-panel p-5 sm:p-7 border-l-4 border-[#f2ca50]">
                     <h3 class="gold-title mb-6 flex items-center gap-2">
                         <span class="material-symbols-outlined">location_on</span>
                         Customer Address
                     </h3>
 
                     {% if order.shipping_address %}
-                        <p class="font-bold text-lg">{{ order.shipping_address.full_name }}</p>
+                        <p class="font-bold text-lg break-words">{{ order.shipping_address.full_name }}</p>
 
-                        <p class="text-[#d0c5af] mt-3 leading-7">
+                        <p class="text-[#d0c5af] mt-3 leading-7 break-words text-sm sm:text-base">
                             {{ order.shipping_address.address }}<br>
                             {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
                             {{ order.shipping_address.postal_code }}<br>
                             Phone: {{ order.shipping_address.phone }}
                         </p>
                     {% else %}
-                        <p class="font-bold text-lg">{{ order.full_name }}</p>
-                        <p class="text-[#d0c5af] mt-3 leading-7">
+                        <p class="font-bold text-lg break-words">{{ order.full_name }}</p>
+                        <p class="text-[#d0c5af] mt-3 leading-7 break-words text-sm sm:text-base">
                             {{ order.address_line }}<br>
                             {{ order.city }}, {{ order.state }}<br>
                             {{ order.pincode }}<br>
@@ -202,15 +204,16 @@
 
             </div>
 
+            <!-- Returned Product Details -->
             <section class="glass-panel mb-7 overflow-hidden">
-                <div class="px-7 py-5 border-b border-[#f2ca50]/20 flex justify-between items-center">
-                    <h3 class="font-orbitron text-sm uppercase tracking-widest">Returned Product</h3>
+                <div class="px-5 sm:px-7 py-5 border-b border-[#f2ca50]/20 flex justify-between items-center">
+                    <h3 class="font-orbitron text-xs sm:text-sm uppercase tracking-widest">Returned Product</h3>
                     <span class="text-xs text-[#d0c5af]">1 Item</span>
                 </div>
 
-                <div class="p-7">
+                <div class="p-5 sm:p-7">
                     <div class="grid grid-cols-1 lg:grid-cols-[130px_1fr_180px] gap-6 items-center">
-                        <div class="w-32 h-32 border border-[#f2ca50]/20 bg-[#111] overflow-hidden">
+                        <div class="w-full sm:w-32 h-32 border border-[#f2ca50]/20 bg-[#111] overflow-hidden mx-auto sm:mx-0">
                             {% if variant and variant.image %}
                                 <img src="{{ variant.image.url }}" class="w-full h-full object-cover">
                             {% elif variant and variant.images.first %}
@@ -223,28 +226,28 @@
                         </div>
 
                         <div>
-                            <p class="font-orbitron text-xl uppercase">{{ item.product_name }}</p>
+                            <p class="font-orbitron text-lg sm:text-xl uppercase break-words">{{ item.product_name }}</p>
 
-                            <p class="text-sm text-[#d0c5af] uppercase mt-2">
+                            <p class="text-xs sm:text-sm text-[#d0c5af] uppercase mt-2">
                                 {{ item.variant_size|default:"No Size" }}
                                 /
                                 {{ item.variant_color|default:"No Color" }}
                             </p>
 
-                            <div class="grid grid-cols-3 gap-4 mt-6 max-w-[500px]">
+                            <div class="grid grid-cols-3 gap-2 sm:gap-4 mt-6 max-w-[500px]">
                                 <div>
                                     <p class="field-label">Quantity</p>
-                                    <p class="text-[#f2ca50] mt-1">{{ item.quantity }}</p>
+                                    <p class="text-[#f2ca50] mt-1 text-sm sm:text-base">{{ item.quantity }}</p>
                                 </div>
 
                                 <div>
                                     <p class="field-label">Unit Price</p>
-                                    <p class="text-[#f2ca50] mt-1">₹{{ item.price }}</p>
+                                    <p class="text-[#f2ca50] mt-1 text-sm sm:text-base">₹{{ item.price }}</p>
                                 </div>
 
                                 <div>
                                     <p class="field-label">Subtotal</p>
-                                    <p class="text-[#f2ca50] mt-1">
+                                    <p class="text-[#f2ca50] mt-1 text-sm sm:text-base">
                                         {% if item.item_total %}
                                             ₹{{ item.item_total }}
                                         {% else %}
@@ -255,9 +258,9 @@
                             </div>
                         </div>
 
-                        <div class="text-right">
+                        <div class="text-left lg:text-right">
                             <p class="field-label">Refund Amount</p>
-                            <p class="text-[#f2ca50] text-3xl font-bold mt-2">
+                            <p class="text-[#f2ca50] text-2xl sm:text-3xl font-bold mt-1 sm:mt-2">
                                 ₹{{ return_request.refund_amount }}
                             </p>
                         </div>
@@ -265,24 +268,25 @@
                 </div>
             </section>
 
+            <!-- History and Actions Grid -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
 
-                <section class="glass-panel rounded-2xl p-8 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-8">
+                <section class="glass-panel rounded-2xl p-5 sm:p-8 overflow-hidden">
+                    <div class="flex items-center gap-3 mb-6 sm:mb-8">
                         <span class="material-symbols-outlined text-[#f2ca50]">history</span>
 
-                        <h3 class="font-orbitron text-xl font-semibold">
+                        <h3 class="font-orbitron text-lg sm:text-xl font-semibold">
                             Return History
                         </h3>
                     </div>
 
-                    <div class="relative ml-3 pt-3">
+                    <div class="relative ml-1 sm:ml-3 pt-3">
                         <div class="absolute left-[11px] top-8 bottom-3 w-[2px] bg-yellow-500/30"></div>
 
                         {% for step in timeline %}
-                            <div class="relative flex justify-between items-start mb-10 {% if not step.completed %}opacity-40{% endif %}">
-                                <div class="flex gap-5">
-                                    <div class="relative z-10 w-6 h-6 rounded-full border-[3px]
+                            <div class="relative flex flex-col sm:flex-row justify-between items-start mb-8 sm:mb-10 {% if not step.completed %}opacity-40{% endif %}">
+                                <div class="flex gap-4 sm:gap-5">
+                                    <div class="relative z-10 w-6 h-6 rounded-full border-[3px] shrink-0
                                         {% if step.completed %}
                                             border-yellow-500
                                         {% else %}
@@ -300,9 +304,9 @@
                                     </div>
 
                                     <div>
-                                        <h4 class="font-medium text-2xl">{{ step.label }}</h4>
+                                        <h4 class="font-medium text-lg sm:text-xl">{{ step.label }}</h4>
 
-                                        <p class="text-[#d0c5af] mt-1">
+                                        <p class="text-[#d0c5af] text-xs sm:text-sm mt-1">
                                             {% if step.key == "REQUESTED" %}
                                                 Return request submitted by {{ return_request.user.username }}
 
@@ -322,7 +326,7 @@
                                     </div>
                                 </div>
 
-                                <span class="text-[#d0c5af]">
+                                <span class="text-[#d0c5af] text-xs ml-10 sm:ml-0 mt-1 sm:mt-0 shrink-0">
                                     {% if step.date %}
                                         {{ step.date|date:"M d, Y" }}
                                     {% endif %}
@@ -332,92 +336,89 @@
                     </div>
                 </section>
 
-                <section class="glass-panel p-7">
-                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
-                        Return Reason
-                    </h3>
-
-                    <div class="bg-[#1b1810]/80 border border-[#f2ca50]/15 p-6">
-                        <p class="text-[#d0c5af] leading-7 whitespace-pre-line">
-                            {{ return_request.reason }}
-                        </p>
-                    </div>
-
-                    {% if return_request.status == "REQUESTED" %}
-
-                    <a href="{% url 'mark_return_picked_up' return_request.id %}"
-                    class="bg-blue-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
-                        Mark as Picked Up
-                    </a>
-
-                    {% elif return_request.status == "REQUESTED" %}
-                        <a href="{% url 'return_action_page' return_request.id %}"
-                        class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs uppercase">
-                            Approve / Reject
-                        </a>
-
-                    {% elif return_request.status == "APPROVED" %}
-                        <a href="{% url 'mark_return_picked_up' return_request.id %}"
-                        class="bg-blue-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
-                            Mark as Picked Up
-                        </a>
-
-                    {% elif return_request.status == "PICKED_UP" %}
-                        <a href="{% url 'process_refund' return_request.id %}"
-                        class="bg-green-600 text-white px-8 py-3 font-orbitron text-xs uppercase">
-                            Process Refund
-                        </a>
-
-                    {% else %}
-                        <button disabled
-                                class="border border-[#d0c5af]/30 text-[#d0c5af] px-8 py-3 font-orbitron text-xs uppercase">
-                            Return Closed
-                        </button>
-                    {% endif %}
-
-                    <div class="mt-6">
-                        <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-4">
-                            Return Proof Images
+                <section class="glass-panel p-5 sm:p-7 flex flex-col justify-between">
+                    <div>
+                        <h3 class="font-orbitron text-xs sm:text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-6 sm:mb-8">
+                            Return Reason
                         </h3>
 
-                        {% if return_request.images.all %}
-                            <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                {% for proof in return_request.images.all %}
-                                    {% if proof.image %}
-                                        <a href="{{ proof.image.url }}" target="_blank"
-                                        class="block h-32 border border-[#f2ca50]/20 overflow-hidden bg-[#111] rounded">
-                                            <img src="{{ proof.image.url }}"
-                                                alt="Return proof image"
-                                                class="w-full h-full object-cover hover:scale-105 transition">
-                                        </a>
-                                    {% endif %}
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            <p class="text-[#d0c5af] text-sm">No return proof images uploaded.</p>
-                        {% endif %}
+                        <div class="bg-[#1b1810]/80 border border-[#f2ca50]/15 p-4 sm:p-6 mb-6">
+                            <p class="text-[#d0c5af] text-xs sm:text-sm leading-relaxed whitespace-pre-line break-words">
+                                {{ return_request.reason }}
+                            </p>
+                        </div>
+
+                        <div class="mb-6">
+                            <h3 class="font-orbitron text-xs sm:text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-4">
+                                Return Proof Images
+                            </h3>
+
+                            {% if return_request.images.all %}
+                                <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+                                    {% for proof in return_request.images.all %}
+                                        {% if proof.image %}
+                                            <a href="{{ proof.image.url }}" target="_blank"
+                                            class="block h-28 sm:h-32 border border-[#f2ca50]/20 overflow-hidden bg-[#111] rounded">
+                                                <img src="{{ proof.image.url }}"
+                                                    alt="Return proof image"
+                                                    class="w-full h-full object-cover hover:scale-105 transition">
+                                            </a>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-[#d0c5af] text-xs sm:text-sm">No return proof images uploaded.</p>
+                            {% endif %}
+                        </div>
                     </div>
 
+                    <div class="pt-4 border-t border-[#f2ca50]/10 flex flex-col sm:flex-row gap-3">
+                        {% if return_request.status == "REQUESTED" %}
+                            <a href="{% url 'return_action_page' return_request.id %}"
+                            class="w-full text-center bg-[#f2ca50] text-black px-6 py-3 font-orbitron text-xs uppercase font-bold hover:brightness-110 transition">
+                                Approve / Reject
+                            </a>
+                        {% elif return_request.status == "APPROVED" %}
+                            <a href="{% url 'mark_return_picked_up' return_request.id %}"
+                            class="w-full text-center bg-blue-600 text-white px-6 py-3 font-orbitron text-xs uppercase font-bold hover:bg-blue-500 transition">
+                                Mark as Picked Up
+                            </a>
+                        {% elif return_request.status == "PICKED_UP" %}
+                            <a href="{% url 'process_refund' return_request.id %}"
+                            class="w-full text-center bg-green-600 text-white px-6 py-3 font-orbitron text-xs uppercase font-bold hover:bg-green-500 transition">
+                                Process Refund
+                            </a>
+                        {% else %}
+                            <button disabled
+                                    class="w-full border border-[#d0c5af]/30 text-[#d0c5af] px-6 py-3 font-orbitron text-xs uppercase font-bold">
+                                Return Closed
+                            </button>
+                        {% endif %}
                     </div>
-                    
                 </section>
 
             </div>
 
-            <div class="border-t border-[#f2ca50]/20 pt-7 flex justify-end gap-5">
+            <!-- Footer Action Bar -->
+            <div class="border-t border-[#f2ca50]/20 pt-7 flex justify-end gap-3 sm:gap-5">
                 {% if return_request.status == "REQUESTED" %}
                     <a href="{% url 'return_action_page' return_request.id %}"
-                       class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
+                       class="w-full sm:w-auto text-center bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110 transition">
                         Approve / Reject
                     </a>
                 {% elif return_request.status == "APPROVED" %}
+                    <a href="{% url 'mark_return_picked_up' return_request.id %}"
+                       class="w-full sm:w-auto text-center bg-blue-600 text-white px-8 py-3 font-orbitron text-xs font-bold uppercase hover:bg-blue-500 transition">
+                        Mark as Picked Up
+                    </a>
+                {% elif return_request.status == "PICKED_UP" %}
                     <a href="{% url 'process_refund' return_request.id %}"
-                       class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
+                       class="w-full sm:w-auto text-center bg-green-600 text-white px-8 py-3 font-orbitron text-xs font-bold uppercase hover:bg-green-500 transition">
                         Process Refund
                     </a>
                 {% else %}
                     <button disabled
-                            class="border border-[#d0c5af]/30 text-[#d0c5af] px-8 py-3 font-orbitron text-xs font-bold uppercase">
+                            class="w-full sm:w-auto border border-[#d0c5af]/30 text-[#d0c5af] px-8 py-3 font-orbitron text-xs font-bold uppercase">
                         Return Closed
                     </button>
                 {% endif %}

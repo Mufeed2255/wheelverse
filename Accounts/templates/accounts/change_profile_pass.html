@@ -22,9 +22,14 @@
         background: rgba(17, 14, 7, 0.75);
         backdrop-filter: blur(22px);
         border: 1px solid rgba(242, 202, 80, 0.18);
-        clip-path: polygon(0% 3%, 3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%);
-        width: 520px;
+        clip-path: polygon(0% 2%, 2% 0%, 98% 0%, 100% 2%, 100% 98%, 98% 100%, 2% 100%, 0% 98%);
         animation: fadeUp 0.9s ease forwards;
+    }
+
+    @media (min-width: 640px) {
+        .glass-panel {
+            clip-path: polygon(0% 3%, 3% 0%, 97% 0%, 100% 3%, 100% 97%, 97% 100%, 3% 100%, 0% 97%);
+        }
     }
 
     .input-glass {
@@ -65,72 +70,80 @@
 </style>
 </head>
 
-<body class="min-h-screen w-screen relative flex items-center justify-center py-12 px-4">
+<body class="min-h-screen w-screen relative flex items-center justify-center py-8 px-4 sm:px-6">
 
-<div class="fixed inset-0 z-[-1]">
+<!-- Background Graphic Layer -->
+<div class="fixed inset-0 z-[-1] pointer-events-none">
     <div class="absolute inset-0 bg-black/60 z-10"></div>
-    <img class="w-full h-full object-cover opacity-40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZtbZpLeuHYAasuVT-RxCm4hDGy0z3I9qSovkzRYtRdnedU9S-u3v_s8jN6WhSR59Y5YRc2OGsX7brHpqN6mnGF7zxdQKcadI7BBrIVqAv7Ut1IyylGV-NbvCKtRNaKOdPZVax1AsO4fzffuqYBRdGfIUhEG9GqYEDfxzc_ndz5uUcYPUOMpRCOKJIZLdBtzW7tAGWjCg4Tea8Lfs-lLV6FnOmZehxp6Dku5SefB5i0_0dUK-UruW0bLQ4F9XoyAsh-DcF0RwiAQ0" alt="Luxury Garage Background">
+    <img class="w-full h-full object-cover opacity-40 grayscale contrast-125 scale-105 blur-xs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAZtbZpLeuHYAasuVT-RxCm4hDGy0z3I9qSovkzRYtRdnedU9S-u3v_s8jN6WhSR59Y5YRc2OGsX7brHpqN6mnGF7zxdQKcadI7BBrIVqAv7Ut1IyylGV-NbvCKtRNaKOdPZVax1AsO4fzffuqYBRdGfIUhEG9GqYEDfxzc_ndz5uUcYPUOMpRCOKJIZLdBtzW7tAGWjCg4Tea8Lfs-lLV6FnOmZehxp6Dku5SefB5i0_0dUK-UruW0bLQ4F9XoyAsh-DcF0RwiAQ0" alt="Luxury Garage Background">
     <div class="absolute inset-0 bg-gradient-to-t from-[#16130b] via-transparent to-transparent opacity-95 z-20"></div>
 </div>
 
-<main class="relative z-20 flex items-center justify-center">
-    <div class="glass-panel p-10 md:p-14 flex flex-col items-center relative overflow-hidden">
+<main class="relative z-20 flex items-center justify-center w-full my-auto">
+    <div class="glass-panel w-full max-w-[520px] p-6 sm:p-10 md:p-12 flex flex-col items-center relative overflow-hidden">
         <div class="absolute inset-0 border border-[#f2ca50]/20 pointer-events-none carbon-texture opacity-20"></div>
 
-        <div class="flex flex-col items-center mb-8 text-center w-full relative z-10">
-            <span class="font-[Orbitron] text-2xl tracking-[0.5em] text-[#e9c349] mb-2 uppercase">WheelVerse</span>
-            <span class="font-[Orbitron] text-[10px] tracking-[0.4em] text-[#f2ca50]/70 mb-6">Internal Profile Vault</span>
-            <h1 class="font-[Orbitron] text-3xl text-[#eae1d4] mb-3">Change Password</h1>
-            <p class="text-[#d0c5af] text-sm max-w-sm leading-relaxed">Update your login security credentials without changing system profiles.</p>
+        <!-- Top Header & Branding -->
+        <div class="flex flex-col items-center mb-6 sm:mb-8 text-center w-full relative z-10">
+            <span class="font-[Orbitron] text-xl sm:text-2xl tracking-[0.5em] text-[#e9c349] mb-2 uppercase">WheelVerse</span>
+            <span class="font-[Orbitron] text-[9px] sm:text-[10px] tracking-[0.4em] text-[#f2ca50]/70 mb-5 sm:mb-6 uppercase">Internal Profile Vault</span>
+            <h1 class="font-[Orbitron] text-2xl sm:text-3xl text-[#eae1d4] mb-2 sm:mb-3 font-bold">Change Password</h1>
+            <p class="text-[#d0c5af] text-xs sm:text-sm max-w-sm leading-relaxed">Update your login security credentials without changing system profiles.</p>
         </div>
 
+        <!-- Django Notification Messages -->
         {% if messages %}
             <div id="messageBox" class="w-full mb-5 space-y-2">
                 {% for message in messages %}
-                    <div class="w-full px-4 py-3 rounded-lg text-sm text-center border {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border-red-500/30{% else %}bg-green-500/20 text-green-400 border-green-500/30{% endif %}">
+                    <div class="w-full px-4 py-3 rounded-lg text-xs sm:text-sm text-center border {% if message.tags == 'error' %}bg-red-500/20 text-red-400 border-red-500/30{% else %}bg-green-500/20 text-green-400 border-green-500/30{% endif %}">
                         {{ message }}
                     </div>
                 {% endfor %}
             </div>
         {% endif %}
 
-        <form method="POST" action="{% url 'change_profile_pass' %}" onsubmit="return validateProfilePassword()" class="w-full space-y-6">
+        <!-- Change Password Form -->
+        <form method="POST" action="{% url 'change_profile_pass' %}" onsubmit="return validateProfilePassword()" class="w-full space-y-5 sm:space-y-6">
             {% csrf_token %}
             
-            <div class="space-y-2 group relative">
-                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">Current Active Password</label>
+            <!-- Current Password Field -->
+            <div class="space-y-1.5 sm:space-y-2 group relative">
+                <label for="current_password" class="font-[Orbitron] text-[10px] sm:text-xs tracking-wider text-[#f2ca50]/70 ml-1 block">Current Active Password</label>
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">key</span>
-                    <input id="current_password" name="current_password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
-                    <button type="button" onclick="togglePassword('current_password', 'eyeIcon0')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon0" class="material-symbols-outlined">visibility</span></button>
+                    <span class="material-symbols-outlined absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors text-xl">key</span>
+                    <input id="current_password" name="current_password" required class="w-full input-glass py-3.5 sm:py-4 pl-12 sm:pl-14 pr-12 sm:pr-14 text-sm sm:text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password" autocomplete="current-password">
+                    <button type="button" onclick="togglePassword('current_password', 'eyeIcon0')" class="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50] transition-colors" aria-label="Toggle password visibility"><span id="eyeIcon0" class="material-symbols-outlined text-xl">visibility</span></button>
                 </div>
-                <p id="currentPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+                <p id="currentPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px] transition-all"></p>
             </div>
 
-            <div class="space-y-2 group relative">
-                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">New System Password</label>
+            <!-- New Password Field -->
+            <div class="space-y-1.5 sm:space-y-2 group relative">
+                <label for="password" class="font-[Orbitron] text-[10px] sm:text-xs tracking-wider text-[#f2ca50]/70 ml-1 block">New System Password</label>
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">lock</span>
-                    <input id="password" name="password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
-                    <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon1" class="material-symbols-outlined">visibility</span></button>
+                    <span class="material-symbols-outlined absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors text-xl">lock</span>
+                    <input id="password" name="password" required class="w-full input-glass py-3.5 sm:py-4 pl-12 sm:pl-14 pr-12 sm:pr-14 text-sm sm:text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password" autocomplete="new-password">
+                    <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50] transition-colors" aria-label="Toggle password visibility"><span id="eyeIcon1" class="material-symbols-outlined text-xl">visibility</span></button>
                 </div>
-                <p id="passwordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+                <p id="passwordError" class="text-red-400 text-xs mt-1 min-h-[16px] transition-all"></p>
             </div>
 
-            <div class="space-y-2 group relative">
-                <label class="font-[Orbitron] text-xs tracking-wider text-[#f2ca50]/70 ml-1">Confirm New Password</label>
+            <!-- Confirm Password Field -->
+            <div class="space-y-1.5 sm:space-y-2 group relative">
+                <label for="confirm_password" class="font-[Orbitron] text-[10px] sm:text-xs tracking-wider text-[#f2ca50]/70 ml-1 block">Confirm New Password</label>
                 <div class="relative">
-                    <span class="material-symbols-outlined absolute left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors">verified_user</span>
-                    <input id="confirm_password" name="confirm_password" required class="w-full input-glass py-4 pl-14 pr-14 text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password">
-                    <button type="button" onclick="togglePassword('confirm_password', 'eyeIcon2')" class="absolute right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50]"><span id="eyeIcon2" class="material-symbols-outlined">visibility</span></button>
+                    <span class="material-symbols-outlined absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 text-[#f2ca50]/40 group-focus-within:text-[#f2ca50] transition-colors text-xl">verified_user</span>
+                    <input id="confirm_password" name="confirm_password" required class="w-full input-glass py-3.5 sm:py-4 pl-12 sm:pl-14 pr-12 sm:pr-14 text-sm sm:text-base text-[#eae1d4] placeholder:text-[#38342b] rounded-t-lg" placeholder="••••••••••••" type="password" autocomplete="new-password">
+                    <button type="button" onclick="togglePassword('confirm_password', 'eyeIcon2')" class="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-[#d0c5af] hover:text-[#f2ca50] transition-colors" aria-label="Toggle password visibility"><span id="eyeIcon2" class="material-symbols-outlined text-xl">visibility</span></button>
                 </div>
-                <p id="confirmPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px]"></p>
+                <p id="confirmPasswordError" class="text-red-400 text-xs mt-1 min-h-[16px] transition-all"></p>
             </div>
 
-            <button class="w-full gold-gradient-btn py-4 mt-4 rounded-lg flex items-center justify-center group transition-all duration-300 active:scale-95 overflow-hidden relative" type="submit">
-                <span class="font-[Orbitron] text-sm font-bold tracking-[0.2em] text-[#3c2f00] flex items-center gap-3 relative z-10">
+            <!-- Submit Button -->
+            <button class="w-full gold-gradient-btn py-3.5 sm:py-4 mt-2 sm:mt-4 rounded-lg flex items-center justify-center group transition-all duration-300 active:scale-95 overflow-hidden relative" type="submit">
+                <span class="font-[Orbitron] text-xs sm:text-sm font-bold tracking-[0.2em] text-[#3c2f00] flex items-center gap-2 sm:gap-3 relative z-10">
                     UPDATE VAULT PASSWORD
-                    <span class="material-symbols-outlined text-[#3c2f00] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                    <span class="material-symbols-outlined text-[#3c2f00] group-hover:translate-x-1 transition-transform text-lg sm:text-xl">arrow_forward</span>
                 </span>
             </button>
         </form>
@@ -151,9 +164,9 @@ function togglePassword(inputId, iconId) {
 }
 
 function validateProfilePassword() {
-    let currentPassword = document.getElementById("current_password").value;
-    let password = document.getElementById("password").value;
-    let confirmPassword = document.getElementById("confirm_password").value;
+    let currentPassword = document.getElementById("current_password").value.trim();
+    let password = document.getElementById("password").value.trim();
+    let confirmPassword = document.getElementById("confirm_password").value.trim();
 
     let currentPasswordError = document.getElementById("currentPasswordError");
     let passwordError = document.getElementById("passwordError");
@@ -163,34 +176,36 @@ function validateProfilePassword() {
     passwordError.innerText = "";
     confirmPasswordError.innerText = "";
 
+    let isValid = true;
+
     if (currentPassword === "") {
         currentPasswordError.innerText = "Current authorization credentials required.";
-        return false;
+        isValid = false;
     }
 
     if (password.length < 8) {
         passwordError.innerText = "Security protocols require at least 8 elements.";
-        return false;
-    }
-
-    if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+        isValid = false;
+    } else if (!/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/[0-9]/.test(password) || !/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
         passwordError.innerText = "Password must include upper, lower, numeric, and special character metrics.";
-        return false;
-    }
-
-    if (currentPassword === password) {
+        isValid = false;
+    } else if (currentPassword !== "" && currentPassword === password) {
         passwordError.innerText = "New password must differ from your current configuration key.";
-        return false;
+        isValid = false;
     }
 
-    if (password !== confirmPassword) {
+    if (confirmPassword === "") {
+        confirmPasswordError.innerText = "Please confirm your new system password.";
+        isValid = false;
+    } else if (password !== "" && password !== confirmPassword) {
         confirmPasswordError.innerText = "Verification parameter mismatch across elements.";
-        return false;
+        isValid = false;
     }
 
-    return true;
+    return isValid;
 }
 
+// Auto-fade message alert container after 4 seconds
 setTimeout(function () {
     const messageBox = document.getElementById("messageBox");
     if (messageBox) {

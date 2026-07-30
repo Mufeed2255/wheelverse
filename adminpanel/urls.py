@@ -18,7 +18,6 @@ from .views.order_management import (
 from adminpanel.views.coupon_management import (
     admin_coupons,
     add_coupon,
-    delete_coupon_confirm,
     edit_coupon,
     delete_coupon,
 )
@@ -28,7 +27,6 @@ from .views.offer_management import (
         add_offer,
         admin_offers,
         delete_offer,
-        delete_offer_confirm,
         edit_offer,
         toggle_offer_status,
     )
@@ -83,7 +81,6 @@ urlpatterns = [
     path("coupons/", admin_coupons, name="admin_coupons"),
     path("coupons/add/", add_coupon, name="add_coupon"),
     path("coupons/edit/<int:coupon_id>/", edit_coupon, name="edit_coupon"),
-    path("coupons/delete-confirm/<int:coupon_id>/", delete_coupon_confirm, name="delete_coupon_confirm"),
     path("coupons/delete/<int:coupon_id>/", delete_coupon, name="delete_coupon"),
     path("sales-report/",sales_report,name="sales_report"),
 
@@ -94,7 +91,6 @@ urlpatterns = [
     path("offers/", admin_offers, name="admin_offers"),
     path("offers/add/", add_offer, name="add_offer"),
     path("offers/<int:offer_id>/edit/", edit_offer, name="edit_offer"),
-    path("offers/<int:offer_id>/delete-confirm/",delete_offer_confirm,name="delete_offer_confirm",),
     path("offers/<int:offer_id>/delete/",delete_offer,name="delete_offer",),
     path("offers/<int:offer_id>/toggle/",toggle_offer_status,name="toggle_offer_status",),
 

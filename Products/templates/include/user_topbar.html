@@ -1,174 +1,233 @@
+{% load static %}
+
+<!-- Google Fonts & Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
 <style>
-        .wv-topbar{
-        position:fixed;
-        top:0;
-        left:18rem;
-        right:0;
-        height:80px;
-        z-index:9999;
-        background:rgba(17,15,10,.96);
-        backdrop-filter:blur(18px);
-        border-bottom:1px solid rgba(242,202,80,.12);
+    .wv-topbar-root * {
+        box-sizing: border-box;
     }
 
-    .wv-topbar-inner{
-        height:100%;
-        padding:0 48px;
-        display:flex;
-        align-items:center;
-        justify-content:space-between;
+    .wv-topbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 80px;
+        z-index: 1000;
+        background: rgba(17, 15, 10, 0.96);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(242, 202, 80, 0.12);
+        transition: left 0.3s ease;
     }
 
-    /* ---------- Logo ---------- */
-
-    .wv-topbar-logo{
-        display:flex;
-        align-items:center;
-        text-decoration:none;
-        white-space:nowrap;
-
-        font-family:'Orbitron',sans-serif;
-        font-size:42px;
-        font-weight:800;
-        letter-spacing:-0.04em;
-        line-height:1;
-    }
-
-    .wv-logo-wheel{
-        color:#f2ca50;
-    }
-
-    .wv-logo-verse{
-        color:#ffffff;
-    }
-
-    /* ---------- Navigation ---------- */
-
-    .wv-topbar-nav{
-        display:flex;
-        align-items:center;
-        gap:42px;
-    }
-
-    .wv-topbar-nav a{
-        font-family:'Orbitron',sans-serif;
-        font-size:13px;
-        font-weight:500;
-        letter-spacing:.12em;
-        color:#d0c5af;
-        text-decoration:none;
-        transition:.25s;
-    }
-
-    .wv-topbar-nav a:hover{
-        color:#f2ca50;
-    }
-
-    /* Active page */
-
-    .wv-topbar-nav a.active{
-        color:#f2ca50;
-        position:relative;
-    }
-
-    .wv-topbar-nav a.active::after{
-        content:"";
-        position:absolute;
-        left:0;
-        bottom:-14px;
-        width:100%;
-        height:2px;
-        background:#f2ca50;
-    }
-
-    /* ---------- Right Icons ---------- */
-
-    .wv-topbar-right{
-        display:flex;
-        align-items:center;
-        gap:24px;
-    }
-
-    .wv-topbar-icon{
-        position:relative;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        color:#d0c5af;
-        transition:.25s;
-    }
-
-    .wv-topbar-icon .material-symbols-outlined{
-        font-size:32px;
-    }
-
-    .wv-topbar-icon:hover{
-        color:#f2ca50;
-    }
-
-    .wv-cart-count{
-        position:absolute;
-        top:-8px;
-        right:-8px;
-        width:22px;
-        height:22px;
-        border-radius:50%;
-        background:#f2ca50;
-        color:#000;
-        font-family:'Orbitron',sans-serif;
-        font-size:10px;
-        font-weight:700;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-    }
-
-    @media(max-width:1024px){
-
-        .wv-topbar{
-            left:0;
+    /* Desktop-ൽ Sidebar ഉണ്ടെങ്കിൽ Topbar വലത്തോട്ട് മാറും */
+    @media (min-width: 1025px) {
+        body.has-sidebar .wv-topbar {
+            left: 18rem;
         }
+    }
 
-        .wv-topbar-inner{
-            padding:0 20px;
-        }
+    .wv-topbar-inner {
+        height: 100%;
+        padding: 0 48px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
 
-        .wv-topbar-logo{
-            font-size:34px;
-        }
+    .wv-topbar-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
 
-        .wv-topbar-nav{
-            display:none;
+    /* 3-Line Hamburger Button (Mobile view-ൽ മാത്രം കാണപ്പെടും) */
+    .wv-hamburger-btn {
+        display: none;
+        flex-direction: column;
+        justify-content: space-between;
+        width: 24px;
+        height: 18px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .wv-hamburger-line {
+        width: 100%;
+        height: 2px;
+        background-color: #f2ca50;
+        border-radius: 2px;
+    }
+
+    .wv-topbar-logo {
+        display: flex;
+        align-items: center;
+        text-decoration: none;
+        white-space: nowrap;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 42px;
+        font-weight: 800;
+        letter-spacing: -0.04em;
+        line-height: 1;
+    }
+
+    .wv-logo-wheel { color: #f2ca50; }
+    .wv-logo-verse { color: #ffffff; }
+
+    .wv-topbar-nav {
+        display: flex;
+        align-items: center;
+        gap: 42px;
+    }
+
+    .wv-topbar-nav a {
+        font-family: 'Orbitron', sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.12em;
+        color: #d0c5af;
+        text-decoration: none;
+        transition: 0.25s;
+    }
+
+    .wv-topbar-nav a:hover,
+    .wv-topbar-nav a.active {
+        color: #f2ca50;
+    }
+
+    .wv-topbar-right {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+    }
+
+    .wv-topbar-icon {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #d0c5af;
+        transition: 0.25s;
+        text-decoration: none;
+    }
+
+    .wv-topbar-icon .material-symbols-outlined {
+        font-size: 32px;
+    }
+
+    .wv-topbar-icon:hover { color: #f2ca50; }
+
+    .wv-cart-count {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #f2ca50;
+        color: #000;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .wv-signup-gold-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 44px;
+        padding: 0 24px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #ffe06f 0%, #f2ca50 50%, #d4af37 100%);
+        color: #120e03;
+        font-family: 'Orbitron', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    @media (max-width: 1024px) {
+        .wv-topbar { left: 0 !important; }
+        .wv-topbar-inner { padding: 0 20px; }
+        .wv-topbar-logo { font-size: 26px; }
+        .wv-topbar-nav, .wv-signup-gold-btn { display: none !important; }
+        .wv-topbar-right { gap: 16px; }
+        .wv-topbar-icon .material-symbols-outlined { font-size: 28px; }
+
+        /* Sidebar ഉള്ള പേജുകളിൽ മാത്രം മൊബൈലിൽ Hamburger കാണിക്കും */
+        body.has-sidebar .wv-hamburger-btn {
+            display: flex;
         }
     }
 </style>
-<header class="fixed top-0 left-0 right-0 z-50 h-24 bg-[#110f0a] border-b border-[#3d321b]">
-    <div class="h-full flex items-center justify-between px-20">
 
-        <a href="{% url 'landing_page' %}" class="font-orbitron text-5xl font-bold tracking-tight">
-            <span class="text-[#f2ca50]">Wheel</span><span class="text-white">Verse</span>
-        </a>
+<div class="wv-topbar-root">
+    <header class="wv-topbar">
+        <div class="wv-topbar-inner">
+            <div class="wv-topbar-left">
+                <!-- Hamburger Menu Button -->
+                <button type="button" id="sidebarToggleBtn" class="wv-hamburger-btn" aria-label="Toggle Navigation">
+                    <span class="wv-hamburger-line"></span>
+                    <span class="wv-hamburger-line"></span>
+                    <span class="wv-hamburger-line"></span>
+                </button>
 
-        <nav class="hidden lg:flex items-center gap-14 font-orbitron text-lg text-[#d0c5af]">
-            <a href="{% url 'landing_page' %}" class="hover:text-[#f2ca50] transition">Home</a>
-            <a href="{% url 'collections' %}" class="hover:text-[#f2ca50] transition">Collections</a>
-            <a href="{% url 'my_orders' %}" class="hover:text-[#f2ca50] transition">Orders</a>
-            <a href="{% url 'wishlist' %}" class="hover:text-[#f2ca50] transition">Wishlist</a>
-        </nav>
+                <!-- Logo -->
+                <a href="{% url 'landing_page' %}" class="wv-topbar-logo">
+                    <span class="wv-logo-wheel">Wheel</span><span class="wv-logo-verse">Verse</span>
+                </a>
+            </div>
 
-        <div class="flex items-center gap-8">
-            <a href="{% url 'cart' %}">
-                <span class="material-symbols-outlined text-[#d0c5af] text-4xl hover:text-[#f2ca50] transition">
-                    shopping_cart
-                </span>
-            </a>
+            <!-- Nav Links -->
+            <nav class="wv-topbar-nav">
+                <a href="{% url 'landing_page' %}" class="{% if request.resolver_match.url_name == 'landing_page' %}active{% endif %}">Home</a>
+                <a href="{% url 'collections' %}" class="{% if request.resolver_match.url_name == 'collections' %}active{% endif %}">Collections</a>
+                <a href="{% url 'my_orders' %}" class="{% if request.resolver_match.url_name == 'my_orders' %}active{% endif %}">Orders</a>
+                <a href="{% url 'wishlist' %}" class="{% if request.resolver_match.url_name == 'wishlist' %}active{% endif %}">Wishlist</a>
+            </nav>
 
-            <a href="{% url 'profile_view' %}">
-                <span class="material-symbols-outlined text-[#d0c5af] text-4xl hover:text-[#f2ca50] transition">
-                    account_circle
-                </span>
-            </a>
+            <!-- Icons -->
+            <div class="wv-topbar-right">
+                <a href="{% url 'wishlist' %}" class="wv-topbar-icon"><span class="material-symbols-outlined">favorite</span></a>
+                <a href="{% url 'cart' %}" class="wv-topbar-icon">
+                    <span class="material-symbols-outlined">shopping_cart</span>
+                    {% if cart_count and cart_count > 0 %}
+                        <span class="wv-cart-count">{{ cart_count }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'profile_view' %}" class="wv-topbar-icon"><span class="material-symbols-outlined">account_circle</span></a>
+
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'signup' %}" class="wv-signup-gold-btn">
+                        <span class="material-symbols-outlined" style="font-size:18px;">person_add</span>
+                        <span>Sign Up</span>
+                    </a>
+                {% endif %}
+            </div>
         </div>
+    </header>
+</div>
 
-    </div>
-</header>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const toggleBtn = document.getElementById("sidebarToggleBtn");
+        
+        if (toggleBtn) {
+            toggleBtn.addEventListener("click", function () {
+                const sidebar = document.getElementById("userSidebar");
+                const overlay = document.getElementById("sidebarOverlay");
+
+                if (sidebar) sidebar.classList.toggle("active");
+                if (overlay) overlay.classList.toggle("active");
+            });
+        }
+    });
+</script>

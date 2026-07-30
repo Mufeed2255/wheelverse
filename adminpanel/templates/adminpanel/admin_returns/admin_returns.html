@@ -3,6 +3,7 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WheelVerse Returns</title>
     <script src="https://cdn.tailwindcss.com"></script>
 
@@ -70,83 +71,86 @@
      style="background-image:linear-gradient(rgba(242,202,80,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(242,202,80,.04) 1px,transparent 1px);background-size:42px 42px;">
 </div>
 
-
-
-<main class="ml-72 pt-28 px-8 pb-10 relative z-10">
 {% include 'adminpanel/includes/admin_sidebar.html' %}
 {% include 'adminpanel/includes/admin_topbar.html' %}
+
+<main class="ml-0 md:ml-64 pt-20 md:pt-28 px-4 md:px-8 pb-10 relative z-10">
 {% include 'adminpanel/includes/messages.html' %}
-    <section class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <div class="glass p-6">
+
+    <!-- Top Statistics Cards -->
+    <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        <div class="glass p-5 md:p-6">
             <p class="font-orbitron text-xs text-muted">TOTAL RECALLS</p>
-            <h2 class="font-orbitron text-4xl text-gold mt-3">{{ total_returns }}</h2>
+            <h2 class="font-orbitron text-3xl md:text-4xl text-gold mt-3">{{ total_returns }}</h2>
             <div class="h-1 bg-white/10 mt-5"><div class="h-full bg-gold w-2/3"></div></div>
         </div>
 
-        <div class="glass p-6">
+        <div class="glass p-5 md:p-6">
             <p class="font-orbitron text-xs text-muted">PENDING REQUESTS</p>
-            <h2 class="font-orbitron text-4xl text-white mt-3">{{ pending_returns }}</h2>
+            <h2 class="font-orbitron text-3xl md:text-4xl text-white mt-3">{{ pending_returns }}</h2>
             <p class="text-gold text-xs mt-4">URGENT</p>
         </div>
 
-        <div class="glass p-6">
+        <div class="glass p-5 md:p-6">
             <p class="font-orbitron text-xs text-muted">APPROVED RETURNS</p>
-            <h2 class="font-orbitron text-4xl text-gold mt-3">{{ approved_returns }}</h2>
+            <h2 class="font-orbitron text-3xl md:text-4xl text-gold mt-3">{{ approved_returns }}</h2>
             <div class="h-1 bg-white/10 mt-5"><div class="h-full bg-gold w-3/4"></div></div>
         </div>
 
-        <div class="glass p-6">
+        <div class="glass p-5 md:p-6">
             <p class="font-orbitron text-xs text-muted">COMPLETED REFUNDS</p>
-            <h2 class="font-orbitron text-4xl text-white mt-3">{{ refunded_returns }}</h2>
+            <h2 class="font-orbitron text-3xl md:text-4xl text-white mt-3">{{ refunded_returns }}</h2>
             <p class="text-gold/70 text-xs mt-4">SETTLEMENTS FINALIZED</p>
         </div>
     </section>
 
-    <section class="glass p-4 mb-8 flex flex-col lg:flex-row justify-between gap-4">
-        <div class="flex flex-wrap gap-2">
+    <!-- Filters & Search Section -->
+    <section class="glass p-4 mb-6 md:mb-8 flex flex-col lg:flex-row justify-between gap-4">
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 lg:pb-0 hide-scrollbar">
 
             <a href="?status=all&search={{ search }}"
-            class="px-6 py-3 font-orbitron text-xs {% if current_status == 'all' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
+            class="px-5 py-2.5 md:px-6 md:py-3 font-orbitron text-xs whitespace-nowrap shrink-0 {% if current_status == 'all' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
                 ALL LOGS
             </a>
 
             <a href="?status=REQUESTED&search={{ search }}"
-            class="px-6 py-3 font-orbitron text-xs {% if current_status == 'REQUESTED' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
+            class="px-5 py-2.5 md:px-6 md:py-3 font-orbitron text-xs whitespace-nowrap shrink-0 {% if current_status == 'REQUESTED' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
                 PENDING
             </a>
 
             <a href="?status=APPROVED&search={{ search }}"
-            class="px-6 py-3 font-orbitron text-xs {% if current_status == 'APPROVED' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
+            class="px-5 py-2.5 md:px-6 md:py-3 font-orbitron text-xs whitespace-nowrap shrink-0 {% if current_status == 'APPROVED' %}bg-gold text-black{% else %}bg-black/40 text-muted{% endif %}">
                 APPROVED
             </a>
 
             <a href="?status=REJECTED&search={{ search }}"
-            class="px-6 py-3 font-orbitron text-xs {% if current_status == 'REJECTED' %}bg-red-500 text-white{% else %}bg-black/40 text-muted{% endif %}">
+            class="px-5 py-2.5 md:px-6 md:py-3 font-orbitron text-xs whitespace-nowrap shrink-0 {% if current_status == 'REJECTED' %}bg-red-500 text-white{% else %}bg-black/40 text-muted{% endif %}">
                 REJECTED
             </a>
 
             <a href="?status=REFUNDED&search={{ search }}"
-            class="px-6 py-3 font-orbitron text-xs {% if current_status == 'REFUNDED' %}bg-green-600 text-white{% else %}bg-black/40 text-muted{% endif %}">
+            class="px-5 py-2.5 md:px-6 md:py-3 font-orbitron text-xs whitespace-nowrap shrink-0 {% if current_status == 'REFUNDED' %}bg-green-600 text-white{% else %}bg-black/40 text-muted{% endif %}">
                 REFUNDED
             </a>
 
         </div>
 
-        <form method="get" class="relative">
+        <form method="get" class="relative w-full lg:w-auto">
             <input type="hidden" name="status" value="{{ current_status }}">
             <input name="search" value="{{ search }}" placeholder="QUERY PROTOCOLS OR ASSETS"
-                   class="w-full lg:w-96 bg-black/50 border border-gold/20 text-sm px-12 py-3 focus:ring-0 focus:border-gold">
+                   class="w-full lg:w-96 bg-black/50 border border-gold/20 text-sm pl-12 pr-4 py-3 focus:ring-0 focus:border-gold">
             <span class="material-symbols-outlined absolute left-4 top-3 text-gold">manage_search</span>
         </form>
     </section>
 
-    <section class="space-y-6">
+    <!-- Return Items List -->
+    <section class="space-y-4 md:space-y-6">
         {% for ret in page_obj %}
             {% with item=ret.order_item variant=ret.order_item.variant %}
             <div class="glass border-l-4 {% if ret.status == 'REQUESTED' %}border-gold{% else %}border-line{% endif %} hover:translate-x-1 transition">
-                <div class="p-6 grid grid-cols-1 xl:grid-cols-[240px_1fr_180px_200px] gap-8 items-center">
+                <div class="p-4 md:p-6 grid grid-cols-1 xl:grid-cols-[240px_1fr_180px_200px] gap-6 md:gap-8 items-center">
 
-                    <div class="w-full h-40 border border-gold/20 bg-black overflow-hidden relative">
+                    <div class="w-full h-40 border border-gold/20 bg-black overflow-hidden relative rounded-sm">
                         {% if variant and variant.images.first %}
                             <img src="{{ variant.images.first.image.url }}" class="w-full h-full object-cover grayscale hover:grayscale-0">
                         {% elif variant and variant.image %}
@@ -156,13 +160,12 @@
                                 <span class="material-symbols-outlined text-5xl">directions_car</span>
                             </div>
                         {% endif %}
-
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-w-0">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 min-w-0">
                         <div class="min-w-0">
                             <p class="font-orbitron text-[10px] text-gold/70">ORDER PROTOCOL</p>
-                            <h3 class="font-orbitron text-lg break-words">{{ ret.order.order_id }}</h3>
+                            <h3 class="font-orbitron text-base md:text-lg break-words">{{ ret.order.order_id }}</h3>
                             <p class="text-xs text-muted">{{ ret.requested_at|date:"M d, Y" }}</p>
                         </div>
 
@@ -172,7 +175,7 @@
                             <p class="text-xs text-muted break-all">{{ ret.user.email }}</p>
                         </div>
 
-                        <div class="min-w-0">
+                        <div class="min-w-0 sm:col-span-2 lg:col-span-1">
                             <p class="font-orbitron text-[10px] text-gold/70">RETURN REASON</p>
 
                             <div class="text-sm text-red-200 leading-relaxed break-words max-h-24 overflow-y-auto hide-scrollbar pr-2">
@@ -185,7 +188,7 @@
                         </div>
                     </div>
 
-                    <div class="text-left xl:text-right">
+                    <div class="flex flex-row xl:flex-col items-center xl:items-end justify-between xl:justify-center gap-2">
                         <div class="status-badge px-5 py-2 text-xs font-orbitron text-center
                             {% if ret.status == 'REQUESTED' %}bg-gold/10 text-gold
                             {% elif ret.status == 'APPROVED' %}bg-blue-400/10 text-blue-300
@@ -194,29 +197,29 @@
                             {{ ret.get_status_display }}
                         </div>
 
-                        <p class="font-orbitron text-2xl text-gold mt-4 whitespace-nowrap">
+                        <p class="font-orbitron text-xl md:text-2xl text-gold mt-0 xl:mt-4 whitespace-nowrap">
                             ₹ {{ ret.refund_amount|default:item.item_total }}
                         </p>
                     </div>
 
-                    <div class="flex flex-col gap-3">
+                    <div class="flex flex-col sm:flex-row xl:flex-col gap-3">
                         <a href="{% url 'admin_return_detail' ret.id %}"
-                        class="text-center border border-gold/40 text-gold px-4 py-3 text-xs font-orbitron hover:bg-gold hover:text-black transition">
+                        class="w-full text-center border border-gold/40 text-gold px-4 py-3 text-xs font-orbitron hover:bg-gold hover:text-black transition">
                             VIEW DETAILS
                         </a>
 
                         {% if ret.status == "REQUESTED" %}
                             <a href="{% url 'return_action_page' ret.id %}"
-                            class="text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">
+                            class="w-full text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">
                                 APPROVE / REJECT
                             </a>
                         {% elif ret.status == "APPROVED" %}
                             <a href="{% url 'process_refund' ret.id %}"
-                            class="text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">
+                            class="w-full text-center bg-gold text-black px-4 py-3 text-xs font-orbitron">
                                 PROCESS REFUND
                             </a>
                         {% else %}
-                            <button disabled class="border border-line text-muted px-4 py-3 text-xs font-orbitron">
+                            <button disabled class="w-full border border-line text-muted px-4 py-3 text-xs font-orbitron">
                                 COMPLETED
                             </button>
                         {% endif %}
@@ -226,25 +229,26 @@
             </div>
             {% endwith %}
         {% empty %}
-            <div class="glass p-12 text-center">
-                <h3 class="font-orbitron text-gold text-xl">NO RETURN REQUESTS FOUND</h3>
-                <p class="text-muted mt-3">No protocols match your current filter.</p>
+            <div class="glass p-8 md:p-12 text-center">
+                <h3 class="font-orbitron text-gold text-lg md:text-xl">NO RETURN REQUESTS FOUND</h3>
+                <p class="text-muted mt-3 text-sm">No protocols match your current filter.</p>
             </div>
         {% endfor %}
     </section>
 
+    <!-- Pagination -->
     {% if page_obj.has_other_pages %}
-        <div class="flex justify-center gap-3 mt-8">
+        <div class="flex justify-center items-center gap-2 md:gap-3 mt-8">
             {% if page_obj.has_previous %}
-                <a class="px-4 py-2 border border-gold/30 text-gold" href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&search={{ search }}">Prev</a>
+                <a class="px-3 py-2 md:px-4 md:py-2 border border-gold/30 text-gold text-xs md:text-sm" href="?page={{ page_obj.previous_page_number }}&status={{ current_status }}&search={{ search }}">Prev</a>
             {% endif %}
 
-            <span class="px-4 py-2 bg-gold text-black">
+            <span class="px-3 py-2 md:px-4 md:py-2 bg-gold text-black text-xs md:text-sm font-orbitron">
                 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
             </span>
 
             {% if page_obj.has_next %}
-                <a class="px-4 py-2 border border-gold/30 text-gold" href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&search={{ search }}">Next</a>
+                <a class="px-3 py-2 md:px-4 md:py-2 border border-gold/30 text-gold text-xs md:text-sm" href="?page={{ page_obj.next_page_number }}&status={{ current_status }}&search={{ search }}">Next</a>
             {% endif %}
         </div>
     {% endif %}

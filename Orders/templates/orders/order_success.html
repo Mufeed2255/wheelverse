@@ -45,74 +45,75 @@
     </style>
 </head>
 
-<body class="min-h-screen carbon-bg">
+<body class="min-h-screen carbon-bg flex flex-col">
 
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
+
 <header class="sticky top-0 z-50 bg-[#16130b]/95 border-b border-[#4d4635]/50 backdrop-blur-xl">
-    <div class="max-w-7xl mx-auto h-20 px-8 flex items-center justify-between">
-        <a href="{% url 'landing_page' %}" class="font-orbitron text-3xl font-bold">
+    <div class="max-w-7xl mx-auto h-16 sm:h-20 px-4 sm:px-8 flex items-center justify-between">
+        <a href="{% url 'landing_page' %}" class="font-orbitron text-2xl sm:text-3xl font-bold">
             Wheel<span class="text-[#f2ca50]">Verse</span>
         </a>
 
-        <nav class="hidden md:flex gap-10 font-orbitron text-sm tracking-widest">
+        <nav class="hidden md:flex gap-8 lg:gap-10 font-orbitron text-sm tracking-widest">
             <a href="{% url 'landing_page' %}" class="text-[#f2ca50]">Home</a>
             <a href="{% url 'collections' %}" class="text-[#d0c5af] hover:text-[#f2ca50]">Collections</a>
             <a href="{% url 'cart' %}" class="text-[#d0c5af] hover:text-[#f2ca50]">Cart</a>
             <a href="{% url 'wishlist' %}" class="text-[#d0c5af] hover:text-[#f2ca50]">Wishlist</a>
         </nav>
 
-        <div class="flex items-center gap-5">
+        <div class="flex items-center gap-4 sm:gap-5">
             <a href="{% url 'cart' %}">
-                <span class="material-symbols-outlined text-[#d0c5af] text-3xl">shopping_cart</span>
+                <span class="material-symbols-outlined text-[#d0c5af] text-2xl sm:text-3xl">shopping_cart</span>
             </a>
             <a href="{% url 'profile_view' %}">
-                <span class="material-symbols-outlined text-[#d0c5af] text-3xl">account_circle</span>
+                <span class="material-symbols-outlined text-[#d0c5af] text-2xl sm:text-3xl">account_circle</span>
             </a>
         </div>
     </div>
 </header>
 
-<main class="max-w-7xl mx-auto px-8 pt-16 pb-20">
+<main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-10 sm:pt-16 pb-16 sm:pb-20">
 
-    <section class="text-center mb-16">
-        <div class="w-20 h-20 mx-auto rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10 flex items-center justify-center gold-glow">
-            <span class="material-symbols-outlined text-[#f2ca50] text-5xl">check_circle</span>
+    <section class="text-center mb-10 sm:mb-16">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10 flex items-center justify-center gold-glow">
+            <span class="material-symbols-outlined text-[#f2ca50] text-4xl sm:text-5xl">check_circle</span>
         </div>
 
-        <h1 class="font-orbitron text-5xl md:text-6xl font-bold text-[#f2ca50] mt-8 tracking-widest">
+        <h1 class="font-orbitron text-3xl sm:text-5xl md:text-6xl font-bold text-[#f2ca50] mt-6 sm:mt-8 tracking-wider sm:tracking-widest">
             ORDER CONFIRMED!
         </h1>
 
-        <p class="text-[#d0c5af] text-lg mt-5 max-w-2xl mx-auto">
+        <p class="text-[#d0c5af] text-sm sm:text-lg mt-3 sm:mt-5 max-w-2xl mx-auto">
             Your legendary collectible has successfully entered the WheelVerse universe.
         </p>
 
-        <div class="line-glow mt-12"></div>
+        <div class="line-glow mt-8 sm:mt-12"></div>
     </section>
 
     <section class="glass-card rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-5 mb-8">
-        <div class="md:col-span-2 relative min-h-[360px] bg-[#111]">
+        <div class="md:col-span-2 relative min-h-[250px] sm:min-h-[360px] bg-[#111]">
             {% with first_item=order.items.first %}
                 {% if first_item.variant and first_item.variant.images.first %}
                     <img src="{{ first_item.variant.images.first.image.url }}" class="w-full h-full object-cover" alt="{{ first_item.product_name }}">
                 {% else %}
-                    <div class="w-full h-full flex items-center justify-center bg-[#16130b]">
-                        <span class="material-symbols-outlined text-[#f2ca50] text-8xl">directions_car</span>
+                    <div class="w-full h-full flex items-center justify-center bg-[#16130b] min-h-[250px]">
+                        <span class="material-symbols-outlined text-[#f2ca50] text-6xl sm:text-8xl">directions_car</span>
                     </div>
                 {% endif %}
             {% endwith %}
 
             <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
 
-            <span class="absolute bottom-5 left-5 bg-[#f2ca50] text-[#241a00] font-orbitron text-xs px-4 py-1 rounded-full">
+            <span class="absolute bottom-4 left-4 sm:bottom-5 sm:left-5 bg-[#f2ca50] text-[#241a00] font-orbitron text-[10px] sm:text-xs px-3 sm:px-4 py-1 rounded-full">
                 LIMITED SERIES
             </span>
         </div>
 
-        <div class="md:col-span-3 p-8 md:p-12">
+        <div class="md:col-span-3 p-6 sm:p-8 md:p-12">
             {% with first_item=order.items.first %}
-                <h2 class="font-orbitron text-3xl text-[#f2ca50] uppercase mb-8">
+                <h2 class="font-orbitron text-xl sm:text-3xl text-[#f2ca50] uppercase mb-6 sm:mb-8">
                     {% if first_item %}
                         {{ first_item.product_name }}
                     {% else %}
@@ -121,98 +122,98 @@
                 </h2>
             {% endwith %}
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-[#4d4635]/60 py-8">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 border-y border-[#4d4635]/60 py-6 sm:py-8">
                 <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">ORDER ID</p>
-                    <p class="font-orbitron text-lg">#{{ order.order_id }}</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">ORDER ID</p>
+                    <p class="font-orbitron text-base sm:text-lg">#{{ order.order_id }}</p>
                 </div>
 
                 <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">PAYMENT METHOD</p>
-                    <p class="font-orbitron text-lg">{{ order.payment_method }}</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">PAYMENT METHOD</p>
+                    <p class="font-orbitron text-base sm:text-lg">{{ order.payment_method }}</p>
                 </div>
 
                 <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">ORDER DATE</p>
-                    <p class="font-orbitron text-lg">{{ order.ordered_at|date:"M d, Y" }}</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">ORDER DATE</p>
+                    <p class="font-orbitron text-base sm:text-lg">{{ order.ordered_at|date:"M d, Y" }}</p>
                 </div>
 
                 <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">STATUS</p>
-                    <p class="font-orbitron text-lg text-[#f2ca50] flex items-center gap-2">
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">STATUS</p>
+                    <p class="font-orbitron text-base sm:text-lg text-[#f2ca50] flex items-center gap-2">
                         <span class="w-2 h-2 rounded-full bg-[#f2ca50]"></span>
                         {{ order.status }}
                     </p>
                 </div>
             </div>
 
-            <div class="flex flex-col sm:flex-row gap-4 mt-10">
-                <a href="{% url 'order_detail' order.id %}" class="bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron px-8 py-4 rounded text-center">
+            <div class="flex flex-col sm:flex-row gap-4 mt-8 sm:mt-10">
+                <a href="{% url 'order_detail' order.id %}" class="w-full sm:w-auto bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron text-xs sm:text-sm px-8 py-4 rounded text-center font-bold">
                     TRACK MY ORDER
                 </a>
 
-                <a href="{% url 'download_invoice' order.id %}" class="border border-[#f2ca50]/40 text-[#f2ca50] font-orbitron px-8 py-4 rounded text-center hover:bg-[#f2ca50]/10">
+                <a href="{% url 'download_invoice' order.id %}" class="w-full sm:w-auto border border-[#f2ca50]/40 text-[#f2ca50] font-orbitron text-xs sm:text-sm px-8 py-4 rounded text-center hover:bg-[#f2ca50]/10 transition">
                     DOWNLOAD INVOICE
                 </a>
             </div>
         </div>
     </section>
 
-    <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div class="lg:col-span-8 glass-card rounded-xl p-8">
-            <h3 class="font-orbitron text-[#f2ca50] text-center mb-10">
+    <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
+        <div class="lg:col-span-8 glass-card rounded-xl p-6 sm:p-8 overflow-x-auto">
+            <h3 class="font-orbitron text-sm sm:text-base text-[#f2ca50] text-center mb-8 sm:mb-10">
                 ORDER DETAILS OF COLLECTOR
             </h3>
 
-            <div class="relative">
-                <div class="absolute top-5 left-0 right-0 h-[2px] bg-[#4d4635]"></div>
-                <div class="absolute top-5 left-0 w-[15%] h-[2px] bg-[#f2ca50] gold-glow"></div>
+            <div class="relative min-w-[500px] sm:min-w-0">
+                <div class="absolute top-4 sm:top-5 left-0 right-0 h-[2px] bg-[#4d4635]"></div>
+                <div class="absolute top-4 sm:top-5 left-0 w-[15%] h-[2px] bg-[#f2ca50] gold-glow"></div>
 
                 <div class="relative flex justify-between text-center">
                     <div>
-                        <div class="w-10 h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
-                            <span class="material-symbols-outlined">check</span>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm sm:text-base">check</span>
                         </div>
-                        <p class="font-orbitron text-xs text-[#f2ca50] mt-4">CONFIRMED</p>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#f2ca50] mt-3 sm:mt-4">CONFIRMED</p>
                     </div>
 
                     <div>
-                        <div class="w-10 h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
-                            <span class="material-symbols-outlined">inventory_2</span>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm sm:text-base">inventory_2</span>
                         </div>
-                        <p class="font-orbitron text-xs text-[#777] mt-4">PACKAGING</p>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mt-3 sm:mt-4">PACKAGING</p>
                     </div>
 
                     <div>
-                        <div class="w-10 h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
-                            <span class="material-symbols-outlined">local_shipping</span>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm sm:text-base">local_shipping</span>
                         </div>
-                        <p class="font-orbitron text-xs text-[#777] mt-4">SHIPPED</p>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mt-3 sm:mt-4">SHIPPED</p>
                     </div>
 
                     <div>
-                        <div class="w-10 h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
-                            <span class="material-symbols-outlined">sync_alt</span>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm sm:text-base">sync_alt</span>
                         </div>
-                        <p class="font-orbitron text-xs text-[#777] mt-4">IN TRANSIT</p>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mt-3 sm:mt-4">IN TRANSIT</p>
                     </div>
 
                     <div>
-                        <div class="w-10 h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
-                            <span class="material-symbols-outlined">location_on</span>
+                        <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
+                            <span class="material-symbols-outlined text-sm sm:text-base">location_on</span>
                         </div>
-                        <p class="font-orbitron text-xs text-[#777] mt-4">DELIVERED</p>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mt-3 sm:mt-4">DELIVERED</p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="lg:col-span-4 glass-card rounded-xl p-8 flex flex-col justify-center text-center">
-            <p class="text-[#d0c5af] text-lg mb-8">
+        <div class="lg:col-span-4 glass-card rounded-xl p-6 sm:p-8 flex flex-col justify-center text-center">
+            <p class="text-[#d0c5af] text-base sm:text-lg mb-6 sm:mb-8 italic">
                 "The journey is just beginning, Collector. Your fleet awaits its new commander."
             </p>
 
-            <a href="{% url 'collections' %}" class="font-orbitron text-[#f2ca50] border-b border-[#f2ca50]/30 pb-2 mx-auto">
+            <a href="{% url 'collections' %}" class="font-orbitron text-xs sm:text-sm text-[#f2ca50] border-b border-[#f2ca50]/30 pb-2 mx-auto hover:border-[#f2ca50] transition">
                 CONTINUE SHOPPING
             </a>
         </div>

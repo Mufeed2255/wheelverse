@@ -111,15 +111,28 @@
             --tw-ring-bleed: 0 !important;
             --tw-ring-shadow: 0 0 transparent !important;
         }
+
+        .page-content {
+            margin-left: 288px;
+            padding-top: 80px;
+            min-height: 100vh;
+        }
+
+        @media(max-width: 1024px) {
+            .page-content {
+                margin-left: 0;
+                padding-top: 80px;
+            }
+        }
     </style>
 </head>
-<body class="font-body-md min-h-screen flex flex-col">
+<body class="font-body-md min-h-screen flex flex-col justify-between">
 
     <!-- Top Navigation Bar -->
-    <header class="fixed top-0 right-0 left-72 h-20 z-40 bg-[#110f0a] border-b border-white/5 flex items-center justify-between px-12">
-        <div class="flex items-center gap-12">
-            <a href="/" class="font-display-lg text-2xl tracking-wider text-primary">WHEELVERSE</a>
-            <nav class="hidden md:flex items-center gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
+    <header class="fixed top-0 right-0 left-0 lg:left-72 h-20 z-40 bg-[#110f0a] border-b border-white/5 flex items-center justify-between px-4 sm:px-8 lg:px-12">
+        <div class="flex items-center gap-6 lg:gap-12">
+            <a href="/" class="font-display-lg text-xl sm:text-2xl tracking-wider text-primary">WHEELVERSE</a>
+            <nav class="hidden md:flex items-center gap-6 lg:gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
                 <a href="#" class="border-b border-primary text-primary pb-1">Home</a>
                 <a href="#" class="hover:text-primary transition-colors">Collections</a>
                 <a href="#" class="hover:text-primary transition-colors">Auctions</a>
@@ -128,7 +141,7 @@
             </nav>
         </div>
         
-        <div class="flex items-center gap-6">
+        <div class="flex items-center gap-4 sm:gap-6">
             <button class="text-on-surface-variant hover:text-primary transition-colors">
                 <span class="material-symbols-outlined text-xl">search</span>
             </button>
@@ -137,12 +150,12 @@
                 <span class="absolute -top-2 -right-2 bg-primary text-background text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
             </button>
             
-            <div class="flex items-center gap-3 pl-4 border-l border-white/10">
-                <div class="text-right">
+            <div class="flex items-center gap-3 pl-3 sm:pl-4 border-l border-white/10">
+                <div class="text-right hidden sm:block">
                     <p class="font-label-caps text-[9px] text-primary tracking-widest">ELITE STATUS</p>
                     <p class="font-label-caps text-xs text-on-surface leading-none mt-1">{{ request.user.username }}</p>
                 </div>
-                <div class="w-10 h-10 rounded border border-primary/40 overflow-hidden">
+                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded border border-primary/40 overflow-hidden flex-shrink-0">
                     {% if request.user.profile_picture %}
                         <img alt="User" class="w-full h-full object-cover" src="{{ request.user.profile_picture.url }}"/>
                     {% else %}
@@ -156,7 +169,7 @@
     </header>
 
     <!-- Side Navigation Bar -->
-    <aside class="fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex flex-col justify-between">
+    <aside class="hidden lg:flex fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex-col justify-between overflow-y-auto">
         <div class="p-6">
             <!-- User Profile Box -->
             <div class="flex flex-col items-center text-center mt-4 mb-8">
@@ -205,34 +218,33 @@
         <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
             <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
             <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
-            <a href="#" class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2" href="#">
+            <a href="#" class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2">
                 <span class="material-symbols-outlined text-lg">logout</span> Logout
             </a>
         </div>
     </aside>
 
     <!-- Main Dynamic Section Layout -->
-    <main class="ml-72 pt-20 flex-1 relative z-10 bg-[#0c0a06]">
-        <div class="max-w-[1200px] mx-auto px-12 py-10">
+    <main class="page-content flex-1 relative z-10 bg-[#0c0a06]">
+        <div class="max-w-[1200px] mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-10">
             
             <!-- Dashboard Form Header -->
-            <div class="mb-10">
-                <h2 class="font-display-lg text-3xl tracking-wide text-primary uppercase">EDIT COLLECTOR PROFILE</h2>
-                <p class="text-on-surface-variant text-sm mt-1 opacity-70">Customize your collector identity inside the WheelVerse universe.</p>
+            <div class="mb-8 sm:mb-10">
+                <h2 class="font-display-lg text-2xl sm:text-3xl tracking-wide text-primary uppercase">EDIT COLLECTOR PROFILE</h2>
+                <p class="text-on-surface-variant text-xs sm:text-sm mt-1 opacity-70">Customize your collector identity inside the WheelVerse universe.</p>
             </div>
 
             <!-- Profile Modification Form Workspace -->
-            <!-- Enctype added to allow file/avatar uploads securely -->
-            <form method="POST" action="." enctype="multipart/form-data" class="space-y-12">
+            <form method="POST" action="." enctype="multipart/form-data" class="space-y-8 sm:space-y-12">
                 {% csrf_token %}
                 
-                <div class="grid grid-cols-12 gap-8 items-start">
+                <div class="grid grid-cols-12 gap-6 lg:gap-8 items-start">
                     
                     <!-- Left Core Placement: Avatar Configuration Row -->
                     <div class="col-span-12 lg:col-span-4 space-y-6">
                         <!-- Preview Card -->
-                        <div class="glass-panel rounded border border-white/5 p-8 flex flex-col items-center justify-center relative">
-                            <div class="relative w-32 h-32 mb-6">
+                        <div class="glass-panel rounded border border-white/5 p-6 sm:p-8 flex flex-col items-center justify-center relative">
+                            <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-4 sm:mb-6">
                                 <div class="w-full h-full rounded border border-primary/40 p-1 bg-background">
                                     {% if request.user.profile_picture %}
                                         <img id="profile-preview" alt="Collector Main Profile" class="w-full h-full object-cover rounded" src="{{ request.user.profile_picture.url }}"/>
@@ -243,14 +255,13 @@
                                         <img id="profile-preview" alt="Collector Main Profile" class="w-full h-full object-cover rounded hidden" src=""/>
                                     {% endif %}
                                     
-                                    <!-- Hidden dynamic file input for avatar selector linked to target button click via JavaScript label wrapper or simple hidden field strategy -->
-                                    <label class="absolute bottom-1 right-1 bg-primary text-background p-1 rounded-full hover:scale-105 transition-transform cursor-pointer">
+                                    <label class="absolute bottom-1 right-1 bg-primary text-background p-1.5 sm:p-1 rounded-full hover:scale-105 transition-transform cursor-pointer">
                                         <input type="file" name="profile_picture" id="profile-upload" class="hidden" accept="image/*">
                                         <span class="material-symbols-outlined text-sm font-bold flex items-center justify-center">edit</span>
                                     </label>
                                 </div>
                             </div>
-                            <h3 class="font-display-lg text-lg tracking-widest text-on-surface">{{ request.user.first_name }} {{ request.user.last_name }}</h3>
+                            <h3 class="font-display-lg text-base sm:text-lg tracking-widest text-on-surface text-center">{{ request.user.first_name }} {{ request.user.last_name }}</h3>
                             <p class="font-label-caps text-[10px] text-primary/70 tracking-widest mt-1">COLLECTOR</p>
                         </div>
 
@@ -258,27 +269,26 @@
 
                     <!-- Right Core Placement: Input Form Structure Grid Layout -->
                     <div class="col-span-12 lg:col-span-8">
-                        <div class="glass-panel rounded border border-white/5 p-8 space-y-6">
+                        <div class="glass-panel rounded border border-white/5 p-5 sm:p-8 space-y-6">
                             
-                           <!-- Line 243-245 -->
-                          <div class="flex items-center justify-between border-b border-white/5 pb-2">
-                            <h4 class="font-label-caps text-sm tracking-widest text-primary">PROFILE_BIO</h4>
+                          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-3 sm:pb-2">
+                            <h4 class="font-label-caps text-xs sm:text-sm tracking-widest text-primary">PROFILE_BIO</h4>
                             <a href="{% url 'edit_profile_view' %}">
-                                <button class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-4 py-1 text-[10px] font-label-caps tracking-widest">
+                                <button class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-3 sm:px-4 py-1 text-[10px] font-label-caps tracking-widest">
                                     BACK TO PROFILE
                                 </button>
                             </a>
                         </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                                 <!-- user_name -->
-                                <div class="hud-input-wrap p-4 rounded border relative">
+                                <div class="hud-input-wrap p-3.5 sm:p-4 rounded border relative">
                                     <label class="block font-label-caps text-[10px] text-primary tracking-widest mb-1">USER_NAME</label>
                                     <input name="user_name" class="w-full bg-transparent border-0 p-0 font-body-md text-sm text-on-surface focus:ring-0" type="text" value="{{ request.user.username|default:'' }}"/>
                                 </div>
 
                                 <!-- Phone Number -->
-                                <div class="hud-input-wrap p-4 rounded border relative">
+                                <div class="hud-input-wrap p-3.5 sm:p-4 rounded border relative">
                                     <label class="block font-label-caps text-[10px] text-primary tracking-widest mb-1">PHONE_NUMBER</label>
                                     <input name="mobile_number" 
                                         class="w-full bg-transparent border-0 p-0 font-body-md text-sm text-on-surface focus:ring-0" 
@@ -289,9 +299,9 @@
                         </div>
 
                         <!-- Action Submit Section Row -->
-                        <div class="mt-8 flex justify-end items-center gap-6">
-                            <a href="#" onclick="window.history.back(); return false;" class="font-label-caps text-xs text-on-surface-variant tracking-widest hover:text-white transition-colors">CANCEL</a>
-                            <button type="submit" class="px-8 py-3.5 font-label-caps bg-primary text-background font-bold text-xs tracking-widest rounded hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(242,202,80,0.2)]">
+                        <div class="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row justify-end items-center gap-4 sm:gap-6">
+                            <a href="#" onclick="window.history.back(); return false;" class="font-label-caps text-xs text-on-surface-variant tracking-widest hover:text-white transition-colors w-full sm:w-auto text-center">CANCEL</a>
+                            <button type="submit" class="w-full sm:w-auto px-8 py-3.5 font-label-caps bg-primary text-background font-bold text-xs tracking-widest rounded hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(242,202,80,0.2)]">
                                 SAVE CHANGES
                             </button>
                         </div>
@@ -299,34 +309,34 @@
                 </div>
 
                 <!-- Horizontal Stacked Configuration Panels Layout (Lower Sector) -->
-                <div class="space-y-6 pt-6 border-t border-white/5">
+                <div class="space-y-4 sm:space-y-6 pt-6 border-t border-white/5">
                     
                     <!-- Full Width Change Email Strip -->
-                <div class="glass-panel rounded border border-white/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div class="space-y-1">
-                        <h5 class="font-label-caps text-xs text-primary tracking-wider uppercase">Change Email</h5>
-                        <p class="text-xl font-medium tracking-wide text-on-surface">{{ request.user.email }}</p>
-                        <p class="text-xs text-on-surface-variant/60">Used for Sign in and account notification</p>
+                    <div class="glass-panel rounded border border-white/5 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+                        <div class="space-y-1">
+                            <h5 class="font-label-caps text-xs text-primary tracking-wider uppercase">Change Email</h5>
+                            <p class="text-lg sm:text-xl font-medium tracking-wide text-on-surface break-all">{{ request.user.email }}</p>
+                            <p class="text-xs text-on-surface-variant/60">Used for Sign in and account notification</p>
+                        </div>
+                        <a href="{% url 'change_email' %}" class="w-full md:w-auto px-6 py-2.5 border border-primary/20 text-primary font-label-caps text-[10px] tracking-widest hover:bg-primary hover:text-background transition-all rounded inline-block text-center">
+                            CHANGE EMAIL
+                        </a>
                     </div>
-                    <a href="{% url 'change_email' %}" class="px-6 py-2.5 border border-primary/20 text-primary font-label-caps text-[10px] tracking-widest hover:bg-primary hover:text-background transition-all rounded inline-block text-center">
-                        CHANGE EMAIL
-                    </a>
-                </div>
 
                     <!-- Full Width Password Management Strip -->
-                  <div class="glass-panel rounded border border-white/5 p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                    <div class="space-y-1">
-                        <h5 class="font-label-caps text-xs text-primary tracking-wider uppercase">Password</h5>
-                        <p class="text-xl tracking-[0.25em] font-bold text-on-surface-variant/80">•••••••••••••••••</p>
-                        <p class="text-xs text-on-surface-variant/60">Update Your Password to keep Your Account Safe</p>
+                    <div class="glass-panel rounded border border-white/5 p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 sm:gap-6">
+                        <div class="space-y-1">
+                            <h5 class="font-label-caps text-xs text-primary tracking-wider uppercase">Password</h5>
+                            <p class="text-lg sm:text-xl tracking-[0.25em] font-bold text-on-surface-variant/80">•••••••••••••••••</p>
+                            <p class="text-xs text-on-surface-variant/60">Update Your Password to keep Your Account Safe</p>
+                        </div>
+                        
+                        <a href="{% url 'change_profile_pass' %}" class="w-full md:w-auto px-6 py-2.5 border border-primary/20 text-primary font-label-caps text-[10px] tracking-widest hover:bg-primary hover:text-background transition-all rounded text-center inline-block">
+                            CHANGE PASSWORD
+                        </a>
                     </div>
-                    
-                    <a href="{% url 'change_profile_pass' %}" class="px-6 py-2.5 border border-primary/20 text-primary font-label-caps text-[10px] tracking-widest hover:bg-primary hover:text-background transition-all rounded text-center inline-block">
-                        CHANGE PASSWORD
-                    </a>
-                </div>
 
-</div>
+                </div>
             </form>
         </div>
     </main>

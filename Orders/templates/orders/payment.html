@@ -35,16 +35,16 @@
     </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen flex flex-col">
 
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="max-w-7xl mx-auto px-8 pt-32 pb-12">
-    <div class="flex items-center justify-between mb-10">
+<main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-24 sm:pt-32 pb-12">
+    <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8 sm:mb-10">
 
         <!-- Breadcrumb -->
-        <div class="flex items-center gap-3 font-orbitron text-sm uppercase tracking-widest">
+        <div class="flex items-center gap-2 sm:gap-3 font-orbitron text-xs sm:text-sm uppercase tracking-widest">
 
             <a href="{% url 'checkout' %}"
             class="text-[#d0c5af] hover:text-[#f2ca50] transition">
@@ -61,15 +61,15 @@
 
         <!-- Back Button -->
         <a href="{% url 'checkout' %}"
-        class="inline-flex items-center gap-2 px-5 py-3 rounded-lg
+        class="inline-flex items-center gap-2 px-4 sm:px-5 py-2.5 sm:py-3 rounded-lg
                 border border-[#f2ca50]/30
                 bg-[#1b1811]
                 hover:bg-[#f2ca50]
                 hover:text-black
                 transition-all duration-300
-                font-orbitron text-xs tracking-widest uppercase">
+                font-orbitron text-[10px] sm:text-xs tracking-widest uppercase">
 
-            <span class="material-symbols-outlined text-base">
+            <span class="material-symbols-outlined text-sm sm:text-base">
                 arrow_back
             </span>
 
@@ -79,112 +79,112 @@
 
     </div>
 
-    <section class="mb-12 flex items-center gap-6">
-        <div class="p-4 rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10">
-            <span class="material-symbols-outlined text-[#f2ca50] text-4xl">shield</span>
+    <section class="mb-8 sm:mb-12 flex items-center gap-4 sm:gap-6">
+        <div class="p-3 sm:p-4 rounded-xl border border-[#f2ca50]/40 bg-[#f2ca50]/10 shrink-0">
+            <span class="material-symbols-outlined text-[#f2ca50] text-3xl sm:text-4xl">shield</span>
         </div>
 
         <div>
-            <h1 class="font-orbitron text-4xl font-bold text-[#f2ca50] uppercase tracking-wider">
+            <h1 class="font-orbitron text-2xl sm:text-4xl font-bold text-[#f2ca50] uppercase tracking-wider">
                 Secure Payment
             </h1>
-            <p class="text-[#d0c5af] mt-2">
+            <p class="text-[#d0c5af] text-xs sm:text-sm mt-1 sm:mt-2">
                 Selected method:
                 <span class="gold font-orbitron">{{ order.get_payment_method_display }}</span>
             </p>
         </div>
     </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
 
         <section class="lg:col-span-8">
-            <div class="glass-card rounded-xl p-8 min-h-[420px]">
+            <div class="glass-card rounded-xl p-5 sm:p-8 min-h-[350px] sm:min-h-[420px]">
 
                 {% if order.payment_method == "COD" %}
-                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                    <span class="material-symbols-outlined text-[#f2ca50] text-5xl sm:text-7xl mb-4 sm:mb-6 block">
                         payments
                     </span>
 
-                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
+                    <h2 class="font-orbitron text-2xl sm:text-3xl text-[#f2ca50] mb-3 sm:mb-4">
                         Cash on Delivery
                     </h2>
 
-                    <p class="text-[#d0c5af] leading-relaxed max-w-2xl">
+                    <p class="text-[#d0c5af] text-xs sm:text-base leading-relaxed max-w-2xl">
                         Your order will be confirmed now. Payment will be collected when the product is delivered.
                     </p>
 
-                    <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-10">
+                    <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-8 sm:mt-10">
                         {% csrf_token %}
                         <input type="hidden" name="payment_method" value="COD">
 
                         <button type="submit"
-                                class="bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                                class="w-full sm:w-auto bg-[#f2ca50] text-black px-8 sm:px-10 py-4 sm:py-5 rounded font-orbitron font-bold text-xs sm:text-sm tracking-widest hover:bg-[#d4af37] transition">
                             CONFIRM COD ORDER
                         </button>
                     </form>
 
                 {% elif order.payment_method == "WALLET" %}
-                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                    <span class="material-symbols-outlined text-[#f2ca50] text-5xl sm:text-7xl mb-4 sm:mb-6 block">
                         account_balance_wallet
                     </span>
 
-                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
+                    <h2 class="font-orbitron text-2xl sm:text-3xl text-[#f2ca50] mb-3 sm:mb-4">
                         Wallet Payment
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-8">
-                        <div class="glass-card p-5 rounded">
-                            <p class="font-orbitron text-xs text-[#d0c5af]">WALLET BALANCE</p>
-                            <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">₹{{ wallet.balance }}</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-8">
+                        <div class="glass-card p-4 sm:p-5 rounded">
+                            <p class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af]">WALLET BALANCE</p>
+                            <p class="font-orbitron text-xl sm:text-2xl text-[#f2ca50] mt-1 sm:mt-2">₹{{ wallet.balance }}</p>
                         </div>
 
-                        <div class="glass-card p-5 rounded">
-                            <p class="font-orbitron text-xs text-[#d0c5af]">ORDER AMOUNT</p>
-                            <p class="font-orbitron text-2xl text-white mt-2">₹{{ grand_total }}</p>
+                        <div class="glass-card p-4 sm:p-5 rounded">
+                            <p class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af]">ORDER AMOUNT</p>
+                            <p class="font-orbitron text-xl sm:text-2xl text-white mt-1 sm:mt-2">₹{{ grand_total }}</p>
                         </div>
 
-                        <div class="glass-card p-5 rounded">
-                            <p class="font-orbitron text-xs text-[#d0c5af]">STATUS</p>
+                        <div class="glass-card p-4 sm:p-5 rounded">
+                            <p class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af]">STATUS</p>
                             {% if wallet.balance >= grand_total %}
-                                <p class="font-orbitron text-green-300 mt-2">AVAILABLE</p>
+                                <p class="font-orbitron text-green-300 mt-1 sm:mt-2 text-sm sm:text-base">AVAILABLE</p>
                             {% else %}
-                                <p class="font-orbitron text-red-300 mt-2">INSUFFICIENT</p>
+                                <p class="font-orbitron text-red-300 mt-1 sm:mt-2 text-sm sm:text-base">INSUFFICIENT</p>
                             {% endif %}
                         </div>
                     </div>
 
                     {% if wallet.balance >= grand_total %}
-                        <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-10">
+                        <form method="POST" action="{% url 'confirm_payment' order.id %}" class="mt-8 sm:mt-10">
                             {% csrf_token %}
                             <input type="hidden" name="payment_method" value="WALLET">
 
                             <button type="submit"
-                                    class="bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                                    class="w-full sm:w-auto bg-[#f2ca50] text-black px-8 sm:px-10 py-4 sm:py-5 rounded font-orbitron font-bold text-xs sm:text-sm tracking-widest hover:bg-[#d4af37] transition">
                                 PAY USING WALLET
                             </button>
                         </form>
                     {% else %}
                         <a href="{% url 'add_money' %}"
-                           class="inline-block mt-10 bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                           class="inline-block text-center w-full sm:w-auto mt-8 sm:mt-10 bg-[#f2ca50] text-black px-8 sm:px-10 py-4 sm:py-5 rounded font-orbitron font-bold text-xs sm:text-sm tracking-widest hover:bg-[#d4af37] transition">
                             ADD MONEY
                         </a>
                     {% endif %}
 
                 {% elif order.payment_method == "RAZORPAY" %}
-                    <span class="material-symbols-outlined text-[#f2ca50] text-7xl mb-6 block">
+                    <span class="material-symbols-outlined text-[#f2ca50] text-5xl sm:text-7xl mb-4 sm:mb-6 block">
                         credit_card
                     </span>
 
-                    <h2 class="font-orbitron text-3xl text-[#f2ca50] mb-4">
+                    <h2 class="font-orbitron text-2xl sm:text-3xl text-[#f2ca50] mb-3 sm:mb-4">
                         Razorpay Secure Payment
                     </h2>
 
-                    <p class="text-[#d0c5af] leading-relaxed max-w-2xl">
+                    <p class="text-[#d0c5af] text-xs sm:text-base leading-relaxed max-w-2xl">
                         Click below to open Razorpay secure checkout. You can complete payment using UPI, cards, netbanking, wallets, or pay later.
                     </p>
 
                     <div id="razorpayDismissNotice"
-                         class="hidden mt-6 border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-200">
+                         class="hidden mt-6 border border-amber-400/30 bg-amber-500/10 px-4 py-3 text-xs sm:text-sm text-amber-200 rounded">
                         Payment was not completed. No order has been placed. You can try again or return to checkout.
                     </div>
 
@@ -199,7 +199,7 @@
 
                     <button id="razorpayBtn"
                             type="button"
-                            class="mt-10 bg-[#f2ca50] text-black px-10 py-5 rounded font-orbitron font-bold tracking-widest">
+                            class="w-full sm:w-auto mt-8 sm:mt-10 bg-[#f2ca50] text-black px-8 sm:px-10 py-4 sm:py-5 rounded font-orbitron font-bold text-xs sm:text-sm tracking-widest hover:bg-[#d4af37] transition">
                         PAY WITH RAZORPAY
                     </button>
                 {% endif %}
@@ -207,16 +207,16 @@
             </div>
         </section>
 
-        <aside class="lg:col-span-4 space-y-8">
+        <aside class="lg:col-span-4 space-y-6 sm:space-y-8">
 
             <div class="glass-card rounded-xl overflow-hidden">
-                <div class="bg-[#f2ca50]/10 px-8 py-4 border-b border-[#f2ca50]/20">
-                    <h2 class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                <div class="bg-[#f2ca50]/10 px-5 sm:px-8 py-3.5 sm:py-4 border-b border-[#f2ca50]/20">
+                    <h2 class="font-orbitron text-[#f2ca50] text-xs sm:text-sm tracking-widest">
                         ORDER SUMMARY
                     </h2>
                 </div>
 
-                <div class="p-8 space-y-5">
+                <div class="p-5 sm:p-8 space-y-4 sm:space-y-5 text-xs sm:text-sm">
                     <div class="flex justify-between text-[#d0c5af]">
                         <span>Original subtotal</span>
                         <span class="font-orbitron">₹{{ subtotal|floatformat:2 }}</span>
@@ -258,22 +258,22 @@
 
                     <div class="flex justify-between items-center text-[#f2ca50]">
                         <span class="font-orbitron">Total</span>
-                        <span class="font-orbitron text-xl">₹{{ grand_total|floatformat:2 }}</span>
+                        <span class="font-orbitron text-lg sm:text-xl">₹{{ grand_total|floatformat:2 }}</span>
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card rounded-xl p-8">
-                <h3 class="font-orbitron text-xs text-[#d0c5af] mb-6">
+            <div class="glass-card rounded-xl p-5 sm:p-8">
+                <h3 class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af] mb-4 sm:mb-6">
                     DELIVERY ADDRESS
                 </h3>
 
                 {% if address %}
-                    <p class="font-orbitron text-sm text-white mb-1">
+                    <p class="font-orbitron text-xs sm:text-sm text-white mb-1">
                         {{ address.full_name }}
                     </p>
 
-                    <p class="text-sm text-[#d0c5af] leading-relaxed">
+                    <p class="text-xs sm:text-sm text-[#d0c5af] leading-relaxed">
                         {{ address.address }}<br>
                         {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
                         Phone: {{ address.phone }}

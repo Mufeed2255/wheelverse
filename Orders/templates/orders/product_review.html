@@ -38,6 +38,7 @@
             background: #080705;
             color: #eae1d4;
             font-family: Poppins, sans-serif;
+            overflow-x: hidden;
         }
 
         .page-content {
@@ -46,10 +47,10 @@
             min-height: 100vh;
         }
 
-        @media(max-width:900px) {
+        @media(max-width: 1024px) {
             .page-content {
                 margin-left: 0;
-                padding-top: 120px;
+                padding-top: 100px;
             }
         }
 
@@ -71,96 +72,96 @@
     </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
 {% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="page-content">
-    <div class="max-w-[1150px] mx-auto px-10 py-10">
+<main class="page-content flex-1">
+    <div class="max-w-[1150px] mx-auto px-4 sm:px-6 md:px-10 py-6 sm:py-10">
 
-        <section class="text-center mb-12">
-            <h1 class="orbitron text-5xl text-[#f2ca50] tracking-widest uppercase">
+        <section class="text-center mb-8 sm:mb-12">
+            <h1 class="orbitron text-2xl sm:text-4xl md:text-5xl text-[#f2ca50] tracking-widest uppercase">
                 RATE YOUR PRODUCT
             </h1>
-            <p class="text-[#d0c5af] italic mt-3">
+            <p class="text-[#d0c5af] text-xs sm:text-sm italic mt-2 sm:mt-3 px-2">
                 Genuine review about your delivered product
             </p>
-            <div class="w-32 h-1 bg-gradient-to-r from-transparent via-[#f2ca50] to-transparent mx-auto mt-5"></div>
+            <div class="w-24 sm:w-32 h-1 bg-gradient-to-r from-transparent via-[#f2ca50] to-transparent mx-auto mt-4 sm:mt-5"></div>
         </section>
 
         <form method="POST" enctype="multipart/form-data">
             {% csrf_token %}
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
 
                 <div class="lg:col-span-5">
-                    <div class="glass rounded-xl p-6">
-                        <div class="aspect-[4/3] overflow-hidden rounded bg-black mb-6 relative">
+                    <div class="glass rounded-xl p-4 sm:p-6">
+                        <div class="aspect-[4/3] overflow-hidden rounded bg-black mb-4 sm:mb-6 relative">
                             {% if variant and variant.images.first %}
                                 <img src="{{ variant.images.first.image.url }}"
                                      class="w-full h-full object-cover"
                                      alt="{{ item.product_name }}">
                             {% else %}
                                 <div class="w-full h-full flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-[#f2ca50] text-8xl">directions_car</span>
+                                    <span class="material-symbols-outlined text-[#f2ca50] text-6xl sm:text-8xl">directions_car</span>
                                 </div>
                             {% endif %}
 
-                            <span class="absolute bottom-4 left-4 bg-[#f2ca50] text-black orbitron text-[10px] px-3 py-1 rounded">
+                            <span class="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-[#f2ca50] text-black orbitron text-[9px] sm:text-[10px] px-2.5 sm:px-3 py-1 rounded">
                                 ORDER: {{ order.order_id }}
                             </span>
                         </div>
 
-                        <h2 class="orbitron text-2xl">
+                        <h2 class="orbitron text-lg sm:text-2xl truncate">
                             {{ item.product_name }}
                         </h2>
 
-                        <p class="orbitron text-sm text-[#f2ca50] mt-1">
+                        <p class="orbitron text-xs sm:text-sm text-[#f2ca50] mt-1">
                             {{ item.variant_color }}{% if item.variant_size %} • {{ item.variant_size }}{% endif %}
                         </p>
 
-                        <div class="grid grid-cols-2 gap-4 border-t border-[#f2ca50]/10 mt-6 pt-5">
+                        <div class="grid grid-cols-2 gap-4 border-t border-[#f2ca50]/10 mt-4 sm:mt-6 pt-4 sm:pt-5">
                             <div>
-                                <p class="orbitron text-[10px] text-[#d0c5af]">DELIVERED ON</p>
-                                <p>{{ order.updated_at|date:"M d, Y" }}</p>
+                                <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">DELIVERED ON</p>
+                                <p class="text-xs sm:text-base mt-0.5">{{ order.updated_at|date:"M d, Y" }}</p>
                             </div>
 
                             <div>
-                                <p class="orbitron text-[10px] text-[#d0c5af]">PRICE</p>
-                                <p class="text-[#f2ca50]">₹{{ item.price }}</p>
+                                <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">PRICE</p>
+                                <p class="text-xs sm:text-base text-[#f2ca50] mt-0.5">₹{{ item.price }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-7 space-y-8">
+                <div class="lg:col-span-7 space-y-6 sm:space-y-8">
 
-                    <div class="glass rounded-xl p-8">
-                        <h3 class="orbitron text-sm text-[#f2ca50] mb-6 tracking-widest">
+                    <div class="glass rounded-xl p-5 sm:p-8">
+                        <h3 class="orbitron text-xs sm:text-sm text-[#f2ca50] mb-4 sm:mb-6 tracking-widest">
                             PRODUCT RATING
                         </h3>
 
                         <input type="hidden" name="rating" id="ratingInput">
 
-                        <div class="flex gap-4">
+                        <div class="flex flex-wrap gap-2.5 sm:gap-4">
                             {% for i in "12345" %}
                                 <button type="button"
-                                        class="star-btn w-14 h-14 border border-[#f2ca50]/20 flex items-center justify-center rounded"
+                                        class="star-btn w-11 h-11 sm:w-14 sm:h-14 border border-[#f2ca50]/20 flex items-center justify-center rounded hover:border-[#f2ca50] transition"
                                         data-rating="{{ forloop.counter }}">
-                                    <span class="material-symbols-outlined text-3xl text-[#4d4635]">star</span>
+                                    <span class="material-symbols-outlined text-2xl sm:text-3xl text-[#4d4635]">star</span>
                                 </button>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <div class="glass rounded-xl p-8">
-                        <div class="flex justify-between mb-5">
-                            <h3 class="orbitron text-sm text-[#f2ca50] tracking-widest">
+                    <div class="glass rounded-xl p-5 sm:p-8">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center mb-3 sm:mb-5 gap-1">
+                            <h3 class="orbitron text-xs sm:text-sm text-[#f2ca50] tracking-widest">
                                 COLLECTOR REVIEW
                             </h3>
-                            <span id="charCount" class="orbitron text-[10px] text-[#d0c5af]">
+                            <span id="charCount" class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">
                                 0 / 1000 CHARS
                             </span>
                         </div>
@@ -168,36 +169,36 @@
                         <textarea name="review"
                                   id="reviewText"
                                   maxlength="1000"
-                                  rows="7"
+                                  rows="6"
                                   placeholder="Write review about product"
-                                  class="w-full bg-[#0d0a04] border border-[#f2ca50]/20 focus:border-[#f2ca50] focus:ring-[#f2ca50]/20 rounded p-5 text-[#eae1d4] resize-none"></textarea>
+                                  class="w-full bg-[#0d0a04] border border-[#f2ca50]/20 focus:border-[#f2ca50] focus:ring-1 focus:ring-[#f2ca50]/20 rounded p-4 sm:p-5 text-xs sm:text-sm text-[#eae1d4] resize-none focus:outline-none transition"></textarea>
                     </div>
 
-                    <div class="glass rounded-xl p-8">
-                        <h3 class="orbitron text-sm text-[#f2ca50] mb-6 tracking-widest">
+                    <div class="glass rounded-xl p-5 sm:p-8">
+                        <h3 class="orbitron text-xs sm:text-sm text-[#f2ca50] mb-4 sm:mb-6 tracking-widest">
                             UPLOAD IMAGES
                         </h3>
 
-                        <label class="border-2 border-dashed border-[#4d4635] rounded-xl p-10 flex flex-col items-center justify-center cursor-pointer hover:border-[#f2ca50] transition">
-                            <span class="material-symbols-outlined text-[#f2ca50] text-4xl mb-4">
+                        <label class="border-2 border-dashed border-[#4d4635] rounded-xl p-6 sm:p-10 flex flex-col items-center justify-center cursor-pointer hover:border-[#f2ca50] transition text-center">
+                            <span class="material-symbols-outlined text-[#f2ca50] text-3xl sm:text-4xl mb-2 sm:mb-4">
                                 upload_file
                             </span>
-                            <p class="orbitron text-sm">Drag and drop or click to upload</p>
-                            <p class="text-xs text-[#d0c5af] mt-2">
+                            <p class="orbitron text-xs sm:text-sm">Drag and drop or click to upload</p>
+                            <p class="text-[10px] sm:text-xs text-[#d0c5af] mt-1.5 sm:mt-2">
                                 Maximum 5 images. JPG/PNG/WEBP accepted.
                             </p>
                             <input type="file" name="review_images" multiple accept="image/*" class="hidden">
                         </label>
                     </div>
 
-                    <div class="flex gap-6">
+                    <div class="flex flex-col sm:flex-row gap-4 sm:gap-6">
                         <button type="submit"
-                                class="flex-1 bg-[#f2ca50] text-black orbitron py-5 rounded font-bold tracking-widest">
+                                class="flex-1 bg-[#f2ca50] text-black orbitron text-xs sm:text-sm py-4 sm:py-5 rounded font-bold tracking-widest hover:bg-[#d4af37] transition">
                             SUBMIT REVIEW
                         </button>
 
                         <a href="{% url 'order_detail' order.id %}"
-                           class="px-10 py-5 border border-[#4d4635] text-[#d0c5af] orbitron rounded">
+                           class="px-8 sm:px-10 py-4 sm:py-5 border border-[#4d4635] text-[#d0c5af] hover:border-[#f2ca50] hover:text-[#f2ca50] orbitron text-xs sm:text-sm rounded text-center transition">
                             CANCEL
                         </a>
                     </div>
@@ -234,4 +235,3 @@
 
 </body>
 </html>
-

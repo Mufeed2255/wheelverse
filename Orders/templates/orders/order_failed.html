@@ -54,168 +54,170 @@
     </style>
 </head>
 
-<body class="min-h-screen carbon-bg">
+<body class="min-h-screen carbon-bg flex flex-col">
 
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="max-w-7xl mx-auto px-8 pt-20 pb-20">
+<main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-12 sm:pt-20 pb-16 sm:pb-20">
 
-    <section class="text-center mb-16">
-        <div class="w-20 h-20 mx-auto rounded-xl border border-[#ffb4ab]/40 bg-[#93000a]/20 flex items-center justify-center danger-glow">
-            <span class="material-symbols-outlined text-[#ffb4ab] text-5xl">error</span>
+    <section class="text-center mb-10 sm:mb-16">
+        <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto rounded-xl border border-[#ffb4ab]/40 bg-[#93000a]/20 flex items-center justify-center danger-glow">
+            <span class="material-symbols-outlined text-[#ffb4ab] text-4xl sm:text-5xl">error</span>
         </div>
 
-        <h1 class="font-orbitron text-5xl md:text-6xl font-bold mt-8 tracking-widest failed-text">
+        <h1 class="font-orbitron text-3xl sm:text-5xl md:text-6xl font-bold mt-6 sm:mt-8 tracking-wider sm:tracking-widest failed-text">
             ORDER FAILED
         </h1>
 
-        <p class="text-[#d0c5af] text-lg mt-5 max-w-2xl mx-auto">
+        <p class="text-[#d0c5af] text-sm sm:text-lg mt-3 sm:mt-5 max-w-2xl mx-auto">
             Your collectible purchase could not be completed. Please verify your payment details and try again.
         </p>
 
-        <div class="line-glow mt-12"></div>
+        <div class="line-glow mt-8 sm:mt-12"></div>
     </section>
 
     <section class="glass-card rounded-xl overflow-hidden grid grid-cols-1 md:grid-cols-5 mb-8 border-l-4 border-[#ffb4ab]">
-        <div class="md:col-span-2 relative min-h-[360px] bg-[#111]">
+        <div class="md:col-span-2 relative min-h-[250px] sm:min-h-[360px] bg-[#111]">
             {% if order %}
                 {% with first_item=order.items.first %}
                     {% if first_item.variant and first_item.variant.images.first %}
                         <img src="{{ first_item.variant.images.first.image.url }}" class="w-full h-full object-cover opacity-70" alt="{{ first_item.product_name }}">
                     {% else %}
-                        <div class="w-full h-full flex items-center justify-center bg-[#16130b]">
-                            <span class="material-symbols-outlined text-[#ffb4ab] text-8xl">directions_car</span>
+                        <div class="w-full h-full flex items-center justify-center bg-[#16130b] min-h-[250px]">
+                            <span class="material-symbols-outlined text-[#ffb4ab] text-6xl sm:text-8xl">directions_car</span>
                         </div>
                     {% endif %}
                 {% endwith %}
             {% else %}
-                <div class="w-full h-full flex items-center justify-center bg-[#16130b]">
-                    <span class="material-symbols-outlined text-[#ffb4ab] text-8xl">directions_car</span>
+                <div class="w-full h-full flex items-center justify-center bg-[#16130b] min-h-[250px]">
+                    <span class="material-symbols-outlined text-[#ffb4ab] text-6xl sm:text-8xl">directions_car</span>
                 </div>
             {% endif %}
 
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 to-transparent"></div>
         </div>
 
-        <div class="md:col-span-3 p-8 md:p-12 relative">
-            <div class="absolute top-8 right-8 border border-[#ffb4ab]/40 text-[#ffb4ab] rounded-lg px-5 py-3 font-orbitron text-xs">
-                PAYMENT<br>FAILED
+        <div class="md:col-span-3 p-6 sm:p-8 md:p-12 relative flex flex-col justify-between">
+            <div class="static sm:absolute sm:top-8 sm:right-8 inline-block self-start mb-4 sm:mb-0 border border-[#ffb4ab]/40 text-[#ffb4ab] bg-[#93000a]/20 sm:bg-transparent rounded-lg px-4 sm:px-5 py-2 sm:py-3 font-orbitron text-[10px] sm:text-xs text-left sm:text-center">
+                PAYMENT<br class="hidden sm:inline"> FAILED
             </div>
 
-            {% if order %}
-                {% with first_item=order.items.first %}
-                    <h2 class="font-orbitron text-3xl text-[#f2ca50] uppercase mb-3 max-w-md">
-                        {% if first_item %}
-                            {{ first_item.product_name }}
-                        {% else %}
-                            WheelVerse Collectible
-                        {% endif %}
-                    </h2>
-                {% endwith %}
-
-                <p class="font-orbitron text-sm text-[#d0c5af] mb-8">
-                    ORDER ID: #{{ order.order_id }}
-                </p>
-            {% else %}
-                <h2 class="font-orbitron text-3xl text-[#f2ca50] uppercase mb-3">
-                    WheelVerse Collectible
-                </h2>
-                <p class="font-orbitron text-sm text-[#d0c5af] mb-8">
-                    ORDER ID: Not generated
-                </p>
-            {% endif %}
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 border-y border-[#4d4635]/60 py-8">
-                <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">ORDER ID</p>
-                    <p class="font-orbitron text-lg">
-                        {% if order %}#{{ order.order_id }}{% else %}N/A{% endif %}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">PAYMENT METHOD</p>
-                    <p class="font-orbitron text-lg">
-                        {% if order %}{{ order.payment_method }}{% else %}N/A{% endif %}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">ORDER DATE</p>
-                    <p class="font-orbitron text-lg">
-                        {% if order %}{{ order.ordered_at|date:"M d, Y" }}{% else %}N/A{% endif %}
-                    </p>
-                </div>
-
-                <div>
-                    <p class="font-orbitron text-xs text-[#777] mb-2">STATUS</p>
-                    <p class="font-orbitron text-lg text-[#ffb4ab] flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-[#ffb4ab]"></span>
-                        FAILED
-                    </p>
-                </div>
-            </div>
-
-            <div class="flex flex-col sm:flex-row gap-4 mt-10">
+            <div>
                 {% if order %}
-                    <a href="{% url 'payment' order.id %}" class="bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron px-8 py-4 rounded text-center">
+                    {% with first_item=order.items.first %}
+                        <h2 class="font-orbitron text-xl sm:text-3xl text-[#f2ca50] uppercase mb-2 sm:mb-3 max-w-md">
+                            {% if first_item %}
+                                {{ first_item.product_name }}
+                            {% else %}
+                                WheelVerse Collectible
+                            {% endif %}
+                        </h2>
+                    {% endwith %}
+
+                    <p class="font-orbitron text-xs sm:text-sm text-[#d0c5af] mb-6 sm:mb-8">
+                        ORDER ID: #{{ order.order_id }}
+                    </p>
+                {% else %}
+                    <h2 class="font-orbitron text-xl sm:text-3xl text-[#f2ca50] uppercase mb-2 sm:mb-3">
+                        WheelVerse Collectible
+                    </h2>
+                    <p class="font-orbitron text-xs sm:text-sm text-[#d0c5af] mb-6 sm:mb-8">
+                        ORDER ID: Not generated
+                    </p>
+                {% endif %}
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 border-y border-[#4d4635]/60 py-6 sm:py-8">
+                    <div>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">ORDER ID</p>
+                        <p class="font-orbitron text-base sm:text-lg">
+                            {% if order %}#{{ order.order_id }}{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">PAYMENT METHOD</p>
+                        <p class="font-orbitron text-base sm:text-lg">
+                            {% if order %}{{ order.payment_method }}{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">ORDER DATE</p>
+                        <p class="font-orbitron text-base sm:text-lg">
+                            {% if order %}{{ order.ordered_at|date:"M d, Y" }}{% else %}N/A{% endif %}
+                        </p>
+                    </div>
+
+                    <div>
+                        <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mb-1 sm:mb-2">STATUS</p>
+                        <p class="font-orbitron text-base sm:text-lg text-[#ffb4ab] flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-[#ffb4ab]"></span>
+                            FAILED
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col lg:flex-row flex-wrap gap-3 sm:gap-4 mt-8 sm:mt-10">
+                {% if order %}
+                    <a href="{% url 'payment' order.id %}" class="w-full lg:w-auto bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded text-center font-bold hover:brightness-110 transition">
                         TRY AGAIN
                     </a>
                 {% else %}
-                    <a href="{% url 'checkout' %}" class="bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron px-8 py-4 rounded text-center">
+                    <a href="{% url 'checkout' %}" class="w-full lg:w-auto bg-gradient-to-r from-[#f2ca50] to-[#d4af37] text-[#241a00] font-orbitron text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded text-center font-bold hover:brightness-110 transition">
                         TRY AGAIN
                     </a>
                 {% endif %}
 
-                <a href="{% url 'checkout' %}" class="border border-[#f2ca50]/40 text-[#f2ca50] font-orbitron px-8 py-4 rounded text-center hover:bg-[#f2ca50]/10">
+                <a href="{% url 'checkout' %}" class="w-full lg:w-auto border border-[#f2ca50]/40 text-[#f2ca50] font-orbitron text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded text-center hover:bg-[#f2ca50]/10 transition">
                     CHANGE PAYMENT METHOD
                 </a>
 
-                <a href="{% url 'checkout' %}" class="text-[#d0c5af] font-orbitron px-8 py-4 rounded text-center hover:text-[#f2ca50]">
+                <a href="{% url 'checkout' %}" class="w-full lg:w-auto text-[#d0c5af] font-orbitron text-xs sm:text-sm px-6 sm:px-8 py-3.5 sm:py-4 rounded text-center hover:text-[#f2ca50] transition">
                     RETURN TO CHECKOUT
                 </a>
             </div>
         </div>
     </section>
 
-    <section class="glass-card rounded-xl p-8">
-        <h3 class="font-orbitron text-[#f2ca50] mb-12">
+    <section class="glass-card rounded-xl p-6 sm:p-8 overflow-x-auto">
+        <h3 class="font-orbitron text-sm sm:text-base text-[#f2ca50] mb-8 sm:mb-12">
             TRANSACTION TIMELINE
         </h3>
 
-        <div class="relative">
-            <div class="absolute top-5 left-0 right-0 h-[2px] bg-[#4d4635]"></div>
-            <div class="absolute top-5 left-0 w-[72%] h-[2px] bg-[#f2ca50]/70"></div>
-            <div class="absolute top-5 right-0 w-[10%] h-[2px] bg-[#ffb4ab] danger-glow"></div>
+        <div class="relative min-w-[450px] sm:min-w-0">
+            <div class="absolute top-4 sm:top-5 left-0 right-0 h-[2px] bg-[#4d4635]"></div>
+            <div class="absolute top-4 sm:top-5 left-0 w-[72%] h-[2px] bg-[#f2ca50]/70"></div>
+            <div class="absolute top-4 sm:top-5 right-0 w-[10%] h-[2px] bg-[#ffb4ab] danger-glow"></div>
 
             <div class="relative flex justify-between text-center">
                 <div>
-                    <div class="w-10 h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
-                        <span class="material-symbols-outlined">check</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm sm:text-base">check</span>
                     </div>
-                    <p class="font-orbitron text-xs text-[#d0c5af] mt-4">Payment Initiated</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af] mt-3 sm:mt-4">Payment Initiated</p>
                 </div>
 
                 <div>
-                    <div class="w-10 h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
-                        <span class="material-symbols-outlined">check</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#f2ca50] text-[#241a00] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm sm:text-base">check</span>
                     </div>
-                    <p class="font-orbitron text-xs text-[#d0c5af] mt-4">Authorization</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#d0c5af] mt-3 sm:mt-4">Authorization</p>
                 </div>
 
                 <div>
-                    <div class="w-10 h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
-                        <span class="material-symbols-outlined">radio_button_unchecked</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#38342b] border border-[#4d4635] flex items-center justify-center">
+                        <span class="material-symbols-outlined text-sm sm:text-base">radio_button_unchecked</span>
                     </div>
-                    <p class="font-orbitron text-xs text-[#777] mt-4">Verification</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#777] mt-3 sm:mt-4">Verification</p>
                 </div>
 
                 <div>
-                    <div class="w-10 h-10 mx-auto rounded-lg bg-[#ffb4ab] text-[#690005] flex items-center justify-center danger-glow">
-                        <span class="material-symbols-outlined">close</span>
+                    <div class="w-8 h-8 sm:w-10 sm:h-10 mx-auto rounded-lg bg-[#ffb4ab] text-[#690005] flex items-center justify-center danger-glow">
+                        <span class="material-symbols-outlined text-sm sm:text-base">close</span>
                     </div>
-                    <p class="font-orbitron text-xs text-[#ffb4ab] mt-4">FAILED</p>
+                    <p class="font-orbitron text-[10px] sm:text-xs text-[#ffb4ab] mt-3 sm:mt-4">FAILED</p>
                 </div>
             </div>
         </div>

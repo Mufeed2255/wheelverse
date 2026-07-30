@@ -66,17 +66,26 @@
             color: #231b03;
             box-shadow: 0 0 20px rgba(242,202,80,.18);
         }
+        /* Table responsiveness utility */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
     </style>
 </head>
-<body class="min-h-screen overflow-x-hidden">
+<body class="min-h-screen overflow-x-hidden relative">
+
 {% include 'adminpanel/includes/admin_sidebar.html' %}
 {% include 'adminpanel/includes/admin_topbar.html' %}
 {% include 'adminpanel/includes/messages.html' %}
 
-<main class="min-h-screen pt-[92px] ml-[280px] px-5 lg:px-8 pb-12">
-    <div class="max-w-[1500px] mx-auto">
+<!-- Main Content Wrapper adjusted for Mobile, Tablet, and Desktop -->
+<main class="min-h-screen pt-[80px] sm:pt-[92px] lg:ml-[280px] px-4 sm:px-6 lg:px-8 pb-12 transition-all duration-300">
+    <div class="max-w-[1500px] mx-auto w-full">
         {% block content %}{% endblock %}
     </div>
 </main>
+
 </body>
 </html>

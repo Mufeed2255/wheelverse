@@ -1,32 +1,34 @@
-# adminpanel/views/user_management.py
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.admin.views.decorators import staff_member_required
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.contrib import messages
-from django.db.models import Q
+
+from django.db.models import Q, Count, Sum, DecimalField
+from django.db.models.functions import Coalesce, Cast
 
 User = get_user_model()
 
 
 def is_admin(user):
-
     return user.is_authenticated and (user.is_staff or user.is_superuser)
+
 
 @login_required
 @user_passes_test(is_admin, login_url='admin_login')
 def admin_users(request):
-   
     search = request.GET.get('search', '').strip()
     status = request.GET.get('status', 'all')
     sort = request.GET.get('sort', 'newest')
     page_number = request.GET.get('page')
 
+    # Annotate with the exact count of related orders per user
     users_list = User.objects.filter(
         is_staff=False,
         is_superuser=False
+    ).annotate(
+        total_orders=Count('orders')  # Change 'orders' if related_name on Order model is different
     )
 
     if search:
@@ -37,7 +39,6 @@ def admin_users(request):
             Q(last_name__icontains=search) |
             Q(phone__icontains=search)
         )
-        
         try:
             user_id = int(search)
             q_filter |= Q(id=user_id)
@@ -81,7 +82,6 @@ def admin_users(request):
 
 @staff_member_required(login_url="admin_login")
 def view_user(request, user_id):
- 
     user_obj = get_object_or_404(
         User,
         id=user_id,
@@ -89,11 +89,29 @@ def view_user(request, user_id):
         is_superuser=False
     )
 
-    default_address = user_obj.addresses.filter(is_default=True).first()
+    default_address = user_obj.addresses.filter(is_default=True).first() if hasattr(user_obj, 'addresses') else None
+
+    # Fetch user orders
+    orders = user_obj.orders.all().order_by('-ordered_at') if hasattr(user_obj, 'orders') else [] 
+    
+    # Calculate statistics
+    total_orders = orders.count() if hasattr(orders, 'count') else len(orders)
+    
+    # Aggregate total spending on completed or non-cancelled orders if applicable
+    if hasattr(orders, 'aggregate'):
+        spending_data = orders.aggregate(
+            total=Coalesce(Sum('total_amount'), 0.0, output_field=DecimalField())
+        )
+        total_spend = spending_data['total']
+    else:
+        total_spend = 0.00
 
     context = {
         "user_obj": user_obj,
         "default_address": default_address,
+        "orders": orders,
+        "total_orders": total_orders,
+        "total_spend": total_spend,
     }
 
     return render(request, "adminpanel/admin_login/view_user.html", context)
@@ -101,8 +119,6 @@ def view_user(request, user_id):
 
 @staff_member_required(login_url="admin_login")
 def toggle_user_status(request, user_id):
-    
-    
     if request.method != "POST":
         messages.error(request, "Invalid request method. Status changes require a POST request.")
         return redirect("admin_users")
@@ -118,7 +134,6 @@ def toggle_user_status(request, user_id):
         messages.error(request, "Access Denied: You cannot deactivate your own admin account.")
         return redirect("view_user", user_id=user_obj.id)
 
-    # Toggle the status
     user_obj.is_active = not user_obj.is_active
     user_obj.save()
 
@@ -137,8 +152,8 @@ def toggle_user_status(request, user_id):
     )
 
     if user_obj.is_active:
-        messages.success(request, f"✓ User '{user_obj.username}' has been Activated Successfully.")
+        messages.success(request, f"User '{user_obj.username}' has been Activated Successfully.")
     else:
-        messages.success(request, f"⊘ User '{user_obj.username}' has been Deactivated Successfully.")
+        messages.success(request, f"User '{user_obj.username}' has been Deactivated Successfully.")
 
     return redirect("view_user", user_id=user_obj.id)

@@ -68,72 +68,70 @@
     </style>
 </head>
 
-<body class="bg-background text-on-surface carbon-bg">
+<body class="bg-background text-on-surface carbon-bg min-h-screen">
 
 {% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="ml-72 pt-28 min-h-screen">
-        <div class="w-full px-10 lg:px-14 pb-20">
-        
+<main class="ml-0 lg:ml-72 pt-20 lg:pt-28 min-h-screen transition-all duration-300">
+    <div class="w-full px-4 sm:px-8 lg:px-14 pb-20">
 
-        <section class="mb-10 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+        <section class="mb-8 lg:mb-10 flex flex-col sm:flex-row sm:items-end justify-between gap-6">
             <div>
-
-                <h1 class="font-orbitron text-5xl lg:text-7xl text-primary leading-tight">
-                    YOUR COLLECTOR <br> WISHLIST
+                <h1 class="font-orbitron text-3xl sm:text-5xl lg:text-7xl text-primary leading-tight">
+                    YOUR COLLECTOR <br class="hidden sm:inline"> WISHLIST
                 </h1>
 
-                <p class="text-on-surface-variant mt-5 max-w-2xl">
+                <p class="text-on-surface-variant text-xs sm:text-sm mt-3 sm:mt-5 max-w-2xl">
                     Save your favorite collector editions and move them to cart when ready.
                 </p>
             </div>
 
             <a href="{% url 'collections' %}"
-               class="px-7 py-4 bg-primary text-black font-orbitron text-xs flex items-center justify-center gap-2 no-underline font-bold rounded shadow-[0_0_20px_rgba(242,202,80,0.25)]">
+               class="px-5 py-3.5 sm:px-7 sm:py-4 bg-primary text-black font-orbitron text-xs flex items-center justify-center gap-2 no-underline font-bold rounded shadow-[0_0_20px_rgba(242,202,80,0.25)] self-start sm:self-auto">
                 ADD MORE
                 <span class="material-symbols-outlined text-sm">arrow_right_alt</span>
             </a>
         </section>
 
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
-                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mb-8 lg:mb-10">
+            <div class="glass-panel p-5 sm:p-6 flex items-center gap-4 sm:gap-5 rounded-xl">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-primary">bookmark</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant font-orbitron text-[10px]">SAVED PRODUCTS</p>
-                    <p class="font-orbitron text-2xl">{{ wishlist_count }} <span class="text-primary text-sm">ITEMS</span></p>
+                    <p class="font-orbitron text-xl sm:text-2xl">{{ wishlist_count }} <span class="text-primary text-xs sm:text-sm">ITEMS</span></p>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
-                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+            <div class="glass-panel p-5 sm:p-6 flex items-center gap-4 sm:gap-5 rounded-xl">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-primary">inventory</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant font-orbitron text-[10px]">AVAILABLE STOCK</p>
-                    <p class="font-orbitron text-2xl">{{ available_stock }} <span class="text-primary text-sm">UNITS</span></p>
+                    <p class="font-orbitron text-xl sm:text-2xl">{{ available_stock }} <span class="text-primary text-xs sm:text-sm">UNITS</span></p>
                 </div>
             </div>
 
-            <div class="glass-panel p-6 flex items-center gap-5 rounded-xl">
-                <div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+            <div class="glass-panel p-5 sm:p-6 flex items-center gap-4 sm:gap-5 sm:col-span-2 lg:col-span-1 rounded-xl">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center shrink-0">
                     <span class="material-symbols-outlined text-primary">payments</span>
                 </div>
                 <div>
                     <p class="text-on-surface-variant font-orbitron text-[10px]">WISHLIST VALUE</p>
-                    <p class="font-orbitron text-2xl text-primary">₹{{ wishlist_value }}</p>
+                    <p class="font-orbitron text-xl sm:text-2xl text-primary">₹{{ wishlist_value }}</p>
                 </div>
             </div>
         </section>
 
-        <div class="flex flex-col md:flex-row gap-4 mb-10">
+        <div class="flex flex-col md:flex-row gap-4 mb-8 lg:mb-10">
             <div class="flex-1 relative">
                 <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary">search</span>
                 <input id="wishlistSearch"
-                       class="w-full bg-surface-container/60 border border-primary/20 px-12 py-4 font-orbitron text-xs focus:ring-1 focus:ring-primary outline-none text-on-surface placeholder:text-on-surface-variant/50 rounded"
+                       class="w-full bg-surface-container/60 border border-primary/20 pl-12 pr-4 py-3.5 sm:py-4 font-orbitron text-xs focus:ring-1 focus:ring-primary outline-none text-on-surface placeholder:text-on-surface-variant/50 rounded-lg"
                        placeholder="SEARCH WISHLIST..."
                        type="text">
             </div>
@@ -141,122 +139,124 @@
 
         <section>
             {% if wishlist_items %}
-            <div id="wishlistGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div id="wishlistGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
 
                 {% for item in wishlist_items %}
-                <div class="wishlist-card glass-panel group overflow-hidden border-t-2 border-t-primary/20 hover:border-t-primary transition-all duration-300 rounded-xl"
+                <div class="wishlist-card glass-panel group overflow-hidden border-t-2 border-t-primary/20 hover:border-t-primary transition-all duration-300 rounded-xl flex flex-col justify-between"
                      data-name="{{ item.variant.product.name|lower }}"
                      data-color="{{ item.variant.color|lower }}"
                      data-size="{{ item.variant.size|lower }}">
 
-                    <div class="h-56 relative overflow-hidden bg-black">
-                        {% with first_image=item.variant.images.first %}
-                            {% if first_image %}
-                                <img src="{{ first_image.image.url }}"
-                                     alt="{{ item.variant.product.name }}"
-                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            {% elif item.variant.image %}
-                                <img src="{{ item.variant.image.url }}"
-                                     alt="{{ item.variant.product.name }}"
-                                     class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
-                            {% else %}
-                                <div class="w-full h-full flex items-center justify-center bg-surface-container">
-                                    <span class="material-symbols-outlined text-primary/40 text-6xl">directions_car</span>
-                                </div>
-                            {% endif %}
-                        {% endwith %}
-
-                        <form method="POST" action="{% url 'remove_wishlist' item.id %}">
-                            {% csrf_token %}
-                            <button type="submit"
-                                    class="absolute top-4 right-4 w-8 h-8 bg-black/80 border border-primary/30 text-primary hover:text-red-300 hover:border-red-300 flex items-center justify-center rounded">
-                                <span class="material-symbols-outlined text-sm">close</span>
-                            </button>
-                        </form>
-                    </div>
-
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="font-orbitron text-lg text-white">
-                                    {{ item.variant.product.name }}
-                                </h3>
-
-                                <p class="text-on-surface-variant text-[10px] font-orbitron mt-1">
-                                    {{ item.variant.product.category.name|upper }}
-                                </p>
-                            </div>
-
-                            <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">stars</span>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
-                                <p class="text-on-surface-variant text-[9px] font-orbitron">COLOR</p>
-                                <p class="text-white font-orbitron text-sm">{{ item.variant.color }}</p>
-                            </div>
-
-                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
-                                <p class="text-on-surface-variant text-[9px] font-orbitron">SIZE</p>
-                                <p class="text-white font-orbitron text-sm">{{ item.variant.size }}</p>
-                            </div>
-
-                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
-                                <p class="text-on-surface-variant text-[9px] font-orbitron">PRICE</p>
-                                <p class="text-primary font-orbitron text-sm">₹{{ item.variant.price }}</p>
-                            </div>
-
-                            <div class="bg-surface-container p-3 border border-outline/40 rounded">
-                                <p class="text-on-surface-variant text-[9px] font-orbitron">STOCK</p>
-                                <p class="font-orbitron text-sm {% if item.variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %}">
-                                    {{ item.variant.stock }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex gap-3">
-                            {% if item.variant.stock > 0 %}
-                            <form method="POST" action="{% url 'move_wishlist_to_cart' item.id %}" class="flex-1">
-                                {% csrf_token %}
-                                <button type="submit"
-                                        class="w-full bg-primary text-black py-3 font-orbitron text-[10px] hover:brightness-110 transition-all font-bold rounded">
-                                    ADD TO CART
-                                </button>
-                            </form>
-                            {% else %}
-                            <button disabled
-                                    class="flex-1 bg-surface-container-high text-on-surface-variant py-3 font-orbitron text-[10px] cursor-not-allowed rounded">
-                                OUT OF STOCK
-                            </button>
-                            {% endif %}
+                    <div>
+                        <div class="h-48 sm:h-56 relative overflow-hidden bg-black">
+                            {% with first_image=item.variant.images.first %}
+                                {% if first_image %}
+                                    <img src="{{ first_image.image.url }}"
+                                         alt="{{ item.variant.product.name }}"
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                {% elif item.variant.image %}
+                                    <img src="{{ item.variant.image.url }}"
+                                         alt="{{ item.variant.product.name }}"
+                                         class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                                {% else %}
+                                    <div class="w-full h-full flex items-center justify-center bg-surface-container">
+                                        <span class="material-symbols-outlined text-primary/40 text-6xl">directions_car</span>
+                                    </div>
+                                {% endif %}
+                            {% endwith %}
 
                             <form method="POST" action="{% url 'remove_wishlist' item.id %}">
                                 {% csrf_token %}
                                 <button type="submit"
-                                        class="px-4 h-full border border-outline/40 text-on-surface-variant hover:text-red-300 hover:border-red-300 transition-colors rounded">
-                                    <span class="material-symbols-outlined text-sm">delete</span>
+                                        class="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 bg-black/80 border border-primary/30 text-primary hover:text-red-300 hover:border-red-300 flex items-center justify-center rounded">
+                                    <span class="material-symbols-outlined text-sm">close</span>
                                 </button>
                             </form>
                         </div>
+
+                        <div class="p-5 sm:p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="font-orbitron text-base sm:text-lg text-white">
+                                        {{ item.variant.product.name }}
+                                    </h3>
+
+                                    <p class="text-on-surface-variant text-[10px] font-orbitron mt-1">
+                                        {{ item.variant.product.category.name|upper }}
+                                    </p>
+                                </div>
+
+                                <span class="material-symbols-outlined text-primary" style="font-variation-settings:'FILL' 1;">stars</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
+                                <div class="bg-surface-container p-2.5 sm:p-3 border border-outline/40 rounded">
+                                    <p class="text-on-surface-variant text-[9px] font-orbitron">COLOR</p>
+                                    <p class="text-white font-orbitron text-xs sm:text-sm truncate">{{ item.variant.color }}</p>
+                                </div>
+
+                                <div class="bg-surface-container p-2.5 sm:p-3 border border-outline/40 rounded">
+                                    <p class="text-on-surface-variant text-[9px] font-orbitron">SIZE</p>
+                                    <p class="text-white font-orbitron text-xs sm:text-sm truncate">{{ item.variant.size }}</p>
+                                </div>
+
+                                <div class="bg-surface-container p-2.5 sm:p-3 border border-outline/40 rounded">
+                                    <p class="text-on-surface-variant text-[9px] font-orbitron">PRICE</p>
+                                    <p class="text-primary font-orbitron text-xs sm:text-sm">₹{{ item.variant.price }}</p>
+                                </div>
+
+                                <div class="bg-surface-container p-2.5 sm:p-3 border border-outline/40 rounded">
+                                    <p class="text-on-surface-variant text-[9px] font-orbitron">STOCK</p>
+                                    <p class="font-orbitron text-xs sm:text-sm {% if item.variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %}">
+                                        {{ item.variant.stock }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-5 pb-5 sm:px-6 sm:pb-6 flex gap-3">
+                        {% if item.variant.stock > 0 %}
+                        <form method="POST" action="{% url 'move_wishlist_to_cart' item.id %}" class="flex-1">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="w-full bg-primary text-black py-3 font-orbitron text-[10px] hover:brightness-110 transition-all font-bold rounded">
+                                ADD TO CART
+                            </button>
+                        </form>
+                        {% else %}
+                        <button disabled
+                                class="flex-1 bg-surface-container-high text-on-surface-variant py-3 font-orbitron text-[10px] cursor-not-allowed rounded">
+                            OUT OF STOCK
+                        </button>
+                        {% endif %}
+
+                        <form method="POST" action="{% url 'remove_wishlist' item.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="px-3.5 sm:px-4 h-full border border-outline/40 text-on-surface-variant hover:text-red-300 hover:border-red-300 transition-colors rounded flex items-center justify-center">
+                                <span class="material-symbols-outlined text-sm">delete</span>
+                            </button>
+                        </form>
                     </div>
                 </div>
                 {% endfor %}
 
             </div>
             {% else %}
-            <div class="glass-panel p-16 text-center rounded-xl">
-                <span class="material-symbols-outlined text-7xl text-primary/40">heart_broken</span>
+            <div class="glass-panel p-10 sm:p-16 text-center rounded-xl">
+                <span class="material-symbols-outlined text-5xl sm:text-7xl text-primary/40">heart_broken</span>
 
-                <h2 class="font-orbitron text-3xl text-white mt-6">
+                <h2 class="font-orbitron text-2xl sm:text-3xl text-white mt-6">
                     YOUR WISHLIST IS EMPTY
                 </h2>
 
-                <p class="text-on-surface-variant mt-3">
+                <p class="text-on-surface-variant text-xs sm:text-sm mt-3">
                     Add products from the collection or product detail page.
                 </p>
 
                 <a href="{% url 'collections' %}"
-                   class="inline-block bg-primary text-black font-orbitron text-xs px-8 py-4 mt-8 no-underline rounded font-bold">
+                   class="inline-block bg-primary text-black font-orbitron text-xs px-6 py-3.5 sm:px-8 sm:py-4 mt-6 sm:mt-8 no-underline rounded font-bold">
                     EXPLORE COLLECTIONS
                 </a>
             </div>

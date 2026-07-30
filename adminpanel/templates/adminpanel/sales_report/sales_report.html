@@ -227,7 +227,7 @@
     {% include 'adminpanel/includes/messages.html' %}
 
     <main
-        class="sales-main min-h-screen ml-[280px] pt-[92px] px-4 sm:px-6 xl:px-8 pb-12"
+        class="sales-main min-h-screen lg:ml-[280px] pt-[85px] lg:pt-[92px] px-3 sm:px-6 xl:px-8 pb-12 transition-all duration-300"
     >
         <div class="max-w-[1550px] mx-auto">
 
@@ -239,13 +239,13 @@
                 <div>
                     <div class="flex items-center gap-3 mb-2">
                         <span
-                            class="material-symbols-outlined text-wheelGold text-[34px]"
+                            class="material-symbols-outlined text-wheelGold text-[28px] sm:text-[34px]"
                         >
                             monitoring
                         </span>
 
                         <h1
-                            class="font-orbitron text-2xl md:text-[32px]
+                            class="font-orbitron text-xl sm:text-2xl md:text-[32px]
                                    font-semibold uppercase leading-tight gold-text"
                         >
                             Sales Report & Performance
@@ -253,11 +253,11 @@
                     </div>
 
                     <p
-                        class="max-w-2xl text-sm text-[#9caf9f]
+                        class="max-w-2xl text-xs sm:text-sm text-[#9caf9f]
                                flex items-start gap-2"
                     >
                         <span
-                            class="mt-[7px] w-2 h-2 rounded-full
+                            class="mt-[5px] sm:mt-[7px] w-2 h-2 rounded-full
                                    bg-emerald-400 flex-shrink-0"
                         ></span>
 
@@ -266,13 +266,13 @@
                     </p>
                 </div>
 
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-col sm:flex-row flex-wrap gap-3">
                     <a
                         href="{% url 'export_sales_excel' %}?{{ base_query }}"
                         class="gold-button min-h-[46px] px-5 rounded-md
                                inline-flex items-center justify-center gap-2
                                font-orbitron text-xs font-semibold
-                               transition-all"
+                               transition-all w-full sm:w-auto"
                     >
                         <span class="material-symbols-outlined text-lg">
                             download
@@ -286,7 +286,7 @@
                         class="gold-button min-h-[46px] px-5 rounded-md
                                inline-flex items-center justify-center gap-2
                                font-orbitron text-xs font-semibold
-                               transition-all"
+                               transition-all w-full sm:w-auto"
                     >
                         <span class="material-symbols-outlined text-lg">
                             picture_as_pdf
@@ -298,11 +298,11 @@
             </section>
 
             <!-- Filters -->
-            <section class="report-card rounded-lg p-5 mb-6">
+            <section class="report-card rounded-lg p-4 sm:p-5 mb-6">
                 <form
                     method="get"
                     action="{% url 'sales_report' %}"
-                    class="grid grid-cols-1 md:grid-cols-2
+                    class="grid grid-cols-1 sm:grid-cols-2
                            xl:grid-cols-12 gap-4 items-end"
                 >
                     <div class="xl:col-span-2">
@@ -452,7 +452,7 @@
                         </div>
                     </div>
 
-                    <div class="xl:col-span-2 flex gap-2">
+                    <div class="xl:col-span-2 flex gap-2 sm:col-span-2 xl:col-span-2">
                         <button
                             type="submit"
                             class="gold-button flex-1 min-h-[46px]
@@ -474,7 +474,7 @@
                                    border border-[#51482e] bg-[#17150f]
                                    text-[#c9c0ac] inline-flex items-center
                                    justify-center hover:text-wheelGold
-                                   hover:border-wheelGold transition"
+                                   hover:border-wheelGold transition flex-shrink-0"
                         >
                             <span class="material-symbols-outlined">
                                 refresh
@@ -526,7 +526,7 @@
                         </p>
 
                         <h2
-                            class="mt-2 text-3xl font-orbitron
+                            class="mt-2 text-2xl sm:text-3xl font-orbitron
                                    font-medium text-[#f4eee2]"
                         >
                             ₹{{ total_revenue|floatformat:2 }}
@@ -581,7 +581,7 @@
                         </p>
 
                         <h2
-                            class="mt-2 text-3xl font-orbitron
+                            class="mt-2 text-2xl sm:text-3xl font-orbitron
                                    font-medium text-[#f4eee2]"
                         >
                             {{ total_products_sold }}
@@ -636,7 +636,7 @@
                         </p>
 
                         <h2
-                            class="mt-2 text-3xl font-orbitron
+                            class="mt-2 text-2xl sm:text-3xl font-orbitron
                                    font-medium text-[#f4eee2]"
                         >
                             {{ completed_orders }}
@@ -694,7 +694,7 @@
                         </p>
 
                         <h2
-                            class="mt-2 text-3xl font-orbitron
+                            class="mt-2 text-2xl sm:text-3xl font-orbitron
                                    font-medium text-[#f4eee2]"
                         >
                             ₹{{ average_order_value|floatformat:2 }}
@@ -718,14 +718,14 @@
                 class="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-6"
             >
                 <!-- Sales Overview -->
-                <article class="report-card rounded-lg p-5 md:p-7">
+                <article class="report-card rounded-lg p-4 sm:p-5 md:p-7">
                     <div
                         class="flex flex-col sm:flex-row sm:items-center
                                sm:justify-between gap-3 mb-6"
                     >
                         <div>
                             <h2
-                                class="font-orbitron text-xl
+                                class="font-orbitron text-lg sm:text-xl
                                        text-wheelGold"
                             >
                                 Sales Overview
@@ -740,7 +740,7 @@
                             class="px-3 py-2 rounded-md
                                    bg-emerald-500/10
                                    border border-emerald-500/15
-                                   text-xs text-emerald-400"
+                                   text-xs text-emerald-400 self-start sm:self-auto"
                         >
                             ₹{{ total_revenue|floatformat:2 }} total
                         </div>
@@ -752,14 +752,14 @@
                 </article>
 
                 <!-- Category Revenue -->
-                <article class="report-card rounded-lg p-5 md:p-7">
+                <article class="report-card rounded-lg p-4 sm:p-5 md:p-7">
                     <div
                         class="flex flex-col sm:flex-row sm:items-center
                                sm:justify-between gap-3 mb-6"
                     >
                         <div>
                             <h2
-                                class="font-orbitron text-xl
+                                class="font-orbitron text-lg sm:text-xl
                                        text-wheelGold"
                             >
                                 Revenue by Category
@@ -776,7 +776,7 @@
 
                         <span
                             class="material-symbols-outlined
-                                   text-[#aaa18d]"
+                                   text-[#aaa18d] hidden sm:block"
                         >
                             more_vert
                         </span>
@@ -790,14 +790,14 @@
 
             <!-- Additional Summary -->
             <section
-                class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6"
+                class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6"
             >
                 <article class="report-card rounded-lg p-5">
-                    <div class="flex items-center gap-4">
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
                         <span
                             class="w-12 h-12 rounded-md bg-amber-500/10
                                    border border-amber-500/20
-                                   flex items-center justify-center"
+                                   flex items-center justify-center flex-shrink-0"
                         >
                             <span
                                 class="material-symbols-outlined text-amber-400"
@@ -806,19 +806,21 @@
                             </span>
                         </span>
 
-                        <div>
-                            <span>Offer Discount</span>
-                            <span>₹{{ offer_discount|floatformat:2 }}</span>
-                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full">
+                            <div class="flex flex-col">
+                                <span class="text-xs text-[#aaa18d]">Offer Discount</span>
+                                <span class="text-sm sm:text-base font-semibold text-[#f3eee4]">₹{{ offer_discount|floatformat:2 }}</span>
+                            </div>
 
-                        <div>
-                            <span>Coupon Discount</span>
-                            <span>₹{{ coupon_discount|floatformat:2 }}</span>
-                        </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-[#aaa18d]">Coupon Discount</span>
+                                <span class="text-sm sm:text-base font-semibold text-[#f3eee4]">₹{{ coupon_discount|floatformat:2 }}</span>
+                            </div>
 
-                        <div>
-                            <span>Total Discount</span>
-                            <span>₹{{ total_discount|floatformat:2 }}</span>
+                            <div class="flex flex-col">
+                                <span class="text-xs text-[#aaa18d]">Total Discount</span>
+                                <span class="text-sm sm:text-base font-semibold text-wheelGold">₹{{ total_discount|floatformat:2 }}</span>
+                            </div>
                         </div>
                     </div>
                 </article>
@@ -828,7 +830,7 @@
                         <span
                             class="w-12 h-12 rounded-md bg-blue-500/10
                                    border border-blue-500/20
-                                   flex items-center justify-center"
+                                   flex items-center justify-center flex-shrink-0"
                         >
                             <span
                                 class="material-symbols-outlined text-blue-400"
@@ -847,7 +849,7 @@
                             </p>
 
                             <h3
-                                class="mt-1 text-base md:text-lg
+                                class="mt-1 text-sm sm:text-base md:text-lg
                                        font-orbitron text-[#f3eee4]"
                             >
                                 {{ start_date|date:"d M Y" }}
@@ -862,14 +864,14 @@
             <!-- Detailed Table -->
             <section class="report-card rounded-lg overflow-hidden">
                 <div
-                    class="px-5 md:px-7 py-5 border-b
+                    class="px-4 sm:px-5 md:px-7 py-4 sm:py-5 border-b
                            border-wheelGold/15 flex flex-col
                            md:flex-row md:items-center
                            md:justify-between gap-3"
                 >
                     <div>
                         <h2
-                            class="font-orbitron text-xl
+                            class="font-orbitron text-lg sm:text-xl
                                    text-wheelGold"
                         >
                             Detailed Sales Report
@@ -883,45 +885,45 @@
                     <div
                         class="text-xs text-[#a69d89]
                                bg-[#1c1912] px-3 py-2 rounded
-                               border border-wheelGold/10"
+                               border border-wheelGold/10 self-start md:self-auto"
                     >
                         {{ page_obj.paginator.count }} report item{{ page_obj.paginator.count|pluralize }}
                     </div>
                 </div>
 
                 <div class="overflow-x-auto custom-scrollbar">
-                    <table class="data-table w-full min-w-[1050px]">
+                    <table class="data-table w-full min-w-[800px] lg:min-w-[1050px]">
                         <thead>
                             <tr>
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Product ID
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Product Model
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Category
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Avg. Price
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Quantity Sold
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Total Revenue
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Balance Qty
                                 </th>
 
-                                <th class="px-5 py-4 text-left">
+                                <th class="px-3 sm:px-5 py-4 text-left">
                                     Last Sale Date
                                 </th>
                             </tr>
@@ -930,7 +932,7 @@
                         <tbody>
                             {% for report in page_obj %}
                                 <tr>
-                                    <td class="px-5 py-5">
+                                    <td class="px-3 sm:px-5 py-4 sm:py-5">
                                         <div
                                             class="font-orbitron text-xs
                                                    text-wheelGold"
@@ -948,54 +950,54 @@
                                         </div>
                                     </td>
 
-                                    <td class="px-5 py-5">
+                                    <td class="px-3 sm:px-5 py-4 sm:py-5">
                                         <div
-                                            class="font-medium text-sm
+                                            class="font-medium text-xs sm:text-sm
                                                    text-[#f0ebe2]"
                                         >
                                             {{ report.report_product_name|default:"Deleted Product" }}
                                         </div>
                                     </td>
 
-                                    <td class="px-5 py-5">
+                                    <td class="px-3 sm:px-5 py-4 sm:py-5">
                                         <span
                                             class="px-2.5 py-1 rounded
                                                    bg-wheelGold/10
                                                    border border-wheelGold/20
                                                    text-[10px]
-                                                   text-wheelGold"
+                                                   text-wheelGold whitespace-nowrap"
                                         >
                                             {{ report.report_category_name|default:"Uncategorized" }}
                                         </span>
                                     </td>
 
                                     <td
-                                        class="px-5 py-5 text-sm
-                                               text-[#e8e0d1]"
+                                        class="px-3 sm:px-5 py-4 sm:py-5 text-xs sm:text-sm
+                                               text-[#e8e0d1] whitespace-nowrap"
                                     >
                                         ₹{{ report.average_price|floatformat:2 }}
                                     </td>
 
                                     <td
-                                        class="px-5 py-5 text-sm
+                                        class="px-3 sm:px-5 py-4 sm:py-5 text-xs sm:text-sm
                                                text-[#e8e0d1]"
                                     >
                                         {{ report.quantity_sold }}
                                     </td>
 
                                     <td
-                                        class="px-5 py-5 font-semibold
-                                               text-sm text-[#f5f0e7]"
+                                        class="px-3 sm:px-5 py-4 sm:py-5 font-semibold
+                                               text-xs sm:text-sm text-[#f5f0e7] whitespace-nowrap"
                                     >
                                         ₹{{ report.gross_revenue|floatformat:2 }}
                                     </td>
 
-                                    <td class="px-5 py-5">
+                                    <td class="px-3 sm:px-5 py-4 sm:py-5">
                                         {% if report.report_total_stock > 10 %}
                                             <div
                                                 class="inline-flex items-center
                                                        gap-2 text-xs
-                                                       text-emerald-400"
+                                                       text-emerald-400 whitespace-nowrap"
                                             >
                                                 <span
                                                     class="w-2 h-2 rounded-full
@@ -1010,7 +1012,7 @@
                                             <div
                                                 class="inline-flex items-center
                                                        gap-2 text-xs
-                                                       text-amber-400"
+                                                       text-amber-400 whitespace-nowrap"
                                             >
                                                 <span
                                                     class="w-2 h-2 rounded-full
@@ -1025,7 +1027,7 @@
                                             <div
                                                 class="inline-flex items-center
                                                        gap-2 text-xs
-                                                       text-red-400"
+                                                       text-red-400 whitespace-nowrap"
                                             >
                                                 <span
                                                     class="w-2 h-2 rounded-full
@@ -1038,8 +1040,8 @@
                                     </td>
 
                                     <td
-                                        class="px-5 py-5 text-xs
-                                               text-[#aaa18f]"
+                                        class="px-3 sm:px-5 py-4 sm:py-5 text-xs
+                                               text-[#aaa18f] whitespace-nowrap"
                                     >
                                         {% if report.last_sale_date %}
                                             {{ report.last_sale_date|date:"d M Y" }}
@@ -1085,12 +1087,12 @@
 
                 {% if page_obj.paginator.num_pages > 1 %}
                     <div
-                        class="px-5 md:px-7 py-5 border-t
+                        class="px-4 sm:px-5 md:px-7 py-4 sm:py-5 border-t
                                border-wheelGold/10 flex flex-col
                                sm:flex-row sm:items-center
                                sm:justify-between gap-4"
                     >
-                        <p class="text-xs text-[#898272]">
+                        <p class="text-xs text-[#898272] text-center sm:text-left">
                             Showing
                             {{ page_obj.start_index }}
                             -
@@ -1100,29 +1102,29 @@
                             reports
                         </p>
 
-                        <nav class="flex items-center gap-2">
+                        <nav class="flex items-center justify-center sm:justify-start gap-1 sm:gap-2 flex-wrap">
                             {% if page_obj.has_previous %}
                                 <a
                                     href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.previous_page_number }}"
-                                    class="w-9 h-9 rounded border
+                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded border
                                            border-[#403a29] bg-[#17150f]
                                            inline-flex items-center
                                            justify-center text-[#aaa18f]
                                            hover:border-wheelGold
                                            hover:text-wheelGold transition"
                                 >
-                                    <span class="material-symbols-outlined text-lg">
+                                    <span class="material-symbols-outlined text-base sm:text-lg">
                                         chevron_left
                                     </span>
                                 </a>
                             {% else %}
                                 <span
-                                    class="w-9 h-9 rounded border
+                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded border
                                            border-[#24221c] bg-[#111]
                                            inline-flex items-center
                                            justify-center text-[#3e3a30]"
                                 >
-                                    <span class="material-symbols-outlined text-lg">
+                                    <span class="material-symbols-outlined text-base sm:text-lg">
                                         chevron_left
                                     </span>
                                 </span>
@@ -1132,7 +1134,7 @@
                                 {% if page_number >= page_obj.number|add:"-2" and page_number <= page_obj.number|add:"2" %}
                                     <a
                                         href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_number }}"
-                                        class="w-9 h-9 rounded border
+                                        class="w-8 h-8 sm:w-9 sm:h-9 rounded border
                                             inline-flex items-center
                                             justify-center font-orbitron
                                             text-xs transition
@@ -1156,25 +1158,25 @@
                             {% if page_obj.has_next %}
                                 <a
                                     href="?{% if base_query %}{{ base_query }}&{% endif %}page={{ page_obj.next_page_number }}"
-                                    class="w-9 h-9 rounded border
+                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded border
                                            border-[#403a29] bg-[#17150f]
                                            inline-flex items-center
                                            justify-center text-[#aaa18f]
                                            hover:border-wheelGold
                                            hover:text-wheelGold transition"
                                 >
-                                    <span class="material-symbols-outlined text-lg">
+                                    <span class="material-symbols-outlined text-base sm:text-lg">
                                         chevron_right
                                     </span>
                                 </a>
                             {% else %}
                                 <span
-                                    class="w-9 h-9 rounded border
+                                    class="w-8 h-8 sm:w-9 sm:h-9 rounded border
                                            border-[#24221c] bg-[#111]
                                            inline-flex items-center
                                            justify-center text-[#3e3a30]"
                                 >
-                                    <span class="material-symbols-outlined text-lg">
+                                    <span class="material-symbols-outlined text-base sm:text-lg">
                                         chevron_right
                                     </span>
                                 </span>

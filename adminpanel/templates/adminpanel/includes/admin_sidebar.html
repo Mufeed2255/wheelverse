@@ -1,8 +1,17 @@
 {% with url_name=request.resolver_match.url_name %}
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-<aside class="wv-sidebar">
+
+<!-- Mobile overlay (click to close sidebar) -->
+<div class="wv-overlay" id="wvOverlay" onclick="wvCloseSidebar()"></div>
+
+<aside class="wv-sidebar" id="wvSidebar">
     <div class="wv-logo">
-        <h1>WHEEL<span>VERSE</span></h1>
+        <div class="wv-logo-row">
+            <h1>WHEEL<span>VERSE</span></h1>
+            <button class="wv-close-btn" id="wvCloseBtn" onclick="wvCloseSidebar()">
+                <span class="material-symbols-outlined">close</span>
+            </button>
+        </div>
         <p>ADMIN Dashboard</p>
     </div>
 
@@ -10,7 +19,7 @@
         <a href="{% url 'admin_dashboard' %}" class="wv-item {% if url_name == 'admin_dashboard' %}active{% endif %}">
             <span class="material-symbols-outlined">dashboard</span>Dashboard
         </a>
-        
+
         <a href="{% url 'admin_products' %}" class="wv-item {% if url_name == 'admin_products' %}active{% endif %}">
             <span class="material-symbols-outlined">inventory_2</span>Products
         </a>
@@ -18,35 +27,30 @@
         <a href="{% url 'admin_category' %}" class="wv-item {% if url_name == 'admin_category' %}active{% endif %}">
             <span class="material-symbols-outlined">category</span>Category
         </a>
-        
-        <a href={% url 'admin_orders' %} class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
+
+        <a href="{% url 'admin_orders' %}" class="wv-item {% if url_name == 'admin_orders' %}active{% endif %}">
             <span class="material-symbols-outlined">shopping_cart</span>Orders
         </a>
 
-        <a href="{% url "admin_returns" %}" class="wv-item {% if url_name == 'admin_returns' %}active{% endif %}">
+        <a href="{% url 'admin_returns' %}" class="wv-item {% if url_name == 'admin_returns' %}active{% endif %}">
             <span class="material-symbols-outlined">assignment_return</span>Returns
         </a>
-        
+
         <a href="{% url 'admin_users' %}" class="wv-item {% if url_name == 'admin_users' or url_name == 'view_user' %}active{% endif %}">
             <span class="material-symbols-outlined">groups</span>Customers
         </a>
-        
+
         <a href="{% url 'sales_report' %}" class="wv-item {% if url_name == 'sales_report' %}active{% endif %}">
             <span class="material-symbols-outlined">monitoring</span>Analytics
         </a>
-        
-        <a href="{% url "admin_coupons" %}" class="wv-item {% if url_name == 'admin_coupons' %}active{% endif %}">
+
+        <a href="{% url 'admin_coupons' %}" class="wv-item {% if url_name == 'admin_coupons' %}active{% endif %}">
             <span class="material-symbols-outlined">sell</span>Coupons
         </a>
-        
-        <a href="#" class="wv-item {% if url_name == 'admin_banners' %}active{% endif %}">
-            <span class="material-symbols-outlined">photo</span>Banner
-        </a>
-        
-        <a href="{% url "admin_offers" %}" class="wv-item {% if url_name == 'admin_offers' %}active{% endif %}">
+
+        <a href="{% url 'admin_offers' %}" class="wv-item {% if url_name == 'admin_offers' %}active{% endif %}">
             <span class="material-symbols-outlined">local_offer</span>Offers
         </a>
-        
     </div>
 
     <div class="wv-logout">
@@ -68,13 +72,19 @@
         border-right: 1px solid rgba(242,202,80,.08);
         display: flex;
         flex-direction: column;
-        z-index: 100;
+        z-index: 200;
         font-family: 'Poppins', sans-serif;
         box-sizing: border-box;
+        transition: transform .3s ease;
     }
     .wv-logo {
         padding: 25px 20px;
         border-bottom: 1px solid rgba(242,202,80,.08);
+    }
+    .wv-logo-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .wv-logo h1 {
         color: #ffffff;
@@ -94,6 +104,19 @@
         text-transform: uppercase;
         letter-spacing: 1px;
         font-family: 'Orbitron', sans-serif;
+    }
+    .wv-close-btn {
+        display: none;
+        background: none;
+        border: none;
+        color: #b8b8b8;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 4px;
+    }
+    .wv-close-btn:hover {
+        background: #1a1a1a;
+        color: #fff;
     }
     .wv-menu {
         padding: 20px 10px;
@@ -160,5 +183,95 @@
     .material-symbols-outlined {
         font-size: 20px;
     }
+
+    /* Overlay behind drawer on mobile */
+    .wv-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        z-index: 150;
+        opacity: 0;
+        transition: opacity .3s ease;
+    }
+    .wv-overlay.active {
+        display: block;
+        opacity: 1;
+    }
+
+    /* ===== TABLET (icon-only rail) ===== */
+    @media (max-width: 1050px) and (min-width: 769px) {
+        .wv-sidebar { width: 76px; }
+        .wv-logo p,
+        .wv-logo h1,
+        .wv-item span:last-child,
+        .wv-logout a span:last-child {
+            display: none;
+        }
+        .wv-logo { padding: 20px 0; text-align: center; }
+        .wv-item {
+            justify-content: center;
+            padding: 14px 0;
+        }
+        .wv-logout a { padding: 10px; }
+    }
+
+    /* ===== MOBILE (off-canvas drawer) ===== */
+    @media (max-width: 768px) {
+        .wv-sidebar {
+            width: 78%;
+            max-width: 280px;
+            transform: translateX(-100%);
+            box-shadow: 4px 0 25px rgba(0,0,0,.5);
+        }
+        .wv-sidebar.wv-open {
+            transform: translateX(0);
+        }
+        .wv-close-btn {
+            display: block;
+        }
+        .wv-item {
+            padding: 14px 18px;
+            font-size: 15px;
+        }
+        .admin-content {
+            margin-left: 240px;
+            padding-top: 70px; /* header height */
+            transition: margin-left .3s ease;
+        }
+
+        @media (max-width: 1050px) and (min-width: 769px) {
+            .admin-content { margin-left: 76px; }
+        }
+
+        @media (max-width: 768px) {
+            .admin-content {
+                margin-left: 0;
+                padding-top: 60px;
+            }
+        }
+    }
 </style>
+
+<script>
+    function wvOpenSidebar() {
+        document.getElementById('wvSidebar').classList.add('wv-open');
+        document.getElementById('wvOverlay').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+    function wvCloseSidebar() {
+        document.getElementById('wvSidebar').classList.remove('wv-open');
+        document.getElementById('wvOverlay').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+    function wvToggleSidebar() {
+        document.getElementById('wvSidebar').classList.contains('wv-open')
+            ? wvCloseSidebar()
+            : wvOpenSidebar();
+    }
+    // Auto-close drawer if window is resized back to desktop
+    window.addEventListener('resize', function () {
+        if (window.innerWidth > 768) wvCloseSidebar();
+    });
+</script>
 {% endwith %}

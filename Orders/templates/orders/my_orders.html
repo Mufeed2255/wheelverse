@@ -36,7 +36,6 @@
                         "on-primary-fixed": "#241a00",
                         "error": "#ffb4ab",
                         "error-container": "#93000a"
-                        
                     },
                     fontFamily: {
                         orbitron: ["Orbitron"],
@@ -58,16 +57,17 @@
         }
 
         .page-content {
-            margin-left: 360px;
-            padding-top: 130px;
+            margin-left: 0;
+            padding-top: 100px;
             min-height: 100vh;
             background: #080705;
+            transition: margin-left 0.3s ease;
         }
 
-        @media(max-width: 900px) {
+        @media(min-width: 901px) {
             .page-content {
-                margin-left: 0;
-                padding-top: 120px;
+                margin-left: 360px;
+                padding-top: 130px;
             }
         }
 
@@ -115,9 +115,18 @@
             font-family: Orbitron, sans-serif;
             font-size: 11px;
             letter-spacing: 0.12em;
-            padding: 13px 22px;
+            padding: 10px 16px;
             border-radius: 4px;
             transition: 0.25s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media(min-width: 640px) {
+            .filter-btn {
+                padding: 13px 22px;
+            }
         }
 
         .filter-normal {
@@ -141,6 +150,7 @@
             background: rgba(35,31,23,.65);
             border: 1px solid rgba(77,70,53,.8);
         }
+
         .material-symbols-outlined {
             font-family: 'Material Symbols Outlined';
             font-weight: normal;
@@ -165,58 +175,57 @@
 {% include "adminpanel/includes/messages.html" %}
 
 <main class="page-content">
-    <div class="max-w-[1200px] mx-auto px-12 py-10">
+    <div class="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-12 py-6 sm:py-10">
 
-        <div class="mb-10">
-            <h2 class="font-display-lg text-3xl tracking-wide text-primary uppercase">
+        <div class="mb-6 sm:mb-10">
+            <h2 class="font-display-lg text-2xl sm:text-3xl tracking-wide text-primary uppercase">
                 MY GARAGE ORDERS
             </h2>
-            <p class="text-on-surface-variant text-sm mt-1 opacity-70 max-w-2xl">
+            <p class="text-on-surface-variant text-xs sm:text-sm mt-1 opacity-70 max-w-2xl">
                 Manage your active acquisitions and track every WheelVerse collectible from checkout to delivery.
             </p>
         </div>
 
-        <div class="glass-panel rounded border border-white/5 p-6 mb-8">
+        <div class="glass-panel rounded border border-white/5 p-4 sm:p-6 mb-8">
             <div class="flex flex-col xl:flex-row gap-5 xl:items-center xl:justify-between">
 
-                <div class="flex flex-wrap gap-3">
+                <div class="flex flex-wrap gap-2 sm:gap-3">
                     <a href="{% url 'my_orders' %}"
-                       class="filter-btn {% if status_filter == 'all' %}filter-active{% else %}filter-normal{% endif %}">
+                       class="filter-btn {% if status_filter == 'all' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
                         ALL ORDERS
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.all }}</span>
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.all }}</span>
                     </a>
 
                     <a href="?status=PENDING{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="filter-btn {% if status_filter == 'PENDING' %}filter-active{% else %}filter-normal{% endif %}">
+                       class="filter-btn {% if status_filter == 'PENDING' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
                         PENDING
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.pending }}</span>
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.pending }}</span>
                     </a>
 
                     <a href="?status=CONFIRMED{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="filter-btn {% if status_filter == 'CONFIRMED' %}filter-active{% else %}filter-normal{% endif %}">
+                       class="filter-btn {% if status_filter == 'CONFIRMED' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
                         CONFIRMED
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.confirmed }}</span>
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.confirmed }}</span>
                     </a>
 
                     <a href="?status=SHIPPED{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="filter-btn {% if status_filter == 'SHIPPED' %}filter-active{% else %}filter-normal{% endif %}">
-                        IN TRANSIT
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.shipped }}</span>
+                       class="filter-btn {% if status_filter == 'SHIPPED' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
+                        SHIPPED
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.shipped }}</span>
                     </a>
 
                     <a href="?status=DELIVERED{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="filter-btn {% if status_filter == 'DELIVERED' %}filter-active{% else %}filter-normal{% endif %}">
+                       class="filter-btn {% if status_filter == 'DELIVERED' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
                         DELIVERED
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.delivered }}</span>
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.delivered }}</span>
                     </a>
 
                     <a href="?status=RETURNED{% if search_query %}&search={{ search_query }}{% endif %}"
-                        class="filter-btn {% if status_filter == 'RETURNED' %}filter-active{% else %}filter-normal{% endif %}">
+                       class="filter-btn {% if status_filter == 'RETURNED' %}filter-active{% else %}filter-normal{% endif %} flex-grow sm:flex-grow-0">
                         RETURNED
-                        <span class="ml-2 bg-black/20 px-2 py-1 rounded">{{ counts.returned }}</span>
+                        <span class="ml-2 bg-black/20 px-2 py-0.5 rounded">{{ counts.returned }}</span>
                     </a>
                 </div>
-                
 
                 <form method="GET" class="search-box flex items-center rounded px-4 py-2 w-full xl:w-[280px]">
                     <span class="material-symbols-outlined text-on-surface-variant text-lg mr-2">search</span>
@@ -245,7 +254,7 @@
                 <article class="hud-card rounded overflow-hidden">
                     <div class="grid grid-cols-1 lg:grid-cols-12">
 
-                        <div class="lg:col-span-4 min-h-[260px] relative overflow-hidden bg-[#110e07]">
+                        <div class="lg:col-span-4 min-h-[200px] sm:min-h-[260px] relative overflow-hidden bg-[#110e07]">
                             {% if first_item.variant and first_item.variant.images.first %}
                                 <img
                                     src="{{ first_item.variant.images.first.image.url }}"
@@ -253,8 +262,8 @@
                                     class="hud-image w-full h-full object-cover opacity-80"
                                 >
                             {% else %}
-                                <div class="w-full h-full flex items-center justify-center">
-                                    <span class="material-symbols-outlined text-primary text-8xl">
+                                <div class="w-full h-full min-h-[200px] flex items-center justify-center">
+                                    <span class="material-symbols-outlined text-primary text-6xl sm:text-8xl">
                                         directions_car
                                     </span>
                                 </div>
@@ -267,7 +276,7 @@
                             </span>
                         </div>
 
-                        <div class="lg:col-span-8 p-7 flex flex-col justify-between">
+                        <div class="lg:col-span-8 p-4 sm:p-7 flex flex-col justify-between">
                             <div>
                                 <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
 
@@ -276,7 +285,7 @@
                                             #{{ order.order_id }}
                                         </p>
 
-                                        <h3 class="font-display-lg text-2xl md:text-3xl text-on-surface uppercase tracking-wide leading-tight">
+                                        <h3 class="font-display-lg text-xl sm:text-2xl md:text-3xl text-on-surface uppercase tracking-wide leading-tight">
                                             {% if first_item %}
                                                 {{ first_item.product_name }}
                                             {% else %}
@@ -284,7 +293,7 @@
                                             {% endif %}
                                         </h3>
 
-                                        <p class="text-on-surface-variant text-sm mt-2">
+                                        <p class="text-on-surface-variant text-xs sm:text-sm mt-2">
                                             {{ order.items.count }} item{% if order.items.count > 1 %}s{% endif %}
                                             • {{ order.payment_method }}
                                             • INR: {{ order.total_amount }}
@@ -297,7 +306,7 @@
                                         {% endif %}
                                     </div>
 
-                                    <div class="md:text-right">
+                                    <div class="md:text-right flex md:flex-col items-center md:items-end justify-between md:justify-start">
                                         {% if order.status == "DELIVERED" %}
                                             <div class="inline-flex items-center gap-2 px-3 py-1 rounded bg-green-500/10 border border-green-500/40 text-green-400 text-[10px] font-label-caps">
                                                 <span class="status-dot bg-green-500"></span>
@@ -335,51 +344,51 @@
                                             </div>
                                         {% endif %}
 
-                                        <p class="font-label-caps text-[10px] text-on-surface-variant mt-3">
+                                        <p class="font-label-caps text-[10px] text-on-surface-variant mt-0 md:mt-3">
                                             {{ order.ordered_at|date:"M d, Y" }}
                                         </p>
                                     </div>
 
                                 </div>
 
-                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 border-y border-white/5 py-5 mt-6">
-                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 border-y border-white/5 py-4 sm:py-5 mt-4 sm:mt-6">
+                                    <div class="hud-input-wrap p-3 sm:p-4 rounded border border-primary/10 bg-black/20">
                                         <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">SUBTOTAL</p>
                                         <p class="font-body-md text-sm text-on-surface">INR: {{ order.subtotal }}</p>
                                     </div>
 
-                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                    <div class="hud-input-wrap p-3 sm:p-4 rounded border border-primary/10 bg-black/20">
                                         <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">SHIPPING</p>
                                         <p class="font-body-md text-sm text-on-surface">INR: {{ order.shipping_charge }}</p>
                                     </div>
 
-                                    <div class="hud-input-wrap p-4 rounded border border-primary/10 bg-black/20">
+                                    <div class="hud-input-wrap p-3 sm:p-4 rounded border border-primary/10 bg-black/20">
                                         <p class="font-label-caps text-[10px] text-primary tracking-widest mb-1">TOTAL_AMOUNT</p>
                                         <p class="font-body-md text-sm text-primary">INR: {{ order.total_amount }}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div class="flex flex-wrap justify-end gap-4 mt-6">
+                            <div class="flex flex-col sm:flex-row flex-wrap justify-end gap-3 sm:gap-4 mt-6">
                                 {% if order.status == "DELIVERED" %}
-                                    <a href="#"
-                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                    <a href="{% url 'order_detail' order.id %}"
+                                       class="w-full sm:w-auto text-center border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
                                         WRITE REVIEW
                                     </a>
                                 {% elif order.status == "SHIPPED" %}
                                     <a href="{% url 'order_detail' order.id %}"
-                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                       class="w-full sm:w-auto text-center border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
                                         TRACK SHIPMENT
                                     </a>
                                 {% else %}
                                     <a href="{% url 'order_detail' order.id %}"
-                                       class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
+                                       class="w-full sm:w-auto text-center border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-6 py-3 text-[10px] font-label-caps tracking-widest">
                                         TRACK ORDER
                                     </a>
                                 {% endif %}
 
                                 <a href="{% url 'order_detail' order.id %}"
-                                   class="gold-gradient text-on-primary-fixed px-6 py-3 text-[10px] font-label-caps tracking-widest flex items-center gap-2 hover:scale-[1.03] transition">
+                                   class="w-full sm:w-auto text-center justify-center gold-gradient text-on-primary-fixed px-6 py-3 text-[10px] font-label-caps tracking-widest flex items-center gap-2 hover:scale-[1.03] transition">
                                     VIEW DETAILS
                                     <span class="material-symbols-outlined text-sm">arrow_forward</span>
                                 </a>
@@ -392,19 +401,19 @@
                 {% endwith %}
             {% empty %}
 
-                <div class="glass-panel rounded border border-white/5 p-16 text-center">
-                    <span class="material-symbols-outlined text-primary text-7xl">inventory_2</span>
+                <div class="glass-panel rounded border border-white/5 p-8 sm:p-16 text-center">
+                    <span class="material-symbols-outlined text-primary text-5xl sm:text-7xl">inventory_2</span>
 
-                    <h2 class="font-display-lg text-3xl text-primary mt-6">
+                    <h2 class="font-display-lg text-2xl sm:text-3xl text-primary mt-4 sm:mt-6">
                         NO GARAGE ORDERS FOUND
                     </h2>
 
-                    <p class="text-on-surface-variant mt-3">
+                    <p class="text-on-surface-variant text-sm mt-3">
                         Your WheelVerse acquisitions will appear here.
                     </p>
 
                     <a href="{% url 'collections' %}"
-                       class="inline-block mt-8 gold-gradient text-on-primary-fixed font-label-caps px-8 py-4 rounded">
+                       class="inline-block mt-6 sm:mt-8 gold-gradient text-on-primary-fixed font-label-caps px-6 sm:px-8 py-3 sm:py-4 rounded text-xs sm:text-sm">
                         EXPLORE COLLECTIONS
                     </a>
                 </div>
@@ -414,21 +423,21 @@
         </div>
 
         {% if page_obj.has_other_pages %}
-            <div class="flex justify-center items-center gap-3 mt-10">
+            <div class="flex justify-center items-center gap-2 sm:gap-3 mt-10">
                 {% if page_obj.has_previous %}
                     <a href="?page={{ page_obj.previous_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="border border-primary/30 text-primary px-4 py-2 font-label-caps text-xs hover:bg-primary hover:text-background transition">
+                       class="border border-primary/30 text-primary px-3 sm:px-4 py-2 font-label-caps text-[10px] sm:text-xs hover:bg-primary hover:text-background transition">
                         PREV
                     </a>
                 {% endif %}
 
-                <span class="font-label-caps text-primary">
+                <span class="font-label-caps text-xs sm:text-sm text-primary px-2">
                     PAGE {{ page_obj.number }} OF {{ page_obj.paginator.num_pages }}
                 </span>
 
                 {% if page_obj.has_next %}
                     <a href="?page={{ page_obj.next_page_number }}{% if status_filter != 'all' %}&status={{ status_filter }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}"
-                       class="border border-primary/30 text-primary px-4 py-2 font-label-caps text-xs hover:bg-primary hover:text-background transition">
+                       class="border border-primary/30 text-primary px-3 sm:px-4 py-2 font-label-caps text-[10px] sm:text-xs hover:bg-primary hover:text-background transition">
                         NEXT
                     </a>
                 {% endif %}

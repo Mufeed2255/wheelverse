@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
@@ -5,17 +6,20 @@
     <title>WheelVerse Admin - Order Details</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
 
     <style>
         body {
-            margin: 0;
-            background: #080806;
+            background-color: #080806;
             color: #eae1d4;
             font-family: Poppins, sans-serif;
+            background-image: radial-gradient(circle at 2px 2px, rgba(242, 202, 80, 0.04) 1px, transparent 0);
+            background-size: 40px 40px;
         }
 
         .font-orbitron {
@@ -24,6 +28,7 @@
 
         .glass-panel {
             background: rgba(22, 20, 14, 0.92);
+            backdrop-filter: blur(20px);
             border: 1px solid rgba(242, 202, 80, 0.18);
             box-shadow: 0 15px 45px rgba(0, 0, 0, 0.45);
         }
@@ -56,777 +61,798 @@
         }
 
         .modal-bg {
-            background: rgba(0,0,0,.72);
+            background: rgba(0,0,0,.78);
             backdrop-filter: blur(8px);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #f2ca50;
+            border-radius: 10px;
         }
     </style>
 </head>
 
-<body class="overflow-x-hidden">
+<body class="text-[#eae1d4] h-screen w-screen overflow-hidden flex flex-col bg-[#080806]">
 
-{% include 'adminpanel/includes/admin_sidebar.html' %}
-
-<main class="ml-[270px] w-[calc(100%-270px)] min-h-screen bg-[#0d0b07] overflow-x-hidden">
-
+    <!-- Topbar Header -->
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    <div class="px-10 py-9">
-        <div class="max-w-[1480px] mx-auto w-full">
+    <!-- Container below Topbar -->
+    <div class="flex flex-1 min-w-0 h-[calc(100vh-70px)] mt-[70px] overflow-hidden">
 
-            {% include 'adminpanel/includes/messages.html' %}
+        <!-- Sidebar -->
+        {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-            <!-- Header -->
-            <div class="flex justify-between items-end mb-7">
-                <div>
-                    <h1 class="font-orbitron text-3xl font-bold tracking-wide">
-                        Order Details – {{ order.order_id }}
-                    </h1>
+        <!-- Main Content Layout (Handles Desktop Sidebar Shift) -->
+        <div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
 
-                    <div class="flex flex-wrap items-center gap-4 mt-3 text-xs">
-                        <span class="text-[#d0c5af] flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">calendar_today</span>
-                            {{ order.ordered_at|date:"F d, Y" }}
-                        </span>
+            <!-- Content Area -->
+            <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8 pt-6">
+                <div class="w-full max-w-[1480px] mx-auto space-y-6">
 
-                        <span class="text-[#f2ca50] flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">payments</span>
-                            Payment: {{ order.get_payment_method_display }}
-                        </span>
+                    {% include 'adminpanel/includes/messages.html' %}
 
-                        <span class="status-pill">
-                            Status: {{ order.status }}
-                        </span>
-                    </div>
-                </div>
-
-                <a href="{% url 'admin_orders' %}"
-                   class="border border-[#d0c5af]/50 px-6 py-2 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center gap-2">
-                    <span class="material-symbols-outlined text-sm">arrow_back</span>
-                    Back to Orders
-                </a>
-            </div>
-
-            <!-- Summary + Address -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-7">
-
-                <!-- Summary -->
-                <section class="lg:col-span-2 glass-panel p-7 relative overflow-hidden">
-                    <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5">
-                        receipt_long
-                    </span>
-
-                    <h3 class="gold-title border-l-2 border-[#f2ca50] pl-4 mb-6">
-                        Order Summary
-                    </h3>
-
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Header -->
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[#f2ca50]/10 pb-6">
                         <div>
-                            <p class="field-label">Customer</p>
-                            <p class="font-semibold mt-1">
-                                {% if order.shipping_address %}
-                                    {{ order.shipping_address.full_name }}
-                                {% else %}
-                                    {{ order.user.username }}
-                                {% endif %}
-                            </p>
+                            <h1 class="font-orbitron text-2xl sm:text-3xl font-bold tracking-wide uppercase">
+                                Order Details – {{ order.order_id }}
+                            </h1>
+
+                            <div class="flex flex-wrap items-center gap-4 mt-3 text-xs">
+                                <span class="text-[#d0c5af] flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">calendar_today</span>
+                                    {{ order.ordered_at|date:"F d, Y" }}
+                                </span>
+
+                                <span class="text-[#f2ca50] flex items-center gap-1">
+                                    <span class="material-symbols-outlined text-sm">payments</span>
+                                    Payment: {{ order.get_payment_method_display }}
+                                </span>
+
+                                <span class="status-pill">
+                                    Status: {{ order.status }}
+                                </span>
+                            </div>
                         </div>
 
-                        <div>
-                            <p class="field-label">Email Address</p>
-                            <p class="mt-1">
-                                {% if order.shipping_address %}
-                                    {{ order.shipping_address.email }}
-                                {% else %}
-                                    {{ order.user.email }}
-                                {% endif %}
-                            </p>
-                        </div>
-
-                        <div>
-                            <p class="field-label">Order Date</p>
-                            <p class="mt-1">{{ order.ordered_at|date:"F d, Y" }}</p>
-                        </div>
-
-                        <div>
-                            <p class="field-label">Payment Method</p>
-                            <p class="mt-1">{{ order.get_payment_method_display }}</p>
-                        </div>
-
-                        <div>
-                            <p class="field-label">Total Amount</p>
-                            <p class="text-[#f2ca50] font-bold text-xl mt-1">₹{{ order.total_amount }}</p>
-                        </div>
-
-                        <div>
-                            <p class="field-label">Order ID</p>
-                            <p class="mt-1">{{ order.order_id }}</p>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Address -->
-                <section class="glass-panel p-7 border-l-4 border-[#f2ca50]">
-                    <h3 class="gold-title mb-6 flex items-center gap-2">
-                        <span class="material-symbols-outlined">location_on</span>
-                        Delivery Address
-                    </h3>
-
-                    {% if order.shipping_address %}
-                        <p class="font-bold text-lg">{{ order.shipping_address.full_name }}</p>
-
-                        <p class="text-[#d0c5af] mt-3 leading-7">
-                            {{ order.shipping_address.address }}<br>
-                            {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
-                            {{ order.shipping_address.postal_code }}<br>
-                            Phone: {{ order.shipping_address.phone }}
-                        </p>
-                    {% else %}
-                        <p class="text-[#d0c5af]">Address not available</p>
-                    {% endif %}
-
-                    <div class="border-t border-[#f2ca50]/20 mt-5 pt-4">
-                        <p class="field-label">Shipping Mode</p>
-                        <p class="mt-1">Standard Delivery</p>
-                    </div>
-                </section>
-
-            </div>
-
-            <!-- Products -->
-            <section class="glass-panel mb-7 overflow-hidden">
-                <div class="px-7 py-5 border-b border-[#f2ca50]/20 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                    <div>
-                        <h3 class="font-orbitron text-sm uppercase tracking-widest">
-                            Products & Quantity Movement
-                        </h3>
-
-                        <p class="text-[11px] text-[#d0c5af] mt-2">
-                            Ordered {{ total_ordered_quantity }} /
-                            Active {{ total_active_quantity }} /
-                            Cancelled {{ total_cancelled_quantity }} /
-                            Return in progress {{ total_return_requested_quantity }} /
-                            Returned {{ total_returned_quantity }}
-                        </p>
+                        <a href="{% url 'admin_orders' %}"
+                           class="border border-[#d0c5af]/50 px-5 py-2.5 text-xs font-orbitron hover:bg-[#f2ca50] hover:text-black transition flex items-center justify-center gap-2 rounded-sm shrink-0">
+                            <span class="material-symbols-outlined text-sm">arrow_back</span>
+                            Back to Orders
+                        </a>
                     </div>
 
-                    <span class="text-xs text-[#d0c5af]">
-                        {{ items|length }} Product Lines
-                    </span>
-                </div>
+                    <!-- Summary + Address -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left min-w-[1180px]">
-                        <thead class="bg-[#1b1810]">
-                            <tr>
-                                <th class="px-7 py-4 field-label">Product</th>
-                                <th class="px-5 py-4 field-label text-center">Ordered</th>
-                                <th class="px-5 py-4 field-label text-center">Cancelled</th>
-                                <th class="px-5 py-4 field-label text-center">Return Pending</th>
-                                <th class="px-5 py-4 field-label text-center">Returned</th>
-                                <th class="px-5 py-4 field-label text-center">Remaining</th>
-                                <th class="px-5 py-4 field-label">Current State</th>
-                                <th class="px-5 py-4 field-label text-right">Unit Price</th>
-                                <th class="px-7 py-4 field-label text-right">Current Balance</th>
-                            </tr>
-                        </thead>
+                        <!-- Summary -->
+                        <section class="lg:col-span-2 glass-panel p-6 sm:p-7 relative overflow-hidden rounded-lg">
+                            <span class="material-symbols-outlined absolute right-8 top-6 text-8xl opacity-5 pointer-events-none">
+                                receipt_long
+                            </span>
 
-                        <tbody class="divide-y divide-[#f2ca50]/10">
-                            {% for item in items %}
-                                <tr class="hover:bg-[#f2ca50]/5 transition align-top">
-                                    <td class="px-7 py-5">
-                                        <div class="flex items-start gap-4">
-                                            <div class="w-16 h-16 border border-[#f2ca50]/20 bg-[#111] overflow-hidden shrink-0">
-                                                {% if item.variant and item.variant.images.first %}
-                                                    <img
-                                                        src="{{ item.variant.images.first.image.url }}"
-                                                        class="w-full h-full object-cover"
-                                                        alt="{{ item.product_name }}">
-                                                {% elif item.variant and item.variant.image %}
-                                                    <img
-                                                        src="{{ item.variant.image.url }}"
-                                                        class="w-full h-full object-cover"
-                                                        alt="{{ item.product_name }}">
-                                                {% else %}
-                                                    <div class="w-full h-full flex items-center justify-center text-[#f2ca50]/50">
-                                                        <span class="material-symbols-outlined">
-                                                            directions_car
-                                                        </span>
-                                                    </div>
-                                                {% endif %}
-                                            </div>
+                            <h3 class="gold-title border-l-2 border-[#f2ca50] pl-4 mb-6 text-xs sm:text-sm">
+                                Order Summary
+                            </h3>
 
-                                            <div>
-                                                <p class="font-orbitron text-sm uppercase">
-                                                    {{ item.product_name }}
-                                                </p>
-
-                                                <p class="text-[11px] text-[#d0c5af] uppercase mt-1">
-                                                    {{ item.variant_size|default:"No Size" }}
-                                                    /
-                                                    {{ item.variant_color|default:"No Color" }}
-                                                </p>
-
-                                                {% if item.offer_name %}
-                                                    <p class="text-[10px] text-green-300 mt-2">
-                                                        Offer: {{ item.offer_name }}
-                                                        {% if item.offer_type %}
-                                                            ({{ item.offer_type }})
-                                                        {% endif %}
-                                                    </p>
-                                                {% endif %}
-
-                                                {% if item.cancel_reason %}
-                                                    <p class="text-[10px] text-red-300 mt-2 max-w-[300px]">
-                                                        Cancel reason:
-                                                        {{ item.cancel_reason|linebreaksbr }}
-                                                    </p>
-                                                {% endif %}
-
-                                                {% for return_request in item.display_return_requests %}
-                                                    <div class="mt-2 text-[10px] border-l-2 border-purple-400/50 pl-2 text-[#d0c5af]">
-                                                        Return qty:
-                                                        <span class="text-purple-300">
-                                                            {{ return_request.return_quantity }}
-                                                        </span>
-
-                                                        · Status:
-                                                        <span class="text-[#f2ca50]">
-                                                            {{ return_request.get_status_display }}
-                                                        </span>
-
-                                                        {% if return_request.reason %}
-                                                            · {{ return_request.reason }}
-                                                        {% endif %}
-                                                    </div>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td class="px-5 py-5 text-center font-bold">
-                                        {{ item.display_ordered_quantity }}
-                                    </td>
-
-                                    <td class="px-5 py-5 text-center">
-                                        {% if item.display_cancelled_quantity %}
-                                            <span class="text-red-300 font-bold">
-                                                {{ item.display_cancelled_quantity }}
-                                            </span>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-xs sm:text-sm">
+                                <div>
+                                    <p class="field-label">Customer</p>
+                                    <p class="font-semibold mt-1">
+                                        {% if order.shipping_address %}
+                                            {{ order.shipping_address.full_name }}
                                         {% else %}
-                                            <span class="text-[#777164]">0</span>
+                                            {{ order.user.username }}
                                         {% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-5 text-center">
-                                        {% if item.display_return_requested_quantity %}
-                                            <span class="text-blue-300 font-bold">
-                                                {{ item.display_return_requested_quantity }}
-                                            </span>
-                                        {% else %}
-                                            <span class="text-[#777164]">0</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-5 text-center">
-                                        {% if item.display_returned_quantity %}
-                                            <span class="text-purple-300 font-bold">
-                                                {{ item.display_returned_quantity }}
-                                            </span>
-                                        {% else %}
-                                            <span class="text-[#777164]">0</span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-5 text-center">
-                                        <span class="text-green-300 font-bold">
-                                            {{ item.display_active_quantity }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-5 py-5">
-                                        <span class="font-orbitron text-[9px] {{ item.display_quantity_status_class }}">
-                                            {{ item.display_quantity_status }}
-                                        </span>
-                                    </td>
-
-                                    <td class="px-5 py-5 text-right">
-                                        <div>₹{{ item.price|floatformat:2 }}</div>
-
-                                        {% if item.offer_discount > 0 %}
-                                            <div class="text-[10px] text-green-300 mt-1">
-                                                Offer saved/unit:
-                                                ₹{{ item.offer_discount|floatformat:2 }}
-                                            </div>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="px-7 py-5 text-right">
-                                        <p class="text-[#f2ca50] font-bold">
-                                            ₹{{ item.display_current_product_total|floatformat:2 }}
-                                        </p>
-
-                                        <p class="text-[10px] text-[#99907c] mt-1">
-                                            Active qty × unit price
-                                        </p>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="9" class="text-center py-10 text-[#d0c5af]">
-                                        No order items found.
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <!-- Bottom Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-
-                <!-- Order History -->
-               <section class="glass-panel rounded-2xl p-8 overflow-hidden">
-                    <div class="flex items-center gap-3 mb-8">
-                        <span class="material-symbols-outlined text-[#f2ca50]">history</span>
-
-                        <h3 class="font-orbitron text-xl font-semibold">
-                            Order History
-                        </h3>
-                    </div>
-
-                    <div class="relative ml-3 pt-3">
-                        <div class="absolute left-[11px] top-8 bottom-3 w-[2px] bg-yellow-500/30"></div>
-
-                        <div class="relative flex justify-between items-start mb-10">
-                            <div class="flex gap-5">
-                                <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                    </p>
                                 </div>
 
                                 <div>
-                                    <h4 class="font-medium text-2xl">Order Placed</h4>
-                                    <p class="text-[#d0c5af] mt-1">
-                                        Placed by {{ order.user.username }}
+                                    <p class="field-label">Email Address</p>
+                                    <p class="mt-1 break-all">
+                                        {% if order.shipping_address %}
+                                            {{ order.shipping_address.email }}
+                                        {% else %}
+                                            {{ order.user.email }}
+                                        {% endif %}
                                     </p>
                                 </div>
-                            </div>
 
-                            <span class="text-[#d0c5af]">
-                                {{ order.ordered_at|date:"M d, Y" }}
-                            </span>
-                        </div>
-
-                        {% if order.status != "PENDING" %}
-                            <div class="relative flex justify-between items-start">
-                                <div class="flex gap-5">
-                                <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center">
-                                    <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                <div>
+                                    <p class="field-label">Order Date</p>
+                                    <p class="mt-1">{{ order.ordered_at|date:"F d, Y" }}</p>
                                 </div>
 
-                                    <div>
-                                        <h4 class="font-medium text-2xl">Status Updated</h4>
-
-                                        <p class="text-[#d0c5af] mt-1">
-                                            {% if order.status == "CONFIRMED" %}
-                                                Marked as Confirmed
-                                            {% elif order.status == "SHIPPED" %}
-                                                Marked as Shipped
-                                            {% elif order.status == "DELIVERED" %}
-                                                Marked as Delivered
-                                            {% elif order.status == "CANCELLED" %}
-                                                Order Cancelled
-                                            {% elif order.status == "RETURN_REQUESTED" %}
-                                                Return Requested
-                                            {% elif order.status == "RETURN_APPROVED" %}
-                                                Return Approved
-                                            {% elif order.status == "RETURN_REJECTED" %}
-                                                Return Rejected
-                                            {% elif order.status == "RETURNED" %}
-                                                Order Returned
-                                            {% endif %}
-                                        </p>
-                                    </div>
+                                <div>
+                                    <p class="field-label">Payment Method</p>
+                                    <p class="mt-1">{{ order.get_payment_method_display }}</p>
                                 </div>
 
-                                <span class="text-[#d0c5af]">
-                                    {{ order.updated_at|date:"M d, Y" }}
-                                </span>
+                                <div>
+                                    <p class="field-label">Total Amount</p>
+                                    <p class="text-[#f2ca50] font-bold text-xl mt-1">₹{{ order.total_amount }}</p>
+                                </div>
+
+                                <div>
+                                    <p class="field-label">Order ID</p>
+                                    <p class="mt-1 font-mono">{{ order.order_id }}</p>
+                                </div>
                             </div>
-                        {% endif %}
-                    </div>
-                </section>
+                        </section>
 
-                <!-- Payment Details -->
-                <section class="glass-panel p-7">
-                    <h3 class="font-orbitron text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-8">
-                        Payment Details
-                    </h3>
+                        <!-- Address -->
+                        <section class="glass-panel p-6 sm:p-7 border-l-4 border-[#f2ca50] rounded-lg">
+                            <h3 class="gold-title mb-6 flex items-center gap-2 text-xs sm:text-sm">
+                                <span class="material-symbols-outlined text-lg">location_on</span>
+                                Delivery Address
+                            </h3>
 
-                    <div class="bg-black border border-[#f2ca50]/15 p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <div>
-                                <p class="gold-title text-xs">
-                                    Current Order Balance
+                            {% if order.shipping_address %}
+                                <p class="font-bold text-base sm:text-lg">{{ order.shipping_address.full_name }}</p>
+
+                                <p class="text-[#d0c5af] text-xs sm:text-sm mt-3 leading-relaxed">
+                                    {{ order.shipping_address.address }}<br>
+                                    {{ order.shipping_address.city }}, {{ order.shipping_address.state }}<br>
+                                    {{ order.shipping_address.postal_code }}<br>
+                                    Phone: {{ order.shipping_address.phone }}
                                 </p>
-
-                                <p class="text-[10px] text-[#99907c] mt-2">
-                                    Values below are read from the current order database fields.
-                                </p>
-                            </div>
-
-                            <span class="material-symbols-outlined text-[#f2ca50]">
-                                verified_user
-                            </span>
-                        </div>
-
-                        <div class="space-y-4 text-sm">
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Method</span>
-
-                                <span class="text-right">
-                                    {{ order.get_payment_method_display }}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Payment Status</span>
-
-                                <span class="{{ payment_status_class }} font-bold text-right">
-                                    {{ payment_status }}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Order Status</span>
-
-                                <span class="text-[#f2ca50] font-bold text-right">
-                                    {{ order.get_status_display }}
-                                </span>
-                            </div>
-
-                            <div class="border-t border-[#f2ca50]/10 pt-4"></div>
-
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Current Original Subtotal</span>
-
-                                <span>
-                                    ₹{{ order.subtotal|floatformat:2 }}
-                                </span>
-                            </div>
-
-                            {% if order.offer_discount > 0 %}
-                                <div class="flex justify-between gap-4">
-                                    <div>
-                                        <span class="field-label">
-                                            Offer Discount
-                                        </span>
-
-                                        <p class="text-[9px] text-[#99907c] mt-1">
-                                            Product/category offers remaining after quantity changes
-                                        </p>
-                                    </div>
-
-                                    <span class="text-green-300">
-                                        -₹{{ order.offer_discount|floatformat:2 }}
-                                    </span>
-                                </div>
                             {% else %}
-                                <div class="flex justify-between gap-4">
-                                    <span class="field-label">Offer Discount</span>
-                                    <span>₹0.00</span>
-                                </div>
+                                <p class="text-[#d0c5af] text-xs sm:text-sm">Address not available</p>
                             {% endif %}
 
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">After Offer</span>
+                            <div class="border-t border-[#f2ca50]/20 mt-5 pt-4">
+                                <p class="field-label">Shipping Mode</p>
+                                <p class="mt-1 text-xs sm:text-sm">Standard Delivery</p>
+                            </div>
+                        </section>
 
-                                <span>
-                                    ₹{{ current_subtotal_after_offer|floatformat:2 }}
-                                </span>
+                    </div>
+
+                    <!-- Products -->
+                    <section class="glass-panel rounded-lg overflow-hidden">
+                        <div class="px-6 py-5 border-b border-[#f2ca50]/20 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                                <h3 class="font-orbitron text-xs sm:text-sm uppercase tracking-widest text-[#f2ca50]">
+                                    Products & Quantity Movement
+                                </h3>
+
+                                <p class="text-[11px] text-[#d0c5af] mt-2">
+                                    Ordered {{ total_ordered_quantity }} /
+                                    Active {{ total_active_quantity }} /
+                                    Cancelled {{ total_cancelled_quantity }} /
+                                    Return in progress {{ total_return_requested_quantity }} /
+                                    Returned {{ total_returned_quantity }}
+                                </p>
                             </div>
 
-                            {% if order.coupon_code %}
-                                <div class="rounded border border-blue-400/20 bg-blue-400/5 p-3">
-                                    <div class="flex justify-between gap-4">
-                                        <div>
-                                            <span class="field-label">
-                                                Coupon
-                                            </span>
+                            <span class="text-xs text-[#d0c5af]">
+                                {{ items|length }} Product Lines
+                            </span>
+                        </div>
 
-                                            <p class="text-blue-300 font-orbitron text-[10px] mt-1">
-                                                {{ order.coupon_code }}
-                                            </p>
+                        <div class="overflow-x-auto custom-scrollbar">
+                            <table class="w-full text-left min-w-[1180px]">
+                                <thead class="bg-[#1b1810]">
+                                    <tr>
+                                        <th class="px-7 py-4 field-label">Product</th>
+                                        <th class="px-5 py-4 field-label text-center">Ordered</th>
+                                        <th class="px-5 py-4 field-label text-center">Cancelled</th>
+                                        <th class="px-5 py-4 field-label text-center">Return Pending</th>
+                                        <th class="px-5 py-4 field-label text-center">Returned</th>
+                                        <th class="px-5 py-4 field-label text-center">Remaining</th>
+                                        <th class="px-5 py-4 field-label">Current State</th>
+                                        <th class="px-5 py-4 field-label text-right">Unit Price</th>
+                                        <th class="px-7 py-4 field-label text-right">Current Balance</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-[#f2ca50]/10 text-xs">
+                                    {% for item in items %}
+                                        <tr class="hover:bg-[#f2ca50]/5 transition align-top">
+                                            <td class="px-7 py-5">
+                                                <div class="flex items-start gap-4">
+                                                    <div class="w-16 h-16 border border-[#f2ca50]/20 bg-[#111] overflow-hidden shrink-0 rounded-sm">
+                                                        {% if item.variant and item.variant.images.first %}
+                                                            <img
+                                                                src="{{ item.variant.images.first.image.url }}"
+                                                                class="w-full h-full object-cover"
+                                                                alt="{{ item.product_name }}">
+                                                        {% elif item.variant and item.variant.image %}
+                                                            <img
+                                                                src="{{ item.variant.image.url }}"
+                                                                class="w-full h-full object-cover"
+                                                                alt="{{ item.product_name }}">
+                                                        {% else %}
+                                                            <div class="w-full h-full flex items-center justify-center text-[#f2ca50]/50">
+                                                                <span class="material-symbols-outlined text-2xl">
+                                                                    directions_car
+                                                                </span>
+                                                            </div>
+                                                        {% endif %}
+                                                    </div>
+
+                                                    <div>
+                                                        <p class="font-orbitron text-sm uppercase text-[#eae1d4]">
+                                                            {{ item.product_name }}
+                                                        </p>
+
+                                                        <p class="text-[11px] text-[#d0c5af] uppercase mt-1">
+                                                            {{ item.variant_size|default:"No Size" }}
+                                                            /
+                                                            {{ item.variant_color|default:"No Color" }}
+                                                        </p>
+
+                                                        {% if item.offer_name %}
+                                                            <p class="text-[10px] text-green-300 mt-2">
+                                                                Offer: {{ item.offer_name }}
+                                                                {% if item.offer_type %}
+                                                                    ({{ item.offer_type }})
+                                                                {% endif %}
+                                                            </p>
+                                                        {% endif %}
+
+                                                        {% if item.cancel_reason %}
+                                                            <p class="text-[10px] text-red-300 mt-2 max-w-[300px]">
+                                                                Cancel reason:
+                                                                {{ item.cancel_reason|linebreaksbr }}
+                                                            </p>
+                                                        {% endif %}
+
+                                                        {% for return_request in item.display_return_requests %}
+                                                            <div class="mt-2 text-[10px] border-l-2 border-purple-400/50 pl-2 text-[#d0c5af]">
+                                                                Return qty:
+                                                                <span class="text-purple-300">
+                                                                    {{ return_request.return_quantity }}
+                                                                </span>
+
+                                                                · Status:
+                                                                <span class="text-[#f2ca50]">
+                                                                    {{ return_request.get_status_display }}
+                                                                </span>
+
+                                                                {% if return_request.reason %}
+                                                                    · {{ return_request.reason }}
+                                                                {% endif %}
+                                                            </div>
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <td class="px-5 py-5 text-center font-bold">
+                                                {{ item.display_ordered_quantity }}
+                                            </td>
+
+                                            <td class="px-5 py-5 text-center">
+                                                {% if item.display_cancelled_quantity %}
+                                                    <span class="text-red-300 font-bold">
+                                                        {{ item.display_cancelled_quantity }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-[#777164]">0</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="px-5 py-5 text-center">
+                                                {% if item.display_return_requested_quantity %}
+                                                    <span class="text-blue-300 font-bold">
+                                                        {{ item.display_return_requested_quantity }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-[#777164]">0</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="px-5 py-5 text-center">
+                                                {% if item.display_returned_quantity %}
+                                                    <span class="text-purple-300 font-bold">
+                                                        {{ item.display_returned_quantity }}
+                                                    </span>
+                                                {% else %}
+                                                    <span class="text-[#777164]">0</span>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="px-5 py-5 text-center">
+                                                <span class="text-green-300 font-bold">
+                                                    {{ item.display_active_quantity }}
+                                                </span>
+                                            </td>
+
+                                            <td class="px-5 py-5">
+                                                <span class="font-orbitron text-[9px] {{ item.display_quantity_status_class }}">
+                                                    {{ item.display_quantity_status }}
+                                                </span>
+                                            </td>
+
+                                            <td class="px-5 py-5 text-right font-mono">
+                                                <div>₹{{ item.price|floatformat:2 }}</div>
+
+                                                {% if item.offer_discount > 0 %}
+                                                    <div class="text-[10px] text-green-300 mt-1 font-sans">
+                                                        Offer saved/unit:
+                                                        ₹{{ item.offer_discount|floatformat:2 }}
+                                                    </div>
+                                                {% endif %}
+                                            </td>
+
+                                            <td class="px-7 py-5 text-right font-mono">
+                                                <p class="text-[#f2ca50] font-bold">
+                                                    ₹{{ item.display_current_product_total|floatformat:2 }}
+                                                </p>
+
+                                                <p class="text-[10px] text-[#99907c] mt-1 font-sans">
+                                                    Active qty × unit price
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="9" class="text-center py-10 text-[#d0c5af]">
+                                                No order items found.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </section>
+
+                    <!-- Bottom Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <!-- Order History -->
+                        <section class="glass-panel rounded-lg p-6 sm:p-8 overflow-hidden">
+                            <div class="flex items-center gap-3 mb-8 border-b border-[#f2ca50]/10 pb-4">
+                                <span class="material-symbols-outlined text-[#f2ca50]">history</span>
+
+                                <h3 class="font-orbitron text-lg sm:text-xl font-semibold">
+                                    Order History
+                                </h3>
+                            </div>
+
+                            <div class="relative ml-2 sm:ml-3 pt-3">
+                                <div class="absolute left-[11px] top-8 bottom-3 w-[2px] bg-yellow-500/30"></div>
+
+                                <div class="relative flex justify-between items-start mb-10">
+                                    <div class="flex gap-4 sm:gap-5">
+                                        <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center shrink-0">
+                                            <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
                                         </div>
 
-                                        <span class="text-blue-300">
-                                            -₹{{ order.coupon_discount|floatformat:2 }}
+                                        <div>
+                                            <h4 class="font-medium text-lg sm:text-2xl">Order Placed</h4>
+                                            <p class="text-[#d0c5af] text-xs sm:text-sm mt-1">
+                                                Placed by {{ order.user.username }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <span class="text-[#d0c5af] text-xs sm:text-sm whitespace-nowrap ml-2">
+                                        {{ order.ordered_at|date:"M d, Y" }}
+                                    </span>
+                                </div>
+
+                                {% if order.status != "PENDING" %}
+                                    <div class="relative flex justify-between items-start">
+                                        <div class="flex gap-4 sm:gap-5">
+                                            <div class="relative z-10 w-6 h-6 rounded-full border-[3px] border-yellow-500 bg-[#0d0b07] flex items-center justify-center shrink-0">
+                                                <div class="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                                            </div>
+
+                                            <div>
+                                                <h4 class="font-medium text-lg sm:text-2xl">Status Updated</h4>
+
+                                                <p class="text-[#d0c5af] text-xs sm:text-sm mt-1">
+                                                    {% if order.status == "CONFIRMED" %}
+                                                        Marked as Confirmed
+                                                    {% elif order.status == "SHIPPED" %}
+                                                        Marked as Shipped
+                                                    {% elif order.status == "DELIVERED" %}
+                                                        Marked as Delivered
+                                                    {% elif order.status == "CANCELLED" %}
+                                                        Order Cancelled
+                                                    {% elif order.status == "RETURN_REQUESTED" %}
+                                                        Return Requested
+                                                    {% elif order.status == "RETURN_APPROVED" %}
+                                                        Return Approved
+                                                    {% elif order.status == "RETURN_REJECTED" %}
+                                                        Return Rejected
+                                                    {% elif order.status == "RETURNED" %}
+                                                        Order Returned
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <span class="text-[#d0c5af] text-xs sm:text-sm whitespace-nowrap ml-2">
+                                            {{ order.updated_at|date:"M d, Y" }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </section>
+
+                        <!-- Payment Details -->
+                        <section class="glass-panel p-6 sm:p-7 rounded-lg">
+                            <h3 class="font-orbitron text-xs sm:text-sm uppercase tracking-widest border-l-2 border-[#f2ca50] pl-4 mb-6">
+                                Payment Details
+                            </h3>
+
+                            <div class="bg-black/60 border border-[#f2ca50]/15 p-5 sm:p-6 rounded-sm">
+                                <div class="flex justify-between items-center mb-6">
+                                    <div>
+                                        <p class="gold-title text-xs">
+                                            Current Order Balance
+                                        </p>
+
+                                        <p class="text-[10px] text-[#99907c] mt-1">
+                                            Values below are read from the current order database fields.
+                                        </p>
+                                    </div>
+
+                                    <span class="material-symbols-outlined text-[#f2ca50]">
+                                        verified_user
+                                    </span>
+                                </div>
+
+                                <div class="space-y-4 text-xs sm:text-sm">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Method</span>
+
+                                        <span class="text-right">
+                                            {{ order.get_payment_method_display }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Payment Status</span>
+
+                                        <span class="{{ payment_status_class }} font-bold text-right">
+                                            {{ payment_status }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Order Status</span>
+
+                                        <span class="text-[#f2ca50] font-bold text-right">
+                                            {{ order.get_status_display }}
+                                        </span>
+                                    </div>
+
+                                    <div class="border-t border-[#f2ca50]/10 pt-4"></div>
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Current Original Subtotal</span>
+
+                                        <span class="font-mono">
+                                            ₹{{ order.subtotal|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    {% if order.offer_discount > 0 %}
+                                        <div class="flex justify-between gap-4">
+                                            <div>
+                                                <span class="field-label">
+                                                    Offer Discount
+                                                </span>
+
+                                                <p class="text-[9px] text-[#99907c] mt-0.5">
+                                                    Product/category offers remaining after quantity changes
+                                                </p>
+                                            </div>
+
+                                            <span class="text-green-300 font-mono">
+                                                -₹{{ order.offer_discount|floatformat:2 }}
+                                            </span>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex justify-between gap-4">
+                                            <span class="field-label">Offer Discount</span>
+                                            <span class="font-mono">₹0.00</span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">After Offer</span>
+
+                                        <span class="font-mono">
+                                            ₹{{ current_subtotal_after_offer|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    {% if order.coupon_code %}
+                                        <div class="rounded border border-blue-400/20 bg-blue-400/5 p-3">
+                                            <div class="flex justify-between gap-4">
+                                                <div>
+                                                    <span class="field-label">
+                                                        Coupon
+                                                    </span>
+
+                                                    <p class="text-blue-300 font-orbitron text-[10px] mt-1">
+                                                        {{ order.coupon_code }}
+                                                    </p>
+                                                </div>
+
+                                                <span class="text-blue-300 font-mono">
+                                                    -₹{{ order.coupon_discount|floatformat:2 }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <div class="flex justify-between gap-4">
+                                            <span class="field-label">Coupon Discount</span>
+                                            <span class="font-mono">₹0.00</span>
+                                        </div>
+                                    {% endif %}
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Total Discount</span>
+
+                                        <span class="text-green-300 font-mono">
+                                            -₹{{ order.discount_amount|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">Shipping</span>
+
+                                        <span class="font-mono">
+                                            {% if order.shipping_fee > 0 %}
+                                                ₹{{ order.shipping_fee|floatformat:2 }}
+                                            {% else %}
+                                                FREE
+                                            {% endif %}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between items-center border-t border-[#f2ca50]/20 pt-5">
+                                        <span class="field-label">
+                                            Current Payable Balance
+                                        </span>
+
+                                        <span class="text-[#f2ca50] font-bold text-xl font-mono">
+                                            ₹{{ order.total_amount|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    {% if calculated_current_total != order.total_amount %}
+                                        <div class="rounded border border-red-400/25 bg-red-500/10 p-3 text-[10px] text-red-300">
+                                            Stored total and calculated total differ.
+                                            Calculated:
+                                            ₹{{ calculated_current_total|floatformat:2 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mt-5 bg-[#15120c] border border-[#f2ca50]/10 p-5 rounded-sm">
+                                <p class="gold-title text-[10px] mb-4">
+                                    Quantity & Refund Summary
+                                </p>
+
+                                <div class="grid grid-cols-2 gap-4 text-xs">
+                                    <div>
+                                        <p class="field-label">Ordered Qty</p>
+                                        <p class="mt-1 text-lg font-bold">{{ total_ordered_quantity }}</p>
+                                    </div>
+
+                                    <div>
+                                        <p class="field-label">Remaining Qty</p>
+                                        <p class="mt-1 text-lg font-bold text-green-300">{{ total_active_quantity }}</p>
+                                    </div>
+
+                                    <div>
+                                        <p class="field-label">Cancelled Qty</p>
+                                        <p class="mt-1 text-lg font-bold text-red-300">{{ total_cancelled_quantity }}</p>
+                                    </div>
+
+                                    <div>
+                                        <p class="field-label">Returned Qty</p>
+                                        <p class="mt-1 text-lg font-bold text-purple-300">{{ total_returned_quantity }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="border-t border-[#f2ca50]/10 mt-5 pt-4 space-y-3 text-xs">
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">
+                                            Cancellation Refunded
+                                        </span>
+
+                                        <span class="text-red-300 font-mono">
+                                            ₹{{ cancellation_refunded_amount|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between gap-4">
+                                        <span class="field-label">
+                                            Return Refunded
+                                        </span>
+
+                                        <span class="text-purple-300 font-mono">
+                                            ₹{{ return_refunded_amount|floatformat:2 }}
+                                        </span>
+                                    </div>
+
+                                    <div class="flex justify-between gap-4 border-t border-[#f2ca50]/10 pt-3">
+                                        <span class="field-label">
+                                            Total Refunded
+                                        </span>
+
+                                        <span class="text-[#f2ca50] font-bold font-mono">
+                                            ₹{{ total_refunded_amount|floatformat:2 }}
                                         </span>
                                     </div>
                                 </div>
-                            {% else %}
-                                <div class="flex justify-between gap-4">
-                                    <span class="field-label">Coupon Discount</span>
-                                    <span>₹0.00</span>
+                            </div>
+
+                            <div class="mt-5 border border-[#f2ca50]/10 bg-[#15120c] p-4 flex items-center gap-3 rounded-sm">
+                                <span class="material-symbols-outlined text-[#d0c5af] shrink-0">
+                                    lock
+                                </span>
+
+                                <p class="text-[10px] text-[#d0c5af] leading-normal">
+                                    Offer, coupon, shipping, refund and balance values are loaded from the order and wallet transaction database records.
+                                </p>
+                            </div>
+
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mt-7 mb-5">
+                                <h3 class="font-orbitron text-base sm:text-lg font-bold flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-sm">
+                                        tune
+                                    </span>
+                                    Update Order Status
+                                </h3>
+
+                                <p class="text-xs sm:text-sm text-[#d0c5af] flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                    Currently:
+                                    <strong class="text-[#eae1d4]">
+                                        {{ order.get_status_display }}
+                                    </strong>
+                                </p>
+                            </div>
+
+                            {% if order.status == "DELIVERED" or order.status == "CANCELLED" or order.status == "RETURNED" %}
+                                <div class="bg-yellow-500/10 border border-yellow-500/30 text-yellow-300 px-5 py-3.5 rounded-lg flex items-center gap-3 text-xs sm:text-sm">
+                                    <span class="material-symbols-outlined shrink-0 text-base">
+                                        lock
+                                    </span>
+
+                                    <p class="font-medium">
+                                        This order is {{ order.get_status_display }}. The status can no longer be changed.
+                                    </p>
                                 </div>
                             {% endif %}
+                        </section>
 
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Total Discount</span>
-
-                                <span class="text-green-300">
-                                    -₹{{ order.discount_amount|floatformat:2 }}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">Shipping</span>
-
-                                <span>
-                                    {% if order.shipping_fee > 0 %}
-                                        ₹{{ order.shipping_fee|floatformat:2 }}
-                                    {% else %}
-                                        FREE
-                                    {% endif %}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between border-t border-[#f2ca50]/20 pt-5">
-                                <span class="field-label">
-                                    Current Payable Balance
-                                </span>
-
-                                <span class="text-[#f2ca50] font-bold text-xl">
-                                    ₹{{ order.total_amount|floatformat:2 }}
-                                </span>
-                            </div>
-
-                            {% if calculated_current_total != order.total_amount %}
-                                <div class="rounded border border-red-400/25 bg-red-500/10 p-3 text-[10px] text-red-300">
-                                    Stored total and calculated total differ.
-                                    Calculated:
-                                    ₹{{ calculated_current_total|floatformat:2 }}
-                                </div>
-                            {% endif %}
-                        </div>
                     </div>
 
-                    <div class="mt-5 bg-[#15120c] border border-[#f2ca50]/10 p-5">
-                        <p class="gold-title text-[10px] mb-4">
-                            Quantity & Refund Summary
-                        </p>
+                    <!-- Action Controls Footer -->
+                    <div class="border-t border-[#f2ca50]/20 pt-6 flex flex-col sm:flex-row justify-end gap-3 sm:gap-4">
+                        <button onclick="openStatusModal()"
+                                type="button"
+                                class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110 transition rounded-sm w-full sm:w-auto">
+                            Change Delivery Status
+                        </button>
 
-                        <div class="grid grid-cols-2 gap-4 text-xs">
-                            <div>
-                                <p class="field-label">Ordered Qty</p>
-                                <p class="mt-1 text-lg">{{ total_ordered_quantity }}</p>
-                            </div>
-
-                            <div>
-                                <p class="field-label">Remaining Qty</p>
-                                <p class="mt-1 text-lg text-green-300">{{ total_active_quantity }}</p>
-                            </div>
-
-                            <div>
-                                <p class="field-label">Cancelled Qty</p>
-                                <p class="mt-1 text-lg text-red-300">{{ total_cancelled_quantity }}</p>
-                            </div>
-
-                            <div>
-                                <p class="field-label">Returned Qty</p>
-                                <p class="mt-1 text-lg text-purple-300">{{ total_returned_quantity }}</p>
-                            </div>
-                        </div>
-
-                        <div class="border-t border-[#f2ca50]/10 mt-5 pt-4 space-y-3 text-xs">
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">
-                                    Cancellation Refunded
-                                </span>
-
-                                <span class="text-red-300">
-                                    ₹{{ cancellation_refunded_amount|floatformat:2 }}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between gap-4">
-                                <span class="field-label">
-                                    Return Refunded
-                                </span>
-
-                                <span class="text-purple-300">
-                                    ₹{{ return_refunded_amount|floatformat:2 }}
-                                </span>
-                            </div>
-
-                            <div class="flex justify-between gap-4 border-t border-[#f2ca50]/10 pt-3">
-                                <span class="field-label">
-                                    Total Refunded
-                                </span>
-
-                                <span class="text-[#f2ca50] font-bold">
-                                    ₹{{ total_refunded_amount|floatformat:2 }}
-                                </span>
-                            </div>
-                        </div>
+                        {% if order.status != "CANCELLED" and order.status != "DELIVERED" and order.status != "RETURNED" %}
+                            <button onclick="openCancelModal()"
+                                    type="button"
+                                    class="bg-[#93000a] text-white px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110 transition flex items-center justify-center gap-2 rounded-sm w-full sm:w-auto">
+                                <span class="material-symbols-outlined text-sm">cancel</span>
+                                Cancel Order
+                            </button>
+                        {% endif %}
                     </div>
 
-                    <div class="mt-5 border border-[#f2ca50]/10 bg-[#15120c] p-4 flex items-center gap-3">
-                        <span class="material-symbols-outlined text-[#d0c5af]">
-                            lock
-                        </span>
+                </div>
+            </main>
+        </div>
 
-                        <p class="text-[10px] text-[#d0c5af]">
-                            Offer, coupon, shipping, refund and balance values are loaded from the order and wallet transaction database records.
-                        </p>
-                    </div>
+    </div>
 
-                    <div class="flex items-center justify-between mt-7 mb-5">
-                        <h3 class="font-orbitron text-lg font-bold flex items-center gap-2">
-                            <span class="material-symbols-outlined text-sm">
-                                tune
-                            </span>
+    <!-- Status Change Modal -->
+    <div id="statusModal" class="hidden fixed inset-0 z-[100] modal-bg p-4 flex items-center justify-center">
+        <div class="glass-panel w-full max-w-[420px] p-6 sm:p-7 rounded-lg">
+            <h3 class="font-orbitron text-lg sm:text-xl text-[#f2ca50] mb-5">Change Delivery Status</h3>
 
-                            Update Order Status
-                        </h3>
+            <form method="POST" action="{% url 'admin_update_order_status' order.id %}">
+                {% csrf_token %}
 
-                        <p class="text-sm text-[#d0c5af] flex items-center gap-2">
-                            <span class="w-2 h-2 rounded-full bg-green-700"></span>
-                            Currently:
+                <label class="field-label block mb-2">Select Status</label>
 
-                            <strong class="text-[#eae1d4]">
-                                {{ order.get_status_display }}
-                            </strong>
-                        </p>
-                    </div>
+                <select name="status"
+                        class="w-full bg-[#1f1b13] border border-[#f2ca50]/30 text-white px-4 py-3 mb-6 rounded-sm text-xs focus:outline-none focus:border-[#f2ca50]">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
 
-                    {% if order.status == "DELIVERED" or order.status == "CANCELLED" or order.status == "RETURNED" %}
-                        <div class="bg-yellow-100 border border-yellow-300 text-yellow-900 px-6 py-4 rounded-xl flex items-center gap-4">
-                            <span class="material-symbols-outlined">
-                                lock
-                            </span>
-
-                            <p class="font-semibold">
-                                This order is {{ order.get_status_display }}.
-                                The status can no longer be changed.
-                            </p>
-                        </div>
-                    {% endif %}
-                </section>
-
-            </div>
-
-            <!-- Actions -->
-            <div class="border-t border-[#f2ca50]/20 pt-7 flex justify-end gap-5">
-                <button onclick="openStatusModal()"
-                        class="bg-[#f2ca50] text-black px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110">
-                    Change Delivery Status
-                </button>
-
-                {% if order.status != "CANCELLED" and order.status != "DELIVERED" and order.status != "RETURNED" %}
-                    <button onclick="openCancelModal()"
-                            class="bg-[#93000a] text-white px-8 py-3 font-orbitron text-xs font-bold uppercase hover:brightness-110 flex items-center gap-2">
-                        <span class="material-symbols-outlined text-sm">cancel</span>
-                        Cancel Order
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeStatusModal()"
+                            class="border border-[#f2ca50]/30 px-5 py-2.5 text-xs text-[#d0c5af] hover:text-white transition rounded-sm font-label-caps">
+                        Cancel
                     </button>
-                {% endif %}
-            </div>
 
+                    <button type="submit"
+                            class="bg-[#f2ca50] text-black px-5 py-2.5 text-xs font-bold font-orbitron uppercase hover:brightness-110 transition rounded-sm">
+                        Update
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
-</main>
+    <!-- Order Cancel Modal -->
+    <div id="cancelModal" class="hidden fixed inset-0 z-[100] modal-bg p-4 flex items-center justify-center">
+        <div class="glass-panel w-full max-w-[460px] p-6 sm:p-7 rounded-lg">
+            <h3 class="font-orbitron text-lg sm:text-xl text-red-400 mb-5">Cancel Order</h3>
 
-<!-- Status Modal -->
-<div id="statusModal" class="hidden fixed inset-0 z-[100] modal-bg items-center justify-center">
-    <div class="glass-panel w-[420px] p-7">
-        <h3 class="font-orbitron text-xl text-[#f2ca50] mb-5">Change Delivery Status</h3>
+            <form method="POST" action="{% url 'admin_cancel_order' order.id %}">
+                {% csrf_token %}
 
-        <form method="POST" action="{% url 'admin_update_order_status' order.id %}">
-            {% csrf_token %}
+                <label class="field-label block mb-2">Cancel Reason</label>
 
-            <label class="field-label block mb-2">Select Status</label>
+                <textarea name="cancel_reason"
+                          rows="4"
+                          required
+                          class="w-full bg-[#1f1b13] border border-red-400/30 text-white p-3 mb-6 rounded-sm text-xs focus:outline-none focus:border-red-400"
+                          placeholder="Enter cancellation reason"></textarea>
 
-            <select name="status"
-                    class="w-full bg-[#1f1b13] border border-[#f2ca50]/30 text-white px-4 py-3 mb-6">
-                {% for value, label in status_choices %}
-                    <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
-                {% endfor %}
-            </select>
+                <div class="flex justify-end gap-3">
+                    <button type="button" onclick="closeCancelModal()"
+                            class="border border-[#f2ca50]/30 px-5 py-2.5 text-xs text-[#d0c5af] hover:text-white transition rounded-sm font-label-caps">
+                        Back
+                    </button>
 
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeStatusModal()"
-                        class="border border-[#f2ca50]/30 px-5 py-2 text-[#d0c5af]">
-                    Cancel
-                </button>
-
-                <button type="submit"
-                        class="bg-[#f2ca50] text-black px-5 py-2 font-bold">
-                    Update
-                </button>
-            </div>
-        </form>
+                    <button type="submit"
+                            class="bg-[#93000a] text-white px-5 py-2.5 text-xs font-bold font-orbitron uppercase hover:brightness-110 transition rounded-sm">
+                        Confirm Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
-<!-- Cancel Modal -->
-<div id="cancelModal" class="hidden fixed inset-0 z-[100] modal-bg items-center justify-center">
-    <div class="glass-panel w-[460px] p-7">
-        <h3 class="font-orbitron text-xl text-red-400 mb-5">Cancel Order</h3>
+    <script>
+        function openStatusModal() {
+            const modal = document.getElementById("statusModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
 
-        <form method="POST" action="{% url 'admin_cancel_order' order.id %}">
-            {% csrf_token %}
+        function closeStatusModal() {
+            const modal = document.getElementById("statusModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
 
-            <label class="field-label block mb-2">Cancel Reason</label>
+        function openCancelModal() {
+            const modal = document.getElementById("cancelModal");
+            modal.classList.remove("hidden");
+            modal.classList.add("flex");
+        }
 
-            <textarea name="cancel_reason"
-                      rows="4"
-                      required
-                      class="w-full bg-[#1f1b13] border border-red-400/30 text-white px-4 py-3 mb-6"
-                      placeholder="Enter cancellation reason"></textarea>
-
-            <div class="flex justify-end gap-3">
-                <button type="button" onclick="closeCancelModal()"
-                        class="border border-[#f2ca50]/30 px-5 py-2 text-[#d0c5af]">
-                    Back
-                </button>
-
-                <button type="submit"
-                        class="bg-[#93000a] text-white px-5 py-2 font-bold">
-                    Confirm Cancel
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-    function openStatusModal() {
-        const modal = document.getElementById("statusModal");
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    }
-
-    function closeStatusModal() {
-        const modal = document.getElementById("statusModal");
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-    }
-
-    function openCancelModal() {
-        const modal = document.getElementById("cancelModal");
-        modal.classList.remove("hidden");
-        modal.classList.add("flex");
-    }
-
-    function closeCancelModal() {
-        const modal = document.getElementById("cancelModal");
-        modal.classList.add("hidden");
-        modal.classList.remove("flex");
-    }
-</script>
+        function closeCancelModal() {
+            const modal = document.getElementById("cancelModal");
+            modal.classList.add("hidden");
+            modal.classList.remove("flex");
+        }
+    </script>
 
 </body>
 </html>

@@ -48,96 +48,95 @@
     </style>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
 {% include "include/user_topbar.html" %}
 
-<main class="pt-28 pb-20 px-8 lg:px-12 w-full">
+<main class="pt-20 sm:pt-28 pb-16 sm:pb-20 px-4 sm:px-6 lg:px-12 max-w-7xl mx-auto w-full">
 {% include "adminpanel/includes/messages.html" %}
 
-
-    <section class="mb-10">
-        <h1 class="orbitron text-4xl md:text-6xl font-bold gold leading-tight">
+    <section class="mb-8 sm:mb-10">
+        <h1 class="orbitron text-2xl sm:text-4xl md:text-6xl font-bold gold leading-tight">
             SECURE COLLECTOR <br> CHECKOUT
         </h1>
-        <p class="text-[#d0c5af] mt-4 max-w-xl text-sm">
+        <p class="text-[#d0c5af] mt-2 sm:mt-4 max-w-xl text-xs sm:text-sm">
             Finalize your acquisition of world-class automotive engineering. Your order is protected and verified by WheelVerse.
         </p>
     </section>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8">
 
-        <section class="lg:col-span-8 space-y-8">
+        <section class="lg:col-span-8 space-y-6 sm:space-y-8">
 
             <!-- ── ADD ADDRESS FORM ── -->
-            <div class="glass p-6 md:p-7">
+            <div class="glass p-5 sm:p-7 rounded-xl">
 
                 <div class="flex items-center gap-3 mb-6">
                     <span class="material-symbols-outlined gold text-base">local_shipping</span>
-                    <h2 class="orbitron text-sm text-white tracking-wider">ADD DELIVERY ADDRESS</h2>
+                    <h2 class="orbitron text-xs sm:text-sm text-white tracking-wider">ADD DELIVERY ADDRESS</h2>
                 </div>
 
                 <!-- Inline feedback banner -->
-                <div id="addressMessage" class="hidden mb-5 rounded border px-4 py-3 text-sm orbitron"></div>
+                <div id="addressMessage" class="hidden mb-5 rounded border px-4 py-3 text-xs sm:text-sm orbitron"></div>
 
                 <form id="addAddressForm" novalidate>
                     {% csrf_token %}
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
 
                         <!-- Name -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">FULL NAME</label>
                             <input type="text" name="name" placeholder="Enter Full Name"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- Phone -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">PHONE NUMBER</label>
                             <input type="text" name="phone_number" maxlength="10" placeholder="9876543210"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- Address Line 1 -->
                         <div class="md:col-span-2">
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">ADDRESS LINE 1</label>
                             <input type="text" name="address_line_1" placeholder="House No, Building Name"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- Address Line 2 -->
                         <div class="md:col-span-2">
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">ADDRESS LINE 2</label>
                             <input type="text" name="address_line_2" placeholder="Street, Area (Optional)"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded">
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded">
                         </div>
 
                         <!-- City -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">CITY</label>
                             <input type="text" name="city" placeholder="City"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- State -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">STATE</label>
                             <input type="text" name="state" placeholder="State"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- Pincode -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">PINCODE</label>
                             <input type="text" name="pincode" maxlength="6" placeholder="682001"
-                                class="input-dark w-full mt-2 px-4 h-12 text-sm rounded" required>
+                                class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded" required>
                         </div>
 
                         <!-- Address Type -->
                         <div>
                             <label class="orbitron text-[10px] text-[#d0c5af] tracking-wider">ADDRESS TYPE</label>
-                            <select name="address_type" class="input-dark w-full mt-2 px-4 h-12 text-sm rounded">
+                            <select name="address_type" class="input-dark w-full mt-2 px-4 h-11 text-xs sm:text-sm rounded">
                                 <option value="HOME">Home</option>
                                 <option value="GARAGE">Garage</option>
                                 <option value="WORK">Work</option>
@@ -148,29 +147,29 @@
                     </div>
 
                     <!-- Form Footer -->
-                    <div class="mt-8 flex flex-col lg:flex-row justify-between items-center gap-5">
+                    <div class="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 sm:gap-5">
 
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="is_default"
-                                class="w-5 h-5 rounded border-[#f2ca50] bg-black text-[#f2ca50] focus:ring-[#f2ca50]">
-                            <span class="text-xs text-[#d0c5af] orbitron tracking-wider">SET AS DEFAULT ADDRESS</span>
+                                class="w-4 h-4 sm:w-5 sm:h-5 rounded border-[#f2ca50] bg-black text-[#f2ca50] focus:ring-[#f2ca50]">
+                            <span class="text-[10px] sm:text-xs text-[#d0c5af] orbitron tracking-wider">SET AS DEFAULT ADDRESS</span>
                         </label>
 
-                        <div class="flex items-center gap-4">
+                        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4">
 
                             <!-- Cancel – only clears the form, never deletes data -->
                             <button type="button" id="cancelAddressBtn"
-                                class="px-8 py-3 border border-[#f2ca50]/30 rounded orbitron text-[11px]
+                                class="w-full sm:w-auto px-6 sm:px-8 py-3 border border-[#f2ca50]/30 rounded orbitron text-[10px] sm:text-[11px]
                                        tracking-[0.18em] text-[#d0c5af] hover:bg-[#f2ca50]/10
-                                       hover:text-[#f2ca50] transition">
+                                       hover:text-[#f2ca50] transition text-center">
                                 CANCEL
                             </button>
 
                             <!-- Add Address -->
                             <button type="submit"
-                                class="btn-gold px-8 py-3 rounded orbitron text-[11px] tracking-[0.18em]
-                                       inline-flex items-center gap-2">
-                                <span class="material-symbols-outlined">add_location</span>
+                                class="w-full sm:w-auto btn-gold px-6 sm:px-8 py-3 rounded orbitron text-[10px] sm:text-[11px] tracking-[0.18em]
+                                       inline-flex items-center justify-center gap-2">
+                                <span class="material-symbols-outlined text-sm sm:text-base">add_location</span>
                                 ADD ADDRESS
                             </button>
 
@@ -186,11 +185,11 @@
                     ADDRESS SELECTION VAULT
                 </h3>
 
-                <!-- FIX: single #addressList, no duplicate -->
+                <!-- Single #addressList -->
                 <div id="addressList" class="space-y-4">
 
                     {% for addr in addresses %}
-                    <label class="glass block p-5 cursor-pointer hover:border-[#f2ca50]/50 transition">
+                    <label class="glass block p-4 sm:p-5 rounded-xl cursor-pointer hover:border-[#f2ca50]/50 transition">
                         <div class="flex justify-between gap-4">
                             <div class="flex gap-3">
                                 <input type="radio"
@@ -200,8 +199,8 @@
                                     {% if addr.is_default %}checked{% endif %}
                                     class="mt-1 text-[#f2ca50] bg-black border-[#f2ca50]">
                                 <div>
-                                    <h4 class="orbitron text-sm text-white">{{ addr.address_type }}</h4>
-                                    <p class="text-xs text-[#d0c5af] mt-3 leading-relaxed">
+                                    <h4 class="orbitron text-xs sm:text-sm text-white">{{ addr.address_type }}</h4>
+                                    <p class="text-xs text-[#d0c5af] mt-2 sm:mt-3 leading-relaxed">
                                         {{ addr.name }}<br>
                                         {{ addr.address_line_1 }}<br>
                                         {% if addr.address_line_2 %}{{ addr.address_line_2 }}<br>{% endif %}
@@ -216,8 +215,8 @@
                         </div>
                     </label>
                     {% empty %}
-                    <div id="emptyAddressBox" class="glass p-5">
-                        <p class="text-sm text-[#d0c5af]">No saved address found. Add one above.</p>
+                    <div id="emptyAddressBox" class="glass p-5 rounded-xl">
+                        <p class="text-xs sm:text-sm text-[#d0c5af]">No saved address found. Add one above.</p>
                     </div>
                     {% endfor %}
 
@@ -227,20 +226,20 @@
 
         </section>
 
-        <aside class="lg:col-span-4">
-            <div class="space-y-3 mt-6 border-t border-[#f2ca50]/10 pt-5 text-sm">
-
-                <div class="mt-6 border border-[#f2ca50]/20 bg-black/40 p-4 rounded-xl">
+        <aside class="lg:col-span-4 space-y-6">
+            
+            <div class="glass rounded-xl p-5 sm:p-6">
+                <div class="border border-[#f2ca50]/20 bg-black/40 p-3.5 sm:p-4 rounded-xl">
                     <form method="POST" action="{% url 'apply_coupon' %}" class="flex overflow-hidden rounded-full border border-[#f2ca50]/30 bg-[#090805]">
                         {% csrf_token %}
                         <input type="text"
                             name="coupon_code"
                             placeholder="Promo code"
                             value="{% if applied_coupon %}{{ applied_coupon.code }}{% endif %}"
-                            class="flex-1 bg-transparent px-5 py-4 text-sm text-white placeholder:text-[#8d846f] border-0 focus:ring-0 uppercase">
+                            class="flex-1 bg-transparent px-4 sm:px-5 py-3 sm:py-4 text-xs sm:text-sm text-white placeholder:text-[#8d846f] border-0 focus:ring-0 uppercase">
 
                         <button type="submit"
-                                class="px-7 border-l border-[#f2ca50]/30 orbitron text-[11px] tracking-[0.25em] text-[#f2ca50] hover:bg-[#f2ca50] hover:text-black transition">
+                                class="px-5 sm:px-7 border-l border-[#f2ca50]/30 orbitron text-[10px] sm:text-[11px] tracking-[0.25em] text-[#f2ca50] hover:bg-[#f2ca50] hover:text-black transition">
                             APPLY
                         </button>
                     </form>
@@ -259,20 +258,20 @@
 
                     <button type="button"
                             onclick="openCouponModal()"
-                            class="block ml-auto mt-4 orbitron text-[10px] tracking-[0.22em] text-[#d0c5af] border-b border-[#f2ca50]/50 hover:text-[#f2ca50]">
+                            class="block ml-auto mt-3 sm:mt-4 orbitron text-[10px] tracking-[0.22em] text-[#d0c5af] border-b border-[#f2ca50]/50 hover:text-[#f2ca50]">
                         VIEW AVAILABLE COUPONS
                     </button>
                 </div>
+            </div>
 
-            </div>   
-            <div class="glass sticky top-28 p-6">
+            <div class="glass sticky top-24 p-5 sm:p-6 rounded-xl">
 
-                <h2 class="orbitron text-lg gold mb-6">ORDER SUMMARY</h2>
+                <h2 class="orbitron text-base sm:text-lg gold mb-6">ORDER SUMMARY</h2>
 
                 <div class="space-y-4 max-h-[280px] overflow-y-auto pr-2">
                     {% for item in cart_items %}
-                    <div class="flex gap-4">
-                        <div class="w-20 h-20 bg-black/40 relative border border-[#f2ca50]/10">
+                    <div class="flex gap-3 sm:gap-4">
+                        <div class="w-16 h-16 sm:w-20 sm:h-20 bg-black/40 relative border border-[#f2ca50]/10 flex-shrink-0">
                             {% with first_image=item.variant.images.first %}
                                 {% if first_image %}
                                 <img src="{{ first_image.image.url }}" class="w-full h-full object-cover">
@@ -289,8 +288,8 @@
                                 {{ item.quantity }}
                             </span>
                         </div>
-                        <div class="flex-1">
-                            <h3 class="orbitron text-sm text-white">{{ item.variant.product.name }}</h3>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="orbitron text-xs sm:text-sm text-white truncate">{{ item.variant.product.name }}</h3>
                             <p class="orbitron text-[9px] text-[#d0c5af] mt-1">
                                 {{ item.variant.color }} / {{ item.variant.size }}
                             </p>
@@ -301,11 +300,11 @@
                                             ₹{{ item.offer_data.original_line_total }}
                                         </span>
 
-                                        <span class="orbitron text-sm gold">
+                                        <span class="orbitron text-xs sm:text-sm gold">
                                             ₹{{ item.offer_data.final_line_total }}
                                         </span>
 
-                                        <span class="px-2 py-1 rounded bg-green-500/10 border border-green-500/20 text-[9px] text-green-300">
+                                        <span class="px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20 text-[9px] text-green-300">
                                             {{ item.offer_data.offer_title }}
                                         </span>
                                     </div>
@@ -314,7 +313,7 @@
                                         You save ₹{{ item.offer_data.line_offer_discount }}
                                     </p>
                                 {% else %}
-                                    <p class="orbitron text-sm gold">
+                                    <p class="orbitron text-xs sm:text-sm gold">
                                         ₹{{ item.offer_data.final_line_total }}
                                     </p>
                                 {% endif %}
@@ -324,7 +323,7 @@
                     {% endfor %}
                 </div>
 
-                <div class="border border-[#f2ca50]/30 bg-[#f2ca50]/8 p-4 mt-6 flex justify-between items-center">
+                <div class="border border-[#f2ca50]/30 bg-[#f2ca50]/8 p-3.5 sm:p-4 mt-6 flex justify-between items-center rounded">
                     <div class="flex items-center gap-2">
                         <span class="material-symbols-outlined gold text-sm">local_shipping</span>
                         <span class="orbitron text-[10px] gold">DELIVERED WITHIN</span>
@@ -332,7 +331,7 @@
                     <span class="orbitron text-xs gold">3-5 DAYS</span>
                 </div>
 
-                <div class="space-y-3 mt-6 border-t border-[#f2ca50]/10 pt-5 text-sm">
+                <div class="space-y-3 mt-6 border-t border-[#f2ca50]/10 pt-5 text-xs sm:text-sm">
                     <div class="flex justify-between">
                         <span class="text-[#d0c5af]">ORIGINAL SUBTOTAL</span>
                         <span>₹{{ subtotal }}</span>
@@ -363,42 +362,41 @@
                         <span class="text-[#f2ca50]">-₹{{ discount }}</span>
                     </div>
 
-                    <div class="flex justify-between orbitron gold text-lg border-t border-[#f2ca50]/10 pt-4">
+                    <div class="flex justify-between orbitron gold text-base sm:text-lg border-t border-[#f2ca50]/10 pt-4">
                         <span>TOTAL</span>
                         <span>₹{{ grand_total }}</span>
                     </div>
                 </div>
 
-                <!-- Payment method is INSIDE checkoutForm via the form="checkoutForm" attribute -->
+                <!-- Payment methods -->
                 <div class="mt-6 space-y-3">
 
-                    <label class="flex items-center gap-3 glass p-4 cursor-pointer payment-choice border border-[#f2ca50]/30">
+                    <label class="flex items-center gap-3 glass p-3.5 sm:p-4 rounded-lg cursor-pointer payment-choice border border-[#f2ca50]/30">
                         <input type="radio" name="payment_method" value="COD" checked
                             form="checkoutForm"
                             class="payment-radio text-[#f2ca50] bg-transparent border-[#f2ca50]">
-                        <span class="material-symbols-outlined gold">payments</span>
-                        <span class="orbitron text-xs text-white">CASH ON DELIVERY</span>
+                        <span class="material-symbols-outlined gold text-base sm:text-lg">payments</span>
+                        <span class="orbitron text-[11px] sm:text-xs text-white">CASH ON DELIVERY</span>
                     </label>
 
-                    <label class="flex items-center gap-3 glass p-4 cursor-pointer payment-choice border border-[#f2ca50]/20">
+                    <label class="flex items-center gap-3 glass p-3.5 sm:p-4 rounded-lg cursor-pointer payment-choice border border-[#f2ca50]/20">
                         <input type="radio" name="payment_method" value="WALLET"
                             form="checkoutForm"
                             class="payment-radio text-[#f2ca50] bg-transparent border-[#f2ca50]">
-                        <span class="material-symbols-outlined gold">account_balance_wallet</span>
-                        <span class="orbitron text-xs text-white">
+                        <span class="material-symbols-outlined gold text-base sm:text-lg">account_balance_wallet</span>
+                        <span class="orbitron text-[11px] sm:text-xs text-white">
                             WALLET PAYMENT
                             <span class="text-[#d0c5af] ml-2">₹{{ wallet.balance }}</span>
                         </span>
                     </label>
 
-                    <label class="flex items-center gap-3 glass p-4 cursor-pointer payment-choice border border-[#f2ca50]/20">
+                    <label class="flex items-center gap-3 glass p-3.5 sm:p-4 rounded-lg cursor-pointer payment-choice border border-[#f2ca50]/20">
                         <input type="radio" name="payment_method" value="RAZORPAY"
                             form="checkoutForm"
                             class="payment-radio text-[#f2ca50] bg-transparent border-[#f2ca50]">
-                        <span class="material-symbols-outlined gold">credit_card</span>
-                        <span class="orbitron text-xs text-white">RAZORPAY</span>
+                        <span class="material-symbols-outlined gold text-base sm:text-lg">credit_card</span>
+                        <span class="orbitron text-[11px] sm:text-xs text-white">RAZORPAY</span>
                     </label>
-
 
                 </div>
 
@@ -407,23 +405,23 @@
                     {% csrf_token %}
                     <button type="submit"
                             id="placeOrderBtn"
-                            class="w-full btn-gold py-5 mt-6 flex items-center justify-center gap-2">
-                        <span class="material-symbols-outlined">lock</span>
+                            class="w-full btn-gold py-4 sm:py-5 mt-6 flex items-center justify-center gap-2 rounded text-xs sm:text-sm">
+                        <span class="material-symbols-outlined text-base sm:text-lg">lock</span>
                         PLACE ORDER
                     </button>
                 </form>
 
-                <div class="flex justify-center gap-6 mt-6 text-[#d0c5af]">
+                <div class="flex justify-center gap-4 sm:gap-6 mt-6 text-[#d0c5af]">
                     <div class="text-center">
-                        <span class="material-symbols-outlined text-lg">verified</span>
+                        <span class="material-symbols-outlined text-base sm:text-lg">verified</span>
                         <p class="orbitron text-[8px]">SSL SECURE</p>
                     </div>
                     <div class="text-center">
-                        <span class="material-symbols-outlined text-lg">local_shipping</span>
+                        <span class="material-symbols-outlined text-base sm:text-lg">local_shipping</span>
                         <p class="orbitron text-[8px]">FAST SHIPPING</p>
                     </div>
                     <div class="text-center">
-                        <span class="material-symbols-outlined text-lg">shield</span>
+                        <span class="material-symbols-outlined text-base sm:text-lg">shield</span>
                         <p class="orbitron text-[8px]">AUTHENTIC</p>
                     </div>
                 </div>
@@ -434,22 +432,22 @@
     </div>
 </main>
 
-<footer class="border-t border-[#f2ca50]/10 bg-[#0d0b06] px-8 lg:px-20 py-12">
-    <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+<footer class="border-t border-[#f2ca50]/10 bg-[#0d0b06] px-4 sm:px-8 lg:px-20 py-8 sm:py-12 mt-auto">
+    <div class="max-w-[1440px] mx-auto grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
         <div>
-            <h2 class="orbitron text-2xl text-white">Wheel<span class="gold">Verse</span></h2>
-            <p class="text-[#d0c5af] text-sm mt-4 max-w-xs">
+            <h2 class="orbitron text-xl sm:text-2xl text-white">Wheel<span class="gold">Verse</span></h2>
+            <p class="text-[#d0c5af] text-xs sm:text-sm mt-3 sm:mt-4 max-w-xs">
                 The world's premier digital-physical hybrid automotive collector ecosystem.
             </p>
         </div>
         <div>
-            <h3 class="orbitron text-sm gold mb-4">COLLECTOR SERVICES</h3>
-            <a href="#" class="block text-[#d0c5af] text-sm mb-2">Privacy Policy</a>
-            <a href="#" class="block text-[#d0c5af] text-sm">Terms of Service</a>
+            <h3 class="orbitron text-xs sm:text-sm gold mb-3 sm:mb-4">COLLECTOR SERVICES</h3>
+            <a href="#" class="block text-[#d0c5af] text-xs sm:text-sm mb-2 hover:text-[#f2ca50]">Privacy Policy</a>
+            <a href="#" class="block text-[#d0c5af] text-xs sm:text-sm hover:text-[#f2ca50]">Terms of Service</a>
         </div>
         <div>
-            <h3 class="orbitron text-sm gold mb-4">SECURE TRANSACTION</h3>
-            <p class="text-[#d0c5af] text-sm">Designed for enthusiasts and premium collectors.</p>
+            <h3 class="orbitron text-xs sm:text-sm gold mb-3 sm:mb-4">SECURE TRANSACTION</h3>
+            <p class="text-[#d0c5af] text-xs sm:text-sm">Designed for enthusiasts and premium collectors.</p>
         </div>
     </div>
 </footer>
@@ -463,8 +461,8 @@ const cancelAddressBtn = document.getElementById("cancelAddressBtn");
 
 function showMessage(text, isError) {
     addressMessage.className = isError
-        ? "mb-5 rounded border px-4 py-3 text-sm orbitron text-red-300 border-red-400/30 bg-red-500/10"
-        : "mb-5 rounded border px-4 py-3 text-sm orbitron text-[#f2ca50] border-[#f2ca50]/30 bg-[#f2ca50]/10";
+        ? "mb-5 rounded border px-4 py-3 text-xs sm:text-sm orbitron text-red-300 border-red-400/30 bg-red-500/10"
+        : "mb-5 rounded border px-4 py-3 text-xs sm:text-sm orbitron text-[#f2ca50] border-[#f2ca50]/30 bg-[#f2ca50]/10";
     addressMessage.textContent = text;
     addressMessage.classList.remove("hidden");
 }
@@ -505,7 +503,7 @@ addAddressForm.addEventListener("submit", function (e) {
     .then(function ({ ok, data }) {
 
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="material-symbols-outlined">add_location</span> ADD ADDRESS';
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm sm:text-base">add_location</span> ADD ADDRESS';
 
         if (!ok || !data.success) {
             showMessage(data.message || "Failed to save address.", true);
@@ -525,7 +523,7 @@ addAddressForm.addEventListener("submit", function (e) {
 
         // Build the new address card HTML and prepend it to the list
         const html = `
-        <label class="glass block p-5 cursor-pointer hover:border-[#f2ca50]/50 transition">
+        <label class="glass block p-4 sm:p-5 rounded-xl cursor-pointer hover:border-[#f2ca50]/50 transition">
             <div class="flex justify-between gap-4">
                 <div class="flex gap-3">
                     <input
@@ -536,8 +534,8 @@ addAddressForm.addEventListener("submit", function (e) {
                         checked
                         class="mt-1 text-[#f2ca50] bg-black border-[#f2ca50]">
                     <div>
-                        <h4 class="orbitron text-sm text-white">${addr.address_type}</h4>
-                        <p class="text-xs text-[#d0c5af] mt-3 leading-relaxed">
+                        <h4 class="orbitron text-xs sm:text-sm text-white">${addr.address_type}</h4>
+                        <p class="text-xs text-[#d0c5af] mt-2 sm:mt-3 leading-relaxed">
                             ${addr.name}<br>
                             ${addr.address_line_1}<br>
                             ${addr.address_line_2 ? addr.address_line_2 + "<br>" : ""}
@@ -561,7 +559,7 @@ addAddressForm.addEventListener("submit", function (e) {
     })
     .catch(function () {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '<span class="material-symbols-outlined">add_location</span> ADD ADDRESS';
+        submitBtn.innerHTML = '<span class="material-symbols-outlined text-sm sm:text-base">add_location</span> ADD ADDRESS';
         showMessage("Something went wrong. Please try again.", true);
     });
 });
@@ -577,11 +575,11 @@ const placeOrderBtn = document.getElementById("placeOrderBtn");
 paymentRadios.forEach(radio => {
     radio.addEventListener("change", function () {
         if (this.value === "COD") {
-            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">lock</span> PLACE COD ORDER';
+            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined text-base sm:text-lg">lock</span> PLACE COD ORDER';
         } else if (this.value === "WALLET") {
-            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">account_balance_wallet</span> CONTINUE WITH WALLET';
+            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined text-base sm:text-lg">account_balance_wallet</span> CONTINUE WITH WALLET';
         } else {
-            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined">credit_card</span> CONTINUE TO RAZORPAY';
+            placeOrderBtn.innerHTML = '<span class="material-symbols-outlined text-base sm:text-lg">credit_card</span> CONTINUE TO RAZORPAY';
         }
     });
 });
@@ -597,63 +595,64 @@ function closeCouponModal() {
 }
 
 </script>
-<div id="couponModal"
-     class="fixed inset-0 z-[999] hidden bg-black/70 backdrop-blur-sm items-center justify-center px-4">
 
-    <div class="relative w-full max-w-3xl bg-[#0d0b06] border border-[#f2ca50]/30 shadow-2xl p-7 max-h-[85vh] overflow-y-auto">
+<div id="couponModal"
+     class="fixed inset-0 z-[999] hidden bg-black/75 backdrop-blur-sm items-center justify-center p-4">
+
+    <div class="relative w-full max-w-3xl bg-[#0d0b06] border border-[#f2ca50]/30 shadow-2xl p-5 sm:p-7 max-h-[85vh] overflow-y-auto rounded-xl">
 
         <button onclick="closeCouponModal()"
-                class="absolute right-6 top-5 text-[#d0c5af] hover:text-[#f2ca50] text-3xl">
+                class="absolute right-4 top-4 sm:right-6 sm:top-5 text-[#d0c5af] hover:text-[#f2ca50] text-2xl sm:text-3xl">
             &times;
         </button>
 
-        <p class="orbitron text-[10px] tracking-[0.35em] text-[#9c927b] mb-2">
+        <p class="orbitron text-[9px] sm:text-[10px] tracking-[0.35em] text-[#9c927b] mb-1 sm:mb-2">
             EXCLUSIVE OFFERS
         </p>
 
-        <h2 class="orbitron text-2xl text-white mb-8">
+        <h2 class="orbitron text-xl sm:text-2xl text-white mb-6 sm:mb-8">
             AVAILABLE <span class="text-[#f2ca50]">COUPONS</span>
         </h2>
 
-        <div class="space-y-6">
+        <div class="space-y-4 sm:space-y-6">
             {% for coupon in available_coupons %}
-            <div class="relative flex border border-[#f2ca50]/20 bg-black/40 min-h-[150px]">
+            <div class="relative flex flex-col sm:flex-row border border-[#f2ca50]/20 bg-black/40 min-h-[140px] rounded-lg overflow-hidden">
 
-                <div class="w-36 bg-black flex flex-col items-center justify-center border-r border-[#f2ca50]/20">
+                <div class="w-full sm:w-36 bg-black flex flex-row sm:flex-col items-center justify-center border-b sm:border-b-0 sm:border-r border-[#f2ca50]/20 p-4 sm:p-0 gap-2 sm:gap-0">
                     {% if coupon.discount_type == "PERCENTAGE" %}
-                        <h3 class="orbitron text-3xl text-[#f2ca50]">{{ coupon.discount_value|floatformat:0 }}%</h3>
+                        <h3 class="orbitron text-2xl sm:text-3xl text-[#f2ca50]">{{ coupon.discount_value|floatformat:0 }}%</h3>
                     {% else %}
-                        <h3 class="orbitron text-2xl text-[#f2ca50]">₹{{ coupon.discount_value|floatformat:0 }}</h3>
+                        <h3 class="orbitron text-xl sm:text-2xl text-[#f2ca50]">₹{{ coupon.discount_value|floatformat:0 }}</h3>
                     {% endif %}
-                    <p class="orbitron text-[10px] tracking-[0.25em] text-white mt-1">OFF</p>
+                    <p class="orbitron text-[10px] tracking-[0.25em] text-white">OFF</p>
                 </div>
 
-                <div class="flex-1 p-6">
-                    <p class="orbitron text-[10px] tracking-[0.30em] text-[#9c927b]">COUPON CODE</p>
+                <div class="flex-1 p-4 sm:p-6">
+                    <p class="orbitron text-[9px] sm:text-[10px] tracking-[0.30em] text-[#9c927b]">COUPON CODE</p>
 
-                    <h3 class="orbitron text-2xl tracking-[0.15em] text-white mt-3">
+                    <h3 class="orbitron text-lg sm:text-2xl tracking-[0.15em] text-white mt-1 sm:mt-3">
                         {{ coupon.code }}
                     </h3>
 
-                    <div class="border-t border-dashed border-[#f2ca50]/20 my-5"></div>
+                    <div class="border-t border-dashed border-[#f2ca50]/20 my-3 sm:my-5"></div>
 
-                    <div class="flex justify-between items-end gap-4">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                         <div>
                             <p class="orbitron text-[10px] tracking-[0.18em] text-[#d0c5af]">
                                 MIN. ₹{{ coupon.min_cart_amount }}
                             </p>
 
                             {% if coupon.description %}
-                            <p class="text-xs text-[#8d846f] mt-2">
+                            <p class="text-xs text-[#8d846f] mt-1 sm:mt-2">
                                 {{ coupon.description }}
                             </p>
                             {% endif %}
                         </div>
 
-                        <form method="POST" action="{% url 'apply_coupon' %}">
+                        <form method="POST" action="{% url 'apply_coupon' %}" class="w-full sm:w-auto">
                             {% csrf_token %}
                             <input type="hidden" name="coupon_code" value="{{ coupon.code }}">
-                            <button class="border border-[#f2ca50] px-7 py-3 orbitron text-[10px] tracking-[0.25em] text-[#f2ca50] hover:bg-[#f2ca50] hover:text-black transition">
+                            <button class="w-full sm:w-auto border border-[#f2ca50] px-6 sm:px-7 py-2.5 sm:py-3 orbitron text-[10px] tracking-[0.25em] text-[#f2ca50] hover:bg-[#f2ca50] hover:text-black transition rounded sm:rounded-none">
                                 APPLY
                             </button>
                         </form>
@@ -661,8 +660,8 @@ function closeCouponModal() {
                 </div>
             </div>
             {% empty %}
-            <div class="border border-[#f2ca50]/20 p-6 text-center">
-                <p class="text-[#d0c5af] text-sm">No coupons available right now.</p>
+            <div class="border border-[#f2ca50]/20 p-6 text-center rounded">
+                <p class="text-[#d0c5af] text-xs sm:text-sm">No coupons available right now.</p>
             </div>
             {% endfor %}
         </div>

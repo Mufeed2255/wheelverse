@@ -18,6 +18,7 @@
             color: #eae1d4;
             font-family: Poppins, sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .page-content {
@@ -30,9 +31,10 @@
                 #080705;
         }
 
-        @media(max-width:900px) {
+        @media(max-width:1024px) {
             .page-content {
                 margin-left: 0;
+                padding-top: 100px;
             }
         }
 
@@ -96,42 +98,42 @@
     </script>
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
 {% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="page-content">
-    <div class="max-w-[900px] mx-auto px-10 py-14">
+<main class="page-content flex-1">
+    <div class="max-w-[900px] mx-auto px-4 sm:px-6 md:px-10 py-6 sm:py-14">
 
         <div class="glass rounded-xl overflow-hidden border-t-2 border-[#f2ca50]">
 
-            <div class="p-8 flex justify-between items-start border-b border-[#f2ca50]/10">
+            <div class="p-5 sm:p-8 flex justify-between items-start border-b border-[#f2ca50]/10 gap-4">
                 <div>
-                    <h1 class="orbitron text-4xl gold uppercase tracking-widest">
+                    <h1 class="orbitron text-2xl sm:text-4xl gold uppercase tracking-widest">
                         ADD MONEY
                     </h1>
-                    <p class="text-[#d0c5af] mt-2">
+                    <p class="text-[#d0c5af] text-xs sm:text-base mt-1 sm:mt-2">
                         Enter amount and continue with Razorpay secure checkout.
                     </p>
                 </div>
 
-                <a href="{% url 'wallet' %}" class="text-[#d0c5af] hover:text-[#f2ca50] transition">
-                    <span class="material-symbols-outlined text-3xl">close</span>
+                <a href="{% url 'wallet' %}" class="text-[#d0c5af] hover:text-[#f2ca50] transition shrink-0">
+                    <span class="material-symbols-outlined text-2xl sm:text-3xl">close</span>
                 </a>
             </div>
 
-            <form method="POST" class="p-8 space-y-8">
+            <form method="POST" class="p-5 sm:p-8 space-y-6 sm:space-y-8">
                 {% csrf_token %}
 
                 <div>
-                    <label class="orbitron text-xs gold tracking-widest block mb-4">
+                    <label class="orbitron text-[10px] sm:text-xs gold tracking-widest block mb-2 sm:mb-4">
                         ENTER AMOUNT
                     </label>
 
                     <div class="relative">
-                        <span class="absolute left-6 top-1/2 -translate-y-1/2 text-[#f2ca50] text-5xl">
+                        <span class="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 text-[#f2ca50] text-3xl sm:text-5xl font-semibold">
                             ₹
                         </span>
 
@@ -143,51 +145,51 @@
                                step="1"
                                placeholder="00,000"
                                required
-                               class="w-full bg-[#231f17]/70 border border-[#f2ca50]/20 focus:border-[#f2ca50] focus:ring-[#f2ca50]/20 text-[#f2ca50] orbitron text-5xl pl-20 pr-6 py-8 rounded outline-none">
+                               class="w-full bg-[#231f17]/70 border border-[#f2ca50]/20 focus:border-[#f2ca50] focus:ring-[#f2ca50]/20 text-[#f2ca50] orbitron text-3xl sm:text-5xl pl-12 sm:pl-20 pr-4 sm:pr-6 py-4 sm:py-8 rounded outline-none">
                     </div>
 
-                    <p class="text-xs text-[#d0c5af] mt-3">
+                    <p class="text-[10px] sm:text-xs text-[#d0c5af] mt-2 sm:mt-3">
                         Minimum ₹100 and maximum ₹50,000 allowed.
                     </p>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="500">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                    <button type="button" class="amount-btn py-3 sm:py-4 border border-[#f2ca50]/30 rounded orbitron text-[10px] sm:text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="500">
                         + ₹500
                     </button>
 
-                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="1000">
+                    <button type="button" class="amount-btn py-3 sm:py-4 border border-[#f2ca50]/30 rounded orbitron text-[10px] sm:text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="1000">
                         + ₹1,000
                     </button>
 
-                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="2000">
+                    <button type="button" class="amount-btn py-3 sm:py-4 border border-[#f2ca50]/30 rounded orbitron text-[10px] sm:text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="2000">
                         + ₹2,000
                     </button>
 
-                    <button type="button" class="amount-btn py-4 border border-[#f2ca50]/30 rounded orbitron text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="5000">
+                    <button type="button" class="amount-btn py-3 sm:py-4 border border-[#f2ca50]/30 rounded orbitron text-[10px] sm:text-xs gold hover:bg-[#f2ca50] hover:text-black transition" data-amount="5000">
                         + ₹5,000
                     </button>
                 </div>
 
-                <div class="flex items-center gap-4 p-5 bg-[#1f1b13]/70 border border-[#f2ca50]/10 rounded">
-                    <span class="material-symbols-outlined gold">verified_user</span>
-                    <p class="text-xs text-[#d0c5af] uppercase tracking-wider">
+                <div class="flex items-center gap-3 sm:gap-4 p-4 sm:p-5 bg-[#1f1b13]/70 border border-[#f2ca50]/10 rounded">
+                    <span class="material-symbols-outlined gold text-xl sm:text-2xl shrink-0">verified_user</span>
+                    <p class="text-[10px] sm:text-xs text-[#d0c5af] uppercase tracking-wider leading-relaxed">
                         Razorpay checkout supports UPI, cards, netbanking, wallets and pay later.
                     </p>
                 </div>
 
                 <button type="submit"
-                        class="w-full bg-[#f2ca50] text-black py-5 rounded orbitron text-lg font-bold tracking-widest hover:brightness-110 transition flex items-center justify-center gap-3">
+                        class="w-full bg-[#f2ca50] text-black py-4 sm:py-5 rounded orbitron text-sm sm:text-lg font-bold tracking-widest hover:brightness-110 transition flex items-center justify-center gap-2 sm:gap-3">
                     PROCEED TO PAYMENT
-                    <span class="material-symbols-outlined">bolt</span>
+                    <span class="material-symbols-outlined text-lg sm:text-2xl">bolt</span>
                 </button>
             </form>
 
-            <div class="px-8 py-4 border-t border-[#f2ca50]/10 flex justify-between opacity-50">
-                <span class="orbitron text-[10px] text-[#d0c5af] tracking-widest">
+            <div class="px-5 sm:px-8 py-3 sm:py-4 border-t border-[#f2ca50]/10 flex justify-between opacity-50">
+                <span class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af] tracking-widest">
                     WV-RAZORPAY VAULT
                 </span>
-                <span class="material-symbols-outlined text-sm">security</span>
+                <span class="material-symbols-outlined text-xs sm:text-sm">security</span>
             </div>
         </div>
 
@@ -201,6 +203,17 @@
     <input type="hidden" name="razorpay_order_id" id="razorpay_order_id">
     <input type="hidden" name="razorpay_signature" id="razorpay_signature">
 </form>
+
+<script>
+    document.querySelectorAll('.amount-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const amount = this.getAttribute('data-amount');
+            document.getElementById('amountInput').value = amount;
+            document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
 
 {% if open_razorpay %}
 <script>

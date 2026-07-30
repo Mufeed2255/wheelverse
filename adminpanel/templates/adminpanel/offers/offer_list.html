@@ -108,8 +108,13 @@
                                 </button>
                             </form>
 
-                            <a class="text-[10px] font-orbitron text-red-300 hover:underline"
-                               href="{% url 'delete_offer_confirm' offer.id %}">Delete</a>
+                            <!-- Direct POST Delete Form (No Separate Page Required) -->
+                            <form method="post" action="{% url 'delete_offer' offer.id %}" class="inline" onsubmit="return confirm('Are you sure you want to delete this offer?');">
+                                {% csrf_token %}
+                                <button type="submit" class="text-[10px] font-orbitron text-red-300 hover:underline bg-transparent border-0 p-0 cursor-pointer">
+                                    Delete
+                                </button>
+                            </form>
                         </div>
                     </td>
                 </tr>

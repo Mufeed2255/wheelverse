@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
 from adminpanel.models import Category, Offer, Product
-
+from django.views.decorators.http import require_POST
 
 def _parse_decimal(value):
     try:
@@ -228,22 +228,9 @@ def edit_offer(request, offer_id):
     )
 
 
-@staff_member_required(login_url="admin_login")
-def delete_offer_confirm(request, offer_id):
-    offer = get_object_or_404(
-        Offer,
-        id=offer_id,
-        is_deleted=False,
-    )
-
-    return render(
-        request,
-        "adminpanel/offers/offer_delete_confirm.html",
-        {"offer": offer},
-    )
-
 
 @staff_member_required(login_url="admin_login")
+@require_POST
 def delete_offer(request, offer_id):
     offer = get_object_or_404(
         Offer,
@@ -251,16 +238,17 @@ def delete_offer(request, offer_id):
         is_deleted=False,
     )
 
-    if request.method == "POST":
-        offer.is_deleted = True
-        offer.is_active = False
-        offer.save(update_fields=[
-            "is_deleted",
-            "is_active",
-            "updated_at",
-        ])
-        messages.success(request, "Offer deleted successfully.")
+    offer.is_deleted = True
+    offer.is_active = False
 
+    update_fields = ["is_deleted", "is_active"]
+    if hasattr(offer, "updated_at"):
+        offer.updated_at = timezone.now()
+        update_fields.append("updated_at")
+
+    offer.save(update_fields=update_fields)
+
+    messages.success(request, f"Offer '{offer.title}' deleted successfully.")
     return redirect("admin_offers")
 
 

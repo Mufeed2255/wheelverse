@@ -17,6 +17,7 @@
             background: #080705;
             color: #eae1d4;
             font-family: Poppins, sans-serif;
+            overflow-x: hidden;
         }
 
         .font-orbitron {
@@ -75,23 +76,23 @@
     </style>
 </head>
 
-<body class="page-bg">
+<body class="page-bg flex flex-col justify-between min-h-screen">
 
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="max-w-5xl mx-auto px-6 md:px-8 pt-36 pb-20">
+<main class="max-w-5xl mx-auto px-4 sm:px-6 md:px-8 pt-24 sm:pt-32 pb-12 sm:pb-20 w-full flex-1">
 
-    <section class="text-center mb-12">
-        <p class="font-orbitron text-[#f2ca50] text-xs tracking-[.3em] mb-4">
+    <section class="text-center mb-8 sm:mb-12">
+        <p class="font-orbitron text-[#f2ca50] text-[10px] sm:text-xs tracking-[.3em] mb-2 sm:mb-4">
             ORDER #{{ order.order_id }}
         </p>
 
-        <h1 class="font-orbitron text-4xl md:text-6xl font-bold tracking-widest">
+        <h1 class="font-orbitron text-2xl sm:text-4xl md:text-6xl font-bold tracking-widest leading-tight">
             CANCEL ITEM QUANTITY
         </h1>
 
-        <p class="text-[#d0c5af] mt-5 max-w-3xl mx-auto">
+        <p class="text-[#d0c5af] mt-3 sm:mt-5 text-xs sm:text-base max-w-3xl mx-auto px-2">
             Select how many units you want to cancel. Only one cancellation
             action is allowed for this complete order.
         </p>
@@ -101,14 +102,14 @@
         method="POST"
         action="{% url 'cancel_order_item' item.id %}"
         id="cancelItemForm"
-        class="glass rounded-xl p-7 md:p-12">
+        class="glass rounded-xl p-4 sm:p-7 md:p-12">
 
         {% csrf_token %}
 
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
 
             <div class="lg:col-span-5">
-                <div class="h-72 rounded overflow-hidden border border-[#f2ca50]/25 bg-[#110e07]">
+                <div class="h-56 sm:h-72 rounded overflow-hidden border border-[#f2ca50]/25 bg-[#110e07]">
                     {% if item.variant and item.variant.images.first %}
                         <img
                             src="{{ item.variant.images.first.image.url }}"
@@ -121,7 +122,7 @@
                             class="w-full h-full object-cover">
                     {% else %}
                         <div class="w-full h-full flex items-center justify-center">
-                            <span class="material-symbols-outlined text-[#f2ca50] text-8xl">
+                            <span class="material-symbols-outlined text-[#f2ca50] text-6xl sm:text-8xl">
                                 directions_car
                             </span>
                         </div>
@@ -130,55 +131,55 @@
             </div>
 
             <div class="lg:col-span-7">
-                <p class="font-orbitron text-[#f2ca50] text-xs tracking-widest">
+                <p class="font-orbitron text-[#f2ca50] text-[10px] sm:text-xs tracking-widest">
                     SELECTED COLLECTIBLE
                 </p>
 
-                <h2 class="font-orbitron text-3xl text-white mt-3 uppercase">
+                <h2 class="font-orbitron text-xl sm:text-3xl text-white mt-2 sm:mt-3 uppercase truncate">
                     {{ item.product_name }}
                 </h2>
 
-                <p class="text-[#d0c5af] mt-3">
+                <p class="text-[#d0c5af] text-xs sm:text-base mt-2 sm:mt-3">
                     {{ item.variant_color|default:"Collector Edition" }}
                     {% if item.variant_size %}
                         / {{ item.variant_size }}
                     {% endif %}
                 </p>
 
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mt-7">
-                    <div class="glass p-4">
-                        <p class="font-orbitron text-[10px] text-[#99907c]">ORDERED QTY</p>
-                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mt-5 sm:mt-7">
+                    <div class="glass p-3 sm:p-4 rounded-lg">
+                        <p class="font-orbitron text-[9px] sm:text-[10px] text-[#99907c]">ORDERED QTY</p>
+                        <p class="font-orbitron text-lg sm:text-2xl text-[#f2ca50] mt-1 sm:mt-2">
                             {{ item.quantity }}
                         </p>
                     </div>
 
-                    <div class="glass p-4">
-                        <p class="font-orbitron text-[10px] text-[#99907c]">UNIT PRICE</p>
-                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                    <div class="glass p-3 sm:p-4 rounded-lg">
+                        <p class="font-orbitron text-[9px] sm:text-[10px] text-[#99907c]">UNIT PRICE</p>
+                        <p class="font-orbitron text-lg sm:text-2xl text-[#f2ca50] mt-1 sm:mt-2">
                             ₹{{ item.price }}
                         </p>
                     </div>
 
-                    <div class="glass p-4 col-span-2 md:col-span-1">
-                        <p class="font-orbitron text-[10px] text-[#99907c]">ITEM TOTAL</p>
-                        <p class="font-orbitron text-2xl text-[#f2ca50] mt-2">
+                    <div class="glass p-3 sm:p-4 col-span-2 md:col-span-1 rounded-lg">
+                        <p class="font-orbitron text-[9px] sm:text-[10px] text-[#99907c]">ITEM TOTAL</p>
+                        <p class="font-orbitron text-lg sm:text-2xl text-[#f2ca50] mt-1 sm:mt-2">
                             ₹{{ item.item_total }}
                         </p>
                     </div>
                 </div>
 
-                <div class="mt-8">
-                    <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                <div class="mt-6 sm:mt-8">
+                    <label class="font-orbitron text-[#f2ca50] text-xs sm:text-sm tracking-widest">
                         CANCEL QUANTITY
                     </label>
 
-                    <div class="mt-4 inline-flex items-center bg-black border border-[#f2ca50]/40 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(242,202,80,0.12)]">
+                    <div class="mt-3 sm:mt-4 inline-flex items-center bg-black border border-[#f2ca50]/40 rounded-lg overflow-hidden shadow-[0_0_20px_rgba(242,202,80,0.12)]">
 
                         <button
                             type="button"
                             id="decreaseQty"
-                            class="w-14 h-14 flex items-center justify-center
+                            class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center
                                 bg-black text-[#f2ca50]
                                 border-r border-[#f2ca50]/30
                                 hover:bg-[#f2ca50] hover:text-black
@@ -186,7 +187,7 @@
                                 transition-colors"
                             aria-label="Decrease cancellation quantity">
 
-                            <span class="material-symbols-outlined">
+                            <span class="material-symbols-outlined text-base sm:text-xl">
                                 remove
                             </span>
                         </button>
@@ -200,16 +201,16 @@
                             value="1"
                             readonly
                             required
-                            class="w-24 h-14 bg-black border-0
+                            class="w-16 sm:w-24 h-12 sm:h-14 bg-black border-0
                                 text-center text-[#f2ca50]
-                                font-orbitron text-xl
+                                font-orbitron text-lg sm:text-xl
                                 focus:ring-0 focus:outline-none
                                 appearance-none">
 
                         <button
                             type="button"
                             id="increaseQty"
-                            class="w-14 h-14 flex items-center justify-center
+                            class="w-12 h-12 sm:w-14 sm:h-14 flex items-center justify-center
                                 bg-black text-[#f2ca50]
                                 border-l border-[#f2ca50]/30
                                 hover:bg-[#f2ca50] hover:text-black
@@ -217,14 +218,14 @@
                                 transition-colors"
                             aria-label="Increase cancellation quantity">
 
-                            <span class="material-symbols-outlined">
+                            <span class="material-symbols-outlined text-base sm:text-xl">
                                 add
                             </span>
                         </button>
 
                     </div>
 
-                    <p class="text-[#99907c] text-xs mt-3">
+                    <p class="text-[#99907c] text-xs mt-2 sm:mt-3">
                         Maximum cancellation quantity:
                         <span class="text-[#f2ca50]">
                             {{ available_cancel_quantity }}
@@ -239,17 +240,17 @@
             </div>
         </section>
 
-        <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-12 border-t border-[#4d4635]/50 pt-10">
+        <section class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mt-8 sm:mt-12 border-t border-[#4d4635]/50 pt-6 sm:pt-10">
 
             <div>
-                <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                <label class="font-orbitron text-[#f2ca50] text-xs sm:text-sm tracking-widest">
                     CANCELLATION REASON
                 </label>
 
                 <select
                     name="cancel_reason"
                     required
-                    class="input-box w-full mt-4 p-4 rounded">
+                    class="input-box w-full mt-3 sm:mt-4 p-3.5 sm:p-4 text-xs sm:text-sm rounded">
                     <option value="" selected disabled>Select a reason...</option>
                     <option value="Ordered by Mistake">Ordered by Mistake</option>
                     <option value="Found Another Collectible">Found Another Collectible</option>
@@ -260,15 +261,15 @@
             </div>
 
             <div>
-                <label class="font-orbitron text-[#f2ca50] text-sm tracking-widest">
+                <label class="font-orbitron text-[#f2ca50] text-xs sm:text-sm tracking-widest">
                     ADDITIONAL COMMENTS
                 </label>
 
                 <textarea
                     name="comments"
-                    rows="5"
+                    rows="4"
                     maxlength="500"
-                    class="input-box w-full mt-4 p-4 rounded resize-none"
+                    class="input-box w-full mt-3 sm:mt-4 p-3.5 sm:p-4 text-xs sm:text-sm rounded resize-none"
                     placeholder="Optional details about the cancellation..."></textarea>
 
                 <p class="text-[#99907c] text-xs mt-2">
@@ -277,11 +278,11 @@
             </div>
         </section>
 
-        <div class="mt-10 p-5 border-l-4 border-red-400 bg-red-500/10">
-            <p class="font-orbitron text-red-300 text-xs tracking-widest">
+        <div class="mt-8 sm:mt-10 p-4 sm:p-5 border-l-4 border-red-400 bg-red-500/10 rounded-r-lg">
+            <p class="font-orbitron text-red-300 text-[10px] sm:text-xs tracking-widest">
                 IMPORTANT
             </p>
-            <p class="text-[#d0c5af] text-sm mt-2">
+            <p class="text-[#d0c5af] text-xs sm:text-sm mt-1.5 sm:mt-2 leading-relaxed">
                 After confirming this cancellation, no other item or quantity
                 from this order can be cancelled. The selected quantity will
                 be restored to stock. Eligible prepaid refunds will be credited
@@ -289,16 +290,16 @@
             </p>
         </div>
 
-        <div class="mt-10 flex flex-col md:flex-row justify-center gap-5">
+        <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row justify-center gap-4 sm:gap-5">
             <button
                 type="submit"
-                class="gold-btn font-orbitron tracking-[.18em] px-12 py-4 rounded hover:scale-[1.02] transition">
+                class="gold-btn font-orbitron text-xs sm:text-sm tracking-[.18em] px-8 sm:px-12 py-3.5 sm:py-4 rounded hover:scale-[1.02] transition">
                 CONFIRM CANCELLATION
             </button>
 
             <a
                 href="{% url 'order_detail' order.id %}"
-                class="border border-[#99907c] text-[#eae1d4] font-orbitron tracking-[.18em] px-12 py-4 rounded text-center hover:border-[#f2ca50] hover:text-[#f2ca50] transition">
+                class="border border-[#99907c] text-[#eae1d4] font-orbitron text-xs sm:text-sm tracking-[.18em] px-8 sm:px-12 py-3.5 sm:py-4 rounded text-center hover:border-[#f2ca50] hover:text-[#f2ca50] transition">
                 GO BACK
             </a>
         </div>

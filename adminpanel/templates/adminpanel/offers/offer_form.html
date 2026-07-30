@@ -86,7 +86,7 @@
             <div class="relative mt-3">
                 <span id="discountPrefix" class="absolute left-4 top-1/2 -translate-y-1/2 text-gold font-bold">%</span>
                 <input class="field pl-11 pr-4" type="number" min="0.01" step="0.01"
-                       name="discount_value" required
+                       id="discountValue" name="discount_value" required
                        value="{% if form_data %}{{ form_data.discount_value }}{% elif offer %}{{ offer.discount_value }}{% endif %}"
                        placeholder="0.00">
             </div>
@@ -94,13 +94,13 @@
 
         <div>
             <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">Start Date</label>
-            <input class="field mt-3 px-4" type="date" name="start_date" required
+            <input class="field mt-3 px-4" type="date" id="startDate" name="start_date" required
                    value="{% if form_data %}{{ form_data.start_date }}{% elif offer %}{{ offer.start_date|date:'Y-m-d' }}{% endif %}">
         </div>
 
         <div>
             <label class="font-orbitron text-[11px] text-muted uppercase tracking-widest">End Date</label>
-            <input class="field mt-3 px-4" type="date" name="end_date" required
+            <input class="field mt-3 px-4" type="date" id="endDate" name="end_date" required
                    value="{% if form_data %}{{ form_data.end_date }}{% elif offer %}{{ offer.end_date|date:'Y-m-d' }}{% endif %}">
         </div>
 
@@ -142,6 +142,9 @@
     const categoryTarget = document.getElementById("categoryTarget");
     const discountType = document.getElementById("discountType");
     const discountPrefix = document.getElementById("discountPrefix");
+    const discountValue = document.getElementById("discountValue");
+    const startDate = document.getElementById("startDate");
+    const endDate = document.getElementById("endDate");
 
     function syncTargetFields() {
         const productMode = offerType.value === "PRODUCT";
@@ -153,15 +156,33 @@
         categoryTarget.querySelector("select").disabled = productMode;
     }
 
-    function syncDiscountPrefix() {
-        discountPrefix.textContent =
-            discountType.value === "PERCENTAGE" ? "%" : "₹";
+    function syncDiscountRules() {
+        const isPercentage = discountType.value === "PERCENTAGE";
+        discountPrefix.textContent = isPercentage ? "%" : "₹";
+        
+        if (isPercentage) {
+            discountValue.setAttribute("max", "100");
+        } else {
+            discountValue.removeAttribute("max");
+        }
+    }
+
+    function syncDateLimits() {
+        if (startDate.value) {
+            endDate.min = startDate.value;
+            if (endDate.value && endDate.value < startDate.value) {
+                endDate.value = startDate.value;
+            }
+        }
     }
 
     offerType.addEventListener("change", syncTargetFields);
-    discountType.addEventListener("change", syncDiscountPrefix);
+    discountType.addEventListener("change", syncDiscountRules);
+    startDate.addEventListener("change", syncDateLimits);
 
+    // Initial executions
     syncTargetFields();
-    syncDiscountPrefix();
+    syncDiscountRules();
+    syncDateLimits();
 </script>
 {% endblock %}

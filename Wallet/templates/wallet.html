@@ -16,6 +16,7 @@
             background: #080705;
             color: #eae1d4;
             font-family: Poppins, sans-serif;
+            overflow-x: hidden;
         }
 
         .page-content {
@@ -27,9 +28,10 @@
                 #080705;
         }
 
-        @media(max-width:900px) {
+        @media(max-width:1024px) {
             .page-content {
                 margin-left: 0;
+                padding-top: 100px;
             }
         }
 
@@ -102,129 +104,127 @@
         }
     </script>
 
-
-
 </head>
 
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
 {% include "include/user_sidebar.html" %}
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<main class="page-content">
-    <div class="max-w-[1250px] mx-auto px-10 py-10">
+<main class="page-content flex-1">
+    <div class="max-w-[1250px] mx-auto px-4 sm:px-6 md:px-10 py-6 sm:py-10">
 
-        <section class="mb-10">
-            <p class="orbitron text-xs text-[#d0c5af] tracking-widest mb-3">
+        <section class="mb-6 sm:mb-10">
+            <p class="orbitron text-[10px] sm:text-xs text-[#d0c5af] tracking-widest mb-1 sm:mb-3">
                 COLLECTOR FINANCE SYSTEM
             </p>
 
-            <h1 class="orbitron text-5xl md:text-6xl gold tracking-[0.16em] uppercase drop-shadow">
+            <h1 class="orbitron text-2xl sm:text-4xl md:text-6xl gold tracking-[0.12em] sm:tracking-[0.16em] uppercase drop-shadow">
                 COLLECTOR WALLET 
             </h1>
 
-            <p class="text-[#d0c5af] mt-4 max-w-2xl">
+            <p class="text-[#d0c5af] text-xs sm:text-base mt-2 sm:mt-4 max-w-2xl">
                 Manage your refund credits, wallet payments, and complete transaction history.
             </p>
         </section>
 
-        <section class="grid grid-cols-1 lg:grid-cols-12 gap-7">
+        <section class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-7">
 
-            <div class="lg:col-span-8 space-y-7">
+            <div class="lg:col-span-8 space-y-6 sm:space-y-7">
 
-                <div class="glass wallet-card rounded-xl p-9 relative overflow-hidden">
-                    <div class="absolute right-10 top-8 opacity-10">
-                        <span class="material-symbols-outlined text-[180px] gold">
+                <div class="glass wallet-card rounded-xl p-5 sm:p-9 relative overflow-hidden">
+                    <div class="absolute right-4 sm:right-10 top-4 sm:top-8 opacity-10">
+                        <span class="material-symbols-outlined text-[100px] sm:text-[180px] gold">
                             account_balance_wallet
                         </span>
                     </div>
 
                     <div class="relative z-10">
-                        <p class="orbitron text-xs gold tracking-widest mb-3">
+                        <p class="orbitron text-[10px] sm:text-xs gold tracking-widest mb-2 sm:mb-3">
                             AVAILABLE BALANCE
                         </p>
 
-                        <div class="flex items-end gap-3">
-                            <h2 class="orbitron text-6xl text-white">
+                        <div class="flex items-end gap-2 sm:gap-3">
+                            <h2 class="orbitron text-3xl sm:text-5xl md:text-6xl text-white">
                                 ₹{{ wallet.balance }}
                             </h2>
-                            <span class="gold mb-2">INR</span>
+                            <span class="gold text-xs sm:text-base mb-1 sm:mb-2">INR</span>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-9">
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5 mt-6 sm:mt-9 border-t border-[#f2ca50]/10 pt-4 sm:pt-0 sm:border-0">
                             <div>
-                                <p class="orbitron text-[10px] text-[#d0c5af]">TOTAL CREDIT</p>
-                                <p class="orbitron text-2xl gold mt-1">₹{{ total_credit }}</p>
+                                <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">TOTAL CREDIT</p>
+                                <p class="orbitron text-lg sm:text-2xl gold mt-0.5 sm:mt-1">₹{{ total_credit }}</p>
                             </div>
 
                             <div>
-                                <p class="orbitron text-[10px] text-[#d0c5af]">TOTAL DEBIT</p>
-                                <p class="orbitron text-2xl text-red-300 mt-1">₹{{ total_debit }}</p>
+                                <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">TOTAL DEBIT</p>
+                                <p class="orbitron text-lg sm:text-2xl text-red-300 mt-0.5 sm:mt-1">₹{{ total_debit }}</p>
                             </div>
 
                             <div>
-                                <p class="orbitron text-[10px] text-[#d0c5af]">PENDING REFUND</p>
-                                <p class="orbitron text-2xl text-blue-300 mt-1">₹{{ pending_refund }}</p>
+                                <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]">PENDING REFUND</p>
+                                <p class="orbitron text-lg sm:text-2xl text-blue-300 mt-0.5 sm:mt-1">₹{{ pending_refund }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                     <a href="{% url 'add_money' %}"
-                    class="glass p-5 rounded-xl text-center hover:bg-[#f2ca50]/10 transition block">
-                        <span class="material-symbols-outlined gold text-3xl">add_card</span>
-                        <p class="orbitron text-xs gold mt-2">ADD MONEY</p>
+                    class="glass p-4 sm:p-5 rounded-xl text-center hover:bg-[#f2ca50]/10 transition block">
+                        <span class="material-symbols-outlined gold text-2xl sm:text-3xl">add_card</span>
+                        <p class="orbitron text-[10px] sm:text-xs gold mt-1 sm:mt-2">ADD MONEY</p>
                     </a>
 
-                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
-                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">payments</span>
-                        <p class="orbitron text-xs text-[#d0c5af] mt-2">WITHDRAW</p>
+                    <button class="glass p-4 sm:p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-2xl sm:text-3xl">payments</span>
+                        <p class="orbitron text-[10px] sm:text-xs text-[#d0c5af] mt-1 sm:mt-2">WITHDRAW</p>
                     </button>
 
-                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
-                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">send_to_mobile</span>
-                        <p class="orbitron text-xs text-[#d0c5af] mt-2">TRANSFER</p>
+                    <button class="glass p-4 sm:p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-2xl sm:text-3xl">send_to_mobile</span>
+                        <p class="orbitron text-[10px] sm:text-xs text-[#d0c5af] mt-1 sm:mt-2">TRANSFER</p>
                     </button>
 
-                    <button class="glass p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
-                        <span class="material-symbols-outlined text-[#d0c5af] text-3xl">workspace_premium</span>
-                        <p class="orbitron text-xs text-[#d0c5af] mt-2">REWARDS</p>
+                    <button class="glass p-4 sm:p-5 rounded-xl text-center opacity-60 cursor-not-allowed">
+                        <span class="material-symbols-outlined text-[#d0c5af] text-2xl sm:text-3xl">workspace_premium</span>
+                        <p class="orbitron text-[10px] sm:text-xs text-[#d0c5af] mt-1 sm:mt-2">REWARDS</p>
                     </button>
                 </div>
 
                 <section>
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="orbitron text-2xl text-white flex items-center gap-2">
-                            <span class="material-symbols-outlined gold">history</span>
+                    <div class="flex justify-between items-center mb-4 sm:mb-6">
+                        <h3 class="orbitron text-lg sm:text-2xl text-white flex items-center gap-2">
+                            <span class="material-symbols-outlined gold text-xl sm:text-2xl">history</span>
                             VAULT LOGS
                         </h3>
 
-                        <span class="orbitron text-xs gold">
+                        <span class="orbitron text-[10px] sm:text-xs gold">
                             {{ page_obj.paginator.count }} TRANSACTIONS
                         </span>
                     </div>
 
-                    <div class="space-y-4">
+                    <div class="space-y-3 sm:space-y-4">
                         {% for txn in transactions %}
-                            <div class="glass rounded-xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-5 {% if txn.transaction_type == 'CREDIT' %}txn-credit{% else %}txn-debit{% endif %}">
-                                <div class="flex items-center gap-5">
-                                    <div class="w-12 h-12 rounded bg-[#231f17] flex items-center justify-center">
+                            <div class="glass rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-5 {% if txn.transaction_type == 'CREDIT' %}txn-credit{% else %}txn-debit{% endif %}">
+                                <div class="flex items-start sm:items-center gap-3 sm:gap-5">
+                                    <div class="w-10 h-10 sm:w-12 sm:h-12 rounded bg-[#231f17] flex items-center justify-center shrink-0">
                                         {% if txn.transaction_type == "CREDIT" %}
-                                            <span class="material-symbols-outlined gold">south_west</span>
+                                            <span class="material-symbols-outlined gold text-xl sm:text-2xl">south_west</span>
                                         {% else %}
-                                            <span class="material-symbols-outlined text-red-300">north_east</span>
+                                            <span class="material-symbols-outlined text-red-300 text-xl sm:text-2xl">north_east</span>
                                         {% endif %}
                                     </div>
 
                                     <div>
-                                        <div class="flex flex-wrap items-center gap-3">
-                                            <span class="orbitron text-xs gold">
+                                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                                            <span class="orbitron text-[10px] sm:text-xs gold">
                                                 #{{ txn.transaction_id }}
                                             </span>
 
-                                            <span class="text-[10px] px-2 py-1 rounded border border-[#f2ca50]/20 orbitron
+                                            <span class="text-[9px] sm:text-[10px] px-2 py-0.5 sm:py-1 rounded border border-[#f2ca50]/20 orbitron
                                             {% if txn.status == 'COMPLETED' %}text-green-300 bg-green-500/10
                                             {% elif txn.status == 'PENDING' %}text-blue-300 bg-blue-500/10
                                             {% else %}text-red-300 bg-red-500/10{% endif %}">
@@ -232,42 +232,42 @@
                                             </span>
                                         </div>
 
-                                        <h4 class="font-semibold text-white mt-1">
+                                        <h4 class="font-semibold text-xs sm:text-base text-white mt-1">
                                             {{ txn.get_purpose_display }}
                                         </h4>
 
-                                        <p class="text-xs text-[#d0c5af] mt-1">
+                                        <p class="text-[11px] sm:text-xs text-[#d0c5af] mt-0.5">
                                             {{ txn.description|default:"Wallet transaction" }}
                                         </p>
 
-                                        <p class="orbitron text-[10px] text-[#d0c5af]/60 mt-1">
+                                        <p class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af]/60 mt-1">
                                             {{ txn.created_at|date:"M d, Y • h:i A" }}
                                         </p>
                                     </div>
                                 </div>
 
-                                <div class="text-right">
+                                <div class="text-left sm:text-right border-t border-[#f2ca50]/10 sm:border-0 pt-2 sm:pt-0 flex sm:flex-col justify-between sm:justify-center items-center sm:items-end">
                                     {% if txn.transaction_type == "CREDIT" %}
-                                        <p class="orbitron text-2xl gold">+ ₹{{ txn.amount }}</p>
+                                        <p class="orbitron text-lg sm:text-2xl gold">+ ₹{{ txn.amount }}</p>
                                     {% else %}
-                                        <p class="orbitron text-2xl text-red-300">- ₹{{ txn.amount }}</p>
+                                        <p class="orbitron text-lg sm:text-2xl text-red-300">- ₹{{ txn.amount }}</p>
                                     {% endif %}
 
                                     {% if txn.order %}
                                         <a href="{% url 'order_detail' txn.order.id %}"
-                                           class="orbitron text-[10px] text-[#d0c5af] hover:text-[#f2ca50]">
+                                           class="orbitron text-[9px] sm:text-[10px] text-[#d0c5af] hover:text-[#f2ca50]">
                                             ORDER {{ txn.order.order_id }}
                                         </a>
                                     {% endif %}
                                 </div>
                             </div>
                         {% empty %}
-                            <div class="glass rounded-xl p-12 text-center">
-                                <span class="material-symbols-outlined gold text-6xl">
+                            <div class="glass rounded-xl p-8 sm:p-12 text-center">
+                                <span class="material-symbols-outlined gold text-4xl sm:text-6xl">
                                     account_balance_wallet
                                 </span>
-                                <h3 class="orbitron gold mt-4 text-xl">NO WALLET LOGS</h3>
-                                <p class="text-[#d0c5af] mt-2">
+                                <h3 class="orbitron gold mt-3 sm:mt-4 text-base sm:text-xl">NO WALLET LOGS</h3>
+                                <p class="text-xs sm:text-sm text-[#d0c5af] mt-1 sm:mt-2">
                                     Refunds and wallet payments will appear here.
                                 </p>
                             </div>
@@ -275,21 +275,21 @@
                     </div>
 
                     {% if page_obj.has_other_pages %}
-                        <div class="flex justify-center items-center gap-3 mt-8">
+                        <div class="flex justify-center items-center gap-2 sm:gap-3 mt-6 sm:mt-8">
                             {% if page_obj.has_previous %}
                                 <a href="?page={{ page_obj.previous_page_number }}"
-                                   class="px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-xs">
+                                   class="px-4 sm:px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-[10px] sm:text-xs hover:bg-[#f2ca50]/10 transition">
                                     PREV
                                 </a>
                             {% endif %}
 
-                            <span class="px-5 py-2 bg-[#f2ca50] text-black orbitron text-xs">
+                            <span class="px-4 sm:px-5 py-2 bg-[#f2ca50] text-black orbitron text-[10px] sm:text-xs font-bold">
                                 {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}
                             </span>
 
                             {% if page_obj.has_next %}
                                 <a href="?page={{ page_obj.next_page_number }}"
-                                   class="px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-xs">
+                                   class="px-4 sm:px-5 py-2 border border-[#f2ca50]/30 gold orbitron text-[10px] sm:text-xs hover:bg-[#f2ca50]/10 transition">
                                     NEXT
                                 </a>
                             {% endif %}
@@ -298,49 +298,39 @@
                 </section>
             </div>
 
-            <aside class="lg:col-span-4 space-y-7">
+            <aside class="lg:col-span-4 space-y-6 sm:space-y-7">
 
-                <div class="glass rounded-xl p-6">
-                    <h3 class="orbitron text-sm text-white mb-6">REFUND TRACKER</h3>
+                <div class="glass rounded-xl p-5 sm:p-6">
+                    <h3 class="orbitron text-xs sm:text-sm text-white mb-4 sm:mb-6">REFUND TRACKER</h3>
 
-                    <div class="space-y-6 border-l border-[#f2ca50]/30 pl-6">
+                    <div class="space-y-4 sm:space-y-6 border-l border-[#f2ca50]/30 pl-4 sm:pl-6">
                         <div>
-                            <p class="orbitron text-xs gold">REQUESTED</p>
-                            <p class="text-xs text-[#d0c5af]">User submits return request</p>
+                            <p class="orbitron text-[10px] sm:text-xs gold">REQUESTED</p>
+                            <p class="text-[11px] sm:text-xs text-[#d0c5af] mt-0.5">User submits return request</p>
                         </div>
 
                         <div>
-                            <p class="orbitron text-xs gold">APPROVED</p>
-                            <p class="text-xs text-[#d0c5af]">Admin verifies return request</p>
+                            <p class="orbitron text-[10px] sm:text-xs gold">APPROVED</p>
+                            <p class="text-[11px] sm:text-xs text-[#d0c5af] mt-0.5">Admin verifies return request</p>
                         </div>
 
                         <div>
-                            <p class="orbitron text-xs gold">REFUNDED</p>
-                            <p class="text-xs text-[#d0c5af]">Amount credited to wallet</p>
+                            <p class="orbitron text-[10px] sm:text-xs gold">REFUNDED</p>
+                            <p class="text-[11px] sm:text-xs text-[#d0c5af] mt-0.5">Amount credited to wallet</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="glass rounded-xl p-6">
-                    <h3 class="orbitron text-sm text-white mb-5">HOW WALLET WORKS</h3>
+                <div class="glass rounded-xl p-5 sm:p-6">
+                    <h3 class="orbitron text-xs sm:text-sm text-white mb-3 sm:mb-5">HOW WALLET WORKS</h3>
 
-                    <ul class="space-y-4 text-sm text-[#d0c5af]">
+                    <ul class="space-y-3 sm:space-y-4 text-xs sm:text-sm text-[#d0c5af]">
                         <li>• Cancelled order refunds are credited to wallet.</li>
                         <li>• Returned product refunds are credited after admin approval.</li>
                         <li>• Wallet balance can be used for future payments.</li>
                     </ul>
                 </div>
 
-                <div class="glass rounded-xl p-6 border border-[#f2ca50]/30">
-                    <h3 class="orbitron text-xl gold">REFER FRIEND</h3>
-                    <p class="text-sm text-[#d0c5af] mt-3">
-                        Invite collectors and earn wallet rewards after referral purchase.
-                    </p>
-
-                    <button disabled class="mt-6 w-full py-3 border border-[#f2ca50]/30 text-[#d0c5af] orbitron text-xs opacity-60">
-                        COMING SOON
-                    </button>
-                </div>
 
             </aside>
         </section>

@@ -5,7 +5,11 @@
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>WHEELVERSE — PRODUCTS MANAGEMENT</title>
+    
+    <!-- Tailwind CSS with Forms & Container Queries -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
@@ -26,9 +30,9 @@
                         "outline": "#99907c"
                     },
                     "fontFamily": {
-                        "headline-md": ["Orbitron"],
-                        "label-caps": ["Orbitron"],
-                        "body-md": ["Poppins"]
+                        "headline-md": ["Orbitron", "sans-serif"],
+                        "label-caps": ["Orbitron", "sans-serif"],
+                        "body-md": ["Poppins", "sans-serif"]
                     }
                 },
             },
@@ -49,7 +53,11 @@
             box-shadow: 0 0 15px rgba(242, 202, 80, 0.2);
         }
         .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.1);
         }
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #f2ca50;
@@ -57,32 +65,38 @@
         }
     </style>
 </head>
-<body class="text-on-surface font-body-md h-screen overflow-hidden flex">
+<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex bg-background">
 
+    <!-- Topbar Header -->
+    {% include 'adminpanel/includes/admin_topbar.html' %}
+
+    <!-- Sidebar -->
     {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-    <div class="flex-1 pl-[240px] pt-[70px] flex flex-col h-screen overflow-hidden">
+    <!-- Main Content Layout (Includes Desktop Sidebar Shift) -->
+    <div class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
 
-        {% include 'adminpanel/includes/admin_topbar.html' %}
-
-        <main class="flex-1 overflow-y-auto custom-scrollbar bg-background p-8">
-            <div class="max-w-[1440px] mx-auto space-y-6">
+        <!-- Content Area (Includes Topbar Height Offset) -->
+        <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar bg-background pt-[70px] p-4 sm:p-6 lg:p-8">
+            <div class="w-full max-w-[1440px] mx-auto space-y-6">
                 
-                <div class="flex justify-between items-center border-b border-primary/10 pb-4">
+                <!-- Title Header -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-primary/10 pb-4">
                     <div>
                         <p class="text-primary font-label-caps text-xs tracking-widest uppercase mb-1">ELITE INVENTORY CONTROL</p>
                         <h2 class="font-headline-md text-2xl text-on-surface tracking-wide">PRODUCTS MANAGEMENT</h2>
                         <p class="text-on-surface-variant text-xs mt-0.5">Manage legendary collectibles inside the WheelVerse inventory system.</p>
                     </div>
-                    <div class="flex gap-3">
-                        <a href="{% url 'add_product' %}" class="px-5 py-2.5 bg-primary text-on-primary font-label-caps text-xs font-bold neon-glow-gold hover:bg-primary/90 transition-all flex items-center gap-1">
+                    <div class="flex gap-3 w-full sm:w-auto">
+                        <a href="{% url 'add_product' %}" class="w-full sm:w-auto px-5 py-2.5 bg-primary text-on-primary font-label-caps text-xs font-bold neon-glow-gold hover:bg-primary/90 transition-all flex items-center justify-center gap-1 rounded-sm">
                             <span class="material-symbols-outlined text-sm font-bold">add</span> ADD PRODUCT
                         </a>
-
                     </div>
                 </div>
+
                 {% include 'adminpanel/includes/messages.html' %}
 
+                <!-- Filters & Search Form -->
                 <form id="filterForm" method="GET" action="{% url 'admin_products' %}" class="glass-card p-4 rounded space-y-4">
                     <div class="relative">
                         <span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/60 text-sm">rocket_launch</span>
@@ -91,20 +105,20 @@
                                name="search"
                                value="{{ current_search }}"
                                placeholder="SEARCH PRODUCTS..." 
-                               class="w-full bg-background/50 border border-primary/10 pl-11 pr-4 py-2.5 text-xs font-label-caps tracking-wider text-on-surface focus:border-primary focus:ring-0 placeholder:text-on-surface-variant/40"/>
+                               class="w-full bg-background/50 border border-primary/10 pl-11 pr-4 py-2.5 text-xs font-label-caps tracking-wider text-on-surface focus:border-primary focus:ring-0 placeholder:text-on-surface-variant/40 rounded-sm"/>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
                         <div>
-                            <select name="category" id="categoryFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                            <select name="category" id="categoryFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
                                 <option value="">All Categories</option>
                                 {% for category in categories %}
                                 <option value="{{ category.id }}" {% if current_category == category.id|slugify %}selected{% endif %}>{{ category.name|upper }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-                       <div>
-                            <select name="sort_by" id="sortFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                        <div>
+                            <select name="sort_by" id="sortFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
                                 <option value="">Sort By</option>
                                 <option value="a-z" {% if current_sort == "a-z" %}selected{% endif %}>Alphabetical: A - Z</option>
                                 <option value="z-a" {% if current_sort == "z-a" %}selected{% endif %}>Alphabetical: Z - A</option>
@@ -113,22 +127,23 @@
                             </select>
                         </div>
                         <div>
-                            <select name="status" id="statusFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0">
+                            <select name="status" id="statusFilter" onchange="document.getElementById('filterForm').submit();" class="w-full bg-background/40 border border-primary/10 text-xs font-label-caps py-2 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
                                 <option value="">All Status</option>
                                 <option value="in_stock" {% if current_status == "in_stock" %}selected{% endif %}>In Stock</option>
                                 <option value="limited" {% if current_status == "limited" %}selected{% endif %}>Limited Stock</option>
                                 <option value="out_of_stock" {% if current_status == "out_of_stock" %}selected{% endif %}>Out of Stock</option>
                             </select>
                         </div>
-                        <a href="{% url 'admin_products' %}" class="w-full py-2 bg-surface-variant/40 border border-primary/10 text-center text-on-surface-variant text-[10px] font-label-caps hover:text-primary tracking-widest uppercase transition-all flex items-center justify-center gap-1">
+                        <a href="{% url 'admin_products' %}" class="w-full py-2 bg-surface-variant/40 border border-primary/10 text-center text-on-surface-variant text-[10px] font-label-caps hover:text-primary tracking-widest uppercase transition-all flex items-center justify-center gap-1 rounded-sm">
                             ✕ Reset Filters
                         </a>
                     </div>
                 </form>
 
-                <div class="glass-card rounded overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left border-collapse">
+                <!-- Products Table Area -->
+                <div class="glass-card rounded overflow-hidden flex flex-col">
+                    <div class="overflow-x-auto custom-scrollbar">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
                             <thead class="bg-surface-variant/20 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
                                 <tr>
                                     <th class="px-6 py-4">Product Name</th>
@@ -180,14 +195,14 @@
                                         </div>
                                     </td>
                                     <td class="px-6 py-3 text-center">
-                                        <a href="{% url 'manage_variants' product.id %}" class="text-[10px] font-label-caps text-primary border border-primary/20 px-2 py-1 rounded bg-primary/5 hover:bg-primary hover:text-on-primary transition-all uppercase tracking-wider">
-                                        Manage Variants
-                                    </a>
+                                        <a href="{% url 'manage_variants' product.id %}" class="text-[10px] font-label-caps text-primary border border-primary/20 px-2 py-1 rounded bg-primary/5 hover:bg-primary hover:text-on-primary transition-all uppercase tracking-wider inline-block">
+                                            Manage Variants
+                                        </a>
                                     </td>
                                 </tr>
                                 {% empty %}
                                 <tr>
-                                    <td colspan="7" class="text-center py-12 text-on-surface-variant/60">
+                                    <td colspan="6" class="text-center py-12 text-on-surface-variant/60">
                                         <span class="material-symbols-outlined text-4xl text-primary/10 block mb-2">inventory_2</span>
                                         No legendary products added yet. Click "+ ADD PRODUCT" to populate.
                                     </td>
@@ -197,13 +212,13 @@
                         </table>
                     </div>
 
-                    <div class="p-4 bg-surface-variant/10 border-t border-primary/10 flex justify-between items-center text-[10px] font-label-caps text-on-surface-variant tracking-wider">
+                    <div class="p-4 bg-surface-variant/10 border-t border-primary/10 flex flex-col sm:flex-row justify-between items-center gap-4 text-[10px] font-label-caps text-on-surface-variant tracking-wider">
                         <div>
                             SHOWING 1-{{ products|length }} OF {{ total_products_count }} ELITE ENTRIES
                         </div>
-                        <div class="flex items-center gap-1">
+                        <div class="flex items-center gap-1 font-mono">
                             <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40"><span class="material-symbols-outlined text-sm">chevron_left</span></button>
-                            <button class="w-6 h-6 border border-primary border-primary bg-primary/10 text-primary flex items-center justify-center rounded-sm">1</button>
+                            <button class="w-6 h-6 border border-primary bg-primary/10 text-primary flex items-center justify-center rounded-sm">1</button>
                             <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40">2</button>
                             <button class="w-6 h-6 border border-primary/10 flex items-center justify-center rounded-sm hover:border-primary/40"><span class="material-symbols-outlined text-sm">chevron_right</span></button>
                         </div>
@@ -214,6 +229,7 @@
         </main>
     </div>
 
+    <!-- Glowing Accents -->
     <div class="fixed top-0 right-0 w-[500px] h-[500px] bg-primary/5 rounded-full blur-[150px] -z-10 pointer-events-none"></div>
     <div class="fixed bottom-0 left-64 w-[300px] h-[300px] bg-primary/5 rounded-full blur-[120px] -z-10 pointer-events-none"></div>
 
@@ -234,8 +250,6 @@
                         row.style.opacity = '0';
                         setTimeout(() => row.remove(), 300);
                     }
-                    // ⚠️ ശ്രദ്ധിക്കുക: ഡിലീറ്റ് ചെയ്ത ശേഷം പേജ് റീഫ്രഷ് ചെയ്യുകയാണെങ്കിൽ മെയിൻ പ്രൊഡക്ട് പേജിലേക്ക് വിടുക
-                    // window.location.href = "{% url 'admin_products' %}"; 
                 } else {
                     alert('Something went wrong. Could not delete product.');
                 }
@@ -244,20 +258,17 @@
         }
     }
 
-
     function toggleProductStatus(productId) {
-        // ജാവാസ്ക്രിപ്റ്റ് വഴി ഡാറ്റാബേസിലേക്ക് റിക്വസ്റ്റ് അയക്കുന്നു
         fetch(`/adminpanel/products/${productId}/toggle/`, {
             method: 'POST',
             headers: {
-                'X-CSRFToken': '{{ csrf_token }}', // Django CSRF പ്രൊട്ടക്ഷന് ഇത് നിർബന്ധമാണ്
+                'X-CSRFToken': '{{ csrf_token }}',
                 'Content-Type': 'application/json'
             }
         })
         .then(response => response.json())
         .then(data => {
             if (data.status === 'success') {
-                // പേജ് റീഫ്രഷ് ചെയ്യാതെ ലൈവ് ആയി ബട്ടൺ അപ്ഡേറ്റ് ചെയ്യാൻ പേജ് റീലോഡ് ചെയ്യുന്നു
                 window.location.reload(); 
             } else {
                 alert("Something went wrong!");
@@ -272,6 +283,6 @@
             document.getElementById('filterForm').submit();
         }
     });
-</script>
+    </script>
 </body>
 </html>

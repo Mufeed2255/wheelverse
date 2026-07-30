@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WheelVerse | Admin Control Center</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
 
     <style>
@@ -26,7 +26,6 @@
             --text-muted: rgba(255,255,255,0.45);
             --input-bg: rgba(255,255,255,0.05);
             --input-border: rgba(255,255,255,0.12);
-            --error: #ff4d4d;
         }
 
         body {
@@ -36,7 +35,8 @@
             justify-content: center;
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-dark);
-            overflow: hidden;
+            overflow-x: hidden;
+            position: relative;
         }
 
         /* Background car image with dark overlay */
@@ -75,7 +75,7 @@
         .login-card {
             background: var(--card-bg);
             border: 1px solid var(--border-gold);
-            padding: 52px 44px 44px;
+            padding: 44px 38px 38px;
             position: relative;
             backdrop-filter: blur(20px);
             box-shadow:
@@ -106,12 +106,12 @@
         /* Brand */
         .brand {
             text-align: center;
-            margin-bottom: 36px;
+            margin-bottom: 28px;
         }
 
         .brand-name {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2.4rem;
+            font-size: 2.2rem;
             font-weight: 900;
             letter-spacing: 0.02em;
             line-height: 1;
@@ -135,37 +135,98 @@
             text-transform: uppercase;
         }
 
-        /* Messages */
-        .messages {
-            list-style: none;
-            margin-bottom: 20px;
+        /* --- ENHANCED MESSAGES / ALERTS STYLING --- */
+        .messages-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 24px;
         }
 
-        .messages li {
-            padding: 10px 14px;
-            border-radius: 2px;
-            font-size: 0.82rem;
-            margin-bottom: 6px;
+        .alert-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 14px;
+            border-radius: 4px;
             font-family: 'Rajdhani', sans-serif;
-            font-weight: 500;
-            letter-spacing: 0.04em;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            backdrop-filter: blur(8px);
+            animation: alertSlideDown 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
 
-        .messages li.error {
-            background: rgba(255, 77, 77, 0.1);
-            border: 1px solid rgba(255, 77, 77, 0.3);
-            color: #ff7070;
+        @keyframes alertSlideDown {
+            from { opacity: 0; transform: translateY(-12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
-        .messages li.success {
-            background: rgba(245, 197, 24, 0.08);
-            border: 1px solid rgba(245, 197, 24, 0.25);
-            color: var(--gold);
+        .alert-body {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            line-height: 1.2;
+        }
+
+        .alert-icon {
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .alert-close {
+            background: none;
+            border: none;
+            color: inherit;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 2px;
+            opacity: 0.65;
+            transition: opacity 0.2s ease;
+        }
+
+        .alert-close:hover {
+            opacity: 1;
+        }
+
+        .alert-close span {
+            font-size: 1.1rem;
+        }
+
+        /* Message Types */
+        .alert-error, .alert-danger {
+            background: rgba(255, 77, 77, 0.12);
+            border: 1px solid rgba(255, 77, 77, 0.4);
+            color: #ff6b6b;
+            box-shadow: 0 4px 15px rgba(255, 77, 77, 0.1);
+        }
+
+        .alert-success {
+            background: rgba(46, 204, 113, 0.12);
+            border: 1px solid rgba(46, 204, 113, 0.4);
+            color: #2ecc71;
+            box-shadow: 0 4px 15px rgba(46, 204, 113, 0.1);
+        }
+
+        .alert-warning {
+            background: rgba(243, 156, 18, 0.12);
+            border: 1px solid rgba(243, 156, 18, 0.4);
+            color: #f39c12;
+            box-shadow: 0 4px 15px rgba(243, 156, 18, 0.1);
+        }
+
+        .alert-info {
+            background: rgba(52, 152, 219, 0.12);
+            border: 1px solid rgba(52, 152, 219, 0.4);
+            color: #3498db;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.1);
         }
 
         /* Form fields */
         .form-group {
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
 
         .form-label {
@@ -189,7 +250,7 @@
             position: absolute;
             left: 14px;
             color: var(--text-muted);
-            font-size: 1rem;
+            font-size: 1.1rem;
             pointer-events: none;
             transition: color 0.2s;
         }
@@ -208,7 +269,7 @@
         }
 
         .form-input::placeholder {
-            color: rgba(255,255,255,0.2);
+            color: rgba(255,255,255,0.25);
             font-size: 0.85rem;
         }
 
@@ -218,7 +279,6 @@
             box-shadow: 0 0 0 3px var(--gold-glow);
         }
 
-        .form-input:focus + .input-icon,
         .input-wrap:focus-within .input-icon {
             color: var(--gold);
         }
@@ -288,6 +348,7 @@
 
         .forgot-link:hover {
             opacity: 0.75;
+            text-decoration: underline;
         }
 
         /* Login button */
@@ -312,7 +373,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.15) 50%, transparent 100%);
+            background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.2) 50%, transparent 100%);
             transform: translateX(-100%);
             transition: transform 0.5s ease;
         }
@@ -338,6 +399,15 @@
             background: linear-gradient(90deg, transparent, var(--gold), transparent);
             opacity: 0.6;
         }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 36px 22px 28px;
+            }
+            .brand-name {
+                font-size: 1.8rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -347,7 +417,7 @@
 
 <div class="login-wrapper">
     <div class="login-card">
-        {% include 'adminpanel/includes/messages.html' %}
+
         <div class="brand">
             <div class="brand-name">
                 <span class="wheel">Wheel</span><span class="verse">Verse</span>
@@ -355,20 +425,41 @@
             <div class="brand-subtitle">Admin Control Center</div>
         </div>
 
+        <!-- Integrated Django Messages Container -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="alert-item alert-{{ message.tags }}">
+                        <div class="alert-body">
+                            <span class="material-symbols-outlined alert-icon">
+                                {% if message.tags == 'error' or message.tags == 'danger' %}error
+                                {% elif message.tags == 'success' %}check_circle
+                                {% elif message.tags == 'warning' %}warning
+                                {% else %}info{% endif %}
+                            </span>
+                            <span>{{ message }}</span>
+                        </div>
+                        <button type="button" class="alert-close" onclick="dismissAlert(this)" title="Dismiss">
+                            <span class="material-symbols-outlined">close</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
 
         <form method="POST" action="{% url 'admin_login' %}">
             {% csrf_token %}
 
             <div class="form-group">
-                <label class="form-label" for="username">Admin Email</label>
+                <label class="form-label" for="username">Email or Username</label>
                 <div class="input-wrap">
-                    <span class="input-icon">@</span>
+                    <span class="material-symbols-outlined input-icon">person</span>
                     <input
                         class="form-input"
                         type="text"
                         id="username"
                         name="username"
-                        placeholder="admin@wheelverse.vip"
+                        placeholder="admin@wheelverse.vip or admin"
                         autocomplete="username"
                         required
                     >
@@ -378,7 +469,7 @@
             <div class="form-group">
                 <label class="form-label" for="password">Secure Password</label>
                 <div class="input-wrap">
-                    <span class="input-icon">🔒</span>
+                    <span class="material-symbols-outlined input-icon">lock</span>
                     <input
                         class="form-input"
                         type="password"
@@ -405,6 +496,28 @@
         <div class="card-bottom-line"></div>
     </div>
 </div>
+
+<script>
+    // Manual dismiss function
+    function dismissAlert(button) {
+        const alert = button.closest('.alert-item');
+        alert.style.opacity = '0';
+        alert.style.transform = 'translateY(-8px)';
+        setTimeout(() => alert.remove(), 300);
+    }
+
+    // Auto-dismiss alerts after 5 seconds
+    document.addEventListener('DOMContentLoaded', () => {
+        setTimeout(() => {
+            const alerts = document.querySelectorAll('.alert-item');
+            alerts.forEach(alert => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateY(-8px)';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    });
+</script>
 
 </body>
 </html>

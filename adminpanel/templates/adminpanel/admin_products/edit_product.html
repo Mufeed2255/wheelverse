@@ -53,47 +53,54 @@
         }
     </style>
 </head>
-<body class="text-on-surface font-body-md h-screen overflow-hidden flex">
+<body class="text-on-surface font-body-md min-h-screen md:h-screen overflow-x-hidden md:overflow-hidden flex flex-col md:flex-row">
 
     {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-    <div class="flex-1 pl-[240px] pt-[70px] flex flex-col h-screen overflow-hidden">
+    <!-- Fixed pl-0 on mobile, md:pl-[240px] for desktop sidebar offset -->
+    <div class="flex-1 pl-0 md:pl-[240px] pt-[60px] md:pt-[70px] flex flex-col min-h-screen md:h-screen overflow-hidden">
 
         {% include 'adminpanel/includes/admin_topbar.html' %}
 
-        <main class="flex-1 overflow-y-auto custom-scrollbar bg-background p-8">
+        <!-- Responsive padding for main body -->
+        <main class="flex-1 overflow-y-auto custom-scrollbar bg-background p-4 md:p-8">
             <div class="max-w-[1000px] mx-auto space-y-6">
                 
                 <div class="border-b border-primary/10 pb-4">
                     <p class="text-primary font-label-caps text-xs tracking-widest uppercase mb-1">ELITE INVENTORY CONTROL</p>
-                    <h2 class="font-headline-md text-2xl text-on-surface tracking-wide uppercase">EDIT PRODUCT DETAILS</h2>
+                    <h2 class="font-headline-md text-xl md:text-2xl text-on-surface tracking-wide uppercase">EDIT PRODUCT DETAILS</h2>
                     <p class="text-xs text-on-surface-variant/70 mt-1">Modify the specifications and showroom visibility for this legendary collectible.</p>
                 </div>
+                
                 {% include 'adminpanel/includes/messages.html' %}
 
-                <form id="productForm" method="POST" action="{% url 'edit_product' product.id %}" class="glass-card p-8 rounded max-w-[800px] mx-auto space-y-6">
+                <!-- Form container with responsive padding (p-4 on mobile, md:p-8 on desktop) -->
+                <form id="productForm" method="POST" action="{% url 'edit_product' product.id %}" class="glass-card p-4 md:p-8 rounded max-w-[800px] mx-auto space-y-6">
                     {% csrf_token %}
                     
+                    <!-- Product Name -->
                     <div>
                         <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm text-primary/60">branding_watermark</span> PRODUCT NAME
                         </label>
-                        <input type="text" name="name" value="{{ product.name }}" required placeholder="e.g. 1967 GT500 Shelby 'Eleanor'" class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0"/>
+                        <input type="text" name="name" value="{{ product.name }}" required placeholder="e.g. 1967 GT500 Shelby 'Eleanor'" class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 rounded"/>
                     </div>
 
+                    <!-- Description -->
                     <div>
                         <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
                             <span class="material-symbols-outlined text-sm text-primary/60">description</span> DESCRIPTION
                         </label>
-                        <textarea name="description" rows="5" placeholder="Detail the lineage, modifications, and racing history..." class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 custom-scrollbar">{{ product.description }}</textarea>
+                        <textarea name="description" rows="5" placeholder="Detail the lineage, modifications, and racing history..." class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 custom-scrollbar rounded">{{ product.description }}</textarea>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Category & Rarity Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                         <div>
                             <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-sm text-primary/60">category</span> CATEGORY
                             </label>
-                            <select name="category" required class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0">
+                            <select name="category" required class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded">
                                 <option value="">Select category</option>
                                 {% for category in categories %}
                                 <option value="{{ category.id }}" {% if category.id == product.category.id %}selected{% endif %}>{{ category.name }}</option>
@@ -104,7 +111,7 @@
                             <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
                                 <span class="material-symbols-outlined text-sm text-primary/60">military_tech</span> PRODUCT RARITY
                             </label>
-                            <select name="rarity" class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0">
+                            <select name="rarity" class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded">
                                 <option value="common" {% if product.rarity == "common" %}selected{% endif %}>Common</option>
                                 <option value="rare" {% if product.rarity == "rare" %}selected{% endif %}>Rare</option>
                                 <option value="epic" {% if product.rarity == "epic" %}selected{% endif %}>Epic</option>
@@ -113,22 +120,24 @@
                         </div>
                     </div>
 
-                    <div class="flex items-center justify-between bg-background/30 border border-primary/5 p-4 rounded">
+                    <!-- Toggle Visibility -->
+                    <div class="flex items-center justify-between bg-background/30 border border-primary/5 p-4 rounded gap-3">
                         <div class="flex flex-col">
                             <span class="text-[11px] font-label-caps text-on-surface tracking-wider">Public Visibility Of Product</span>
                             <span class="text-[10px] text-on-surface-variant/50">Determine if this vehicle is immediately viewable in the showroom.</span>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" name="is_visible" value="true" {% if product.is_active %}checked{% endif %} class="sr-only peer">
+                        <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                            <input type="checkbox" name="is_visible" value="true" {% if product.is_active or product.is_visible %}checked{% endif %} class="sr-only peer">
                             <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant peer-checked:after:bg-on-primary after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
                         </label>
                     </div>
 
-                    <div class="flex justify-end gap-4 pt-4 border-t border-primary/10">
-                        <a href="{% url 'admin_products' %}" class="px-6 py-3 border border-primary/20 text-on-surface-variant text-xs font-label-caps hover:bg-white/5 transition-all tracking-wider">
+                    <!-- Action Buttons (Responsive flex container) -->
+                    <div class="flex flex-col-reverse sm:flex-row justify-end gap-3 md:gap-4 pt-4 border-t border-primary/10">
+                        <a href="{% url 'admin_products' %}" class="w-full sm:w-auto text-center px-6 py-3 border border-primary/20 text-on-surface-variant text-xs font-label-caps hover:bg-white/5 transition-all tracking-wider rounded">
                             CANCEL
                         </a>
-                        <button type="submit" class="px-6 py-3 bg-primary text-on-primary font-label-caps text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all">
+                        <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-primary text-on-primary font-label-caps text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all rounded">
                             UPDATE / SAVE CHANGES
                         </button>
                     </div>

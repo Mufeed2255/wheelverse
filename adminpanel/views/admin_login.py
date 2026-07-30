@@ -19,7 +19,7 @@ from django.db.models import (
 )
 
 User = get_user_model()
-
+from django.db.models import F,Sum
 
 
 def admin_login(request):
@@ -466,6 +466,41 @@ def admin_dashboard(request):
             ),
         )
     )["total"]
+    
+    #best selling products and categories
+    best_selling_products=(
+        OrderItem.objects
+        .filter(
+            order__status="DELIVERED",
+            is_cancelled=False,
+        )
+        .values(
+            'variant__product__id',
+            'variant__product__name',
+        )
+        .annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('item_total'),
+        )
+        .order_by('-total_quantity')[:10]
+    )
+    
+    best_selling_categories=(
+        OrderItem.objects
+        .filter(
+            order__status="DELIVERED",
+            is_cancelled=False,
+        )
+        .values(
+            'variant__product__category__id',
+            'variant__product__category__name',
+        )
+        .annotate(
+            total_quantity=Sum('quantity'),
+            total_revenue=Sum('item_total'),
+        )
+        .order_by('-total_quantity')[:10]
+    )
 
     context = {
         "total_users": total_users,
@@ -494,11 +529,15 @@ def admin_dashboard(request):
         "performance_orders": (
             performance_orders
         ),
-
+        
+        "best_selling_products": best_selling_products,
+        "best_selling_categories": best_selling_categories,
         "category_labels": category_labels,
         "category_revenue": category_revenue,
         "category_quantity": category_quantity,
+
     }
+    
 
     return render(
         request,
