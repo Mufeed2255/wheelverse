@@ -15,6 +15,7 @@
         <p>ADMIN Dashboard</p>
     </div>
 
+    <!-- Scrollable Navigation Area -->
     <div class="wv-menu custom-scrollbar">
         <a href="{% url 'admin_dashboard' %}" class="wv-item {% if url_name == 'admin_dashboard' %}active{% endif %}">
             <span class="material-symbols-outlined">dashboard</span>Dashboard
@@ -68,6 +69,7 @@
         top: 0;
         width: 240px;
         height: 100vh;
+        height: 100dvh; /* Mobile browser height fix */
         background: #070707;
         border-right: 1px solid rgba(242,202,80,.08);
         display: flex;
@@ -76,10 +78,12 @@
         font-family: 'Poppins', sans-serif;
         box-sizing: border-box;
         transition: transform .3s ease;
+        overflow: hidden;
     }
     .wv-logo {
         padding: 25px 20px;
         border-bottom: 1px solid rgba(242,202,80,.08);
+        flex-shrink: 0;
     }
     .wv-logo-row {
         display: flex;
@@ -121,7 +125,10 @@
     .wv-menu {
         padding: 20px 10px;
         flex: 1;
+        min-height: 0; /* Important fix for flex child scrolling */
         overflow-y: auto;
+        -webkit-overflow-scrolling: touch; /* Smooth iOS scrolling */
+        touch-action: pan-y; /* Enable smooth touch scrolling */
         display: flex;
         flex-direction: column;
     }
@@ -136,6 +143,7 @@
         border-radius: 4px;
         transition: .3s;
         font-size: 14px;
+        flex-shrink: 0;
     }
     .wv-item:hover {
         background: #1a1a1a;
@@ -150,6 +158,7 @@
         padding: 15px;
         border-top: 1px solid rgba(242,202,80,.05);
         margin-top: auto;
+        flex-shrink: 0;
     }
     .wv-logout a {
         display: flex;
@@ -173,12 +182,16 @@
         color: #ffdad6;
     }
     .custom-scrollbar::-webkit-scrollbar {
-        width: 0px;
+        width: 4px;
         background: transparent;
     }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: rgba(212, 175, 55, 0.3);
+        border-radius: 4px;
+    }
     .custom-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
+        -ms-overflow-style: auto;
+        scrollbar-width: thin;
     }
     .material-symbols-outlined {
         font-size: 20px;
@@ -233,22 +246,6 @@
         .wv-item {
             padding: 14px 18px;
             font-size: 15px;
-        }
-        .admin-content {
-            margin-left: 240px;
-            padding-top: 70px; /* header height */
-            transition: margin-left .3s ease;
-        }
-
-        @media (max-width: 1050px) and (min-width: 769px) {
-            .admin-content { margin-left: 76px; }
-        }
-
-        @media (max-width: 768px) {
-            .admin-content {
-                margin-left: 0;
-                padding-top: 60px;
-            }
         }
     }
 </style>
