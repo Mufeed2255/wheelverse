@@ -135,248 +135,252 @@
     </style>
 </head>
 
-<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex bg-background">
+<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex flex-col bg-background">
 
     <!-- Topbar Header -->
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    <!-- Sidebar -->
-    {% include 'adminpanel/includes/admin_sidebar.html' %}
+    <!-- Container for Sidebar and Main Content -->
+    <div class="flex flex-1 w-full h-[calc(100vh-70px)] mt-[70px] overflow-hidden relative">
 
-    <!-- Main Content Layout (Includes Desktop Sidebar Padding Shift) -->
-    <div class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
+        <!-- Sidebar -->
+        {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-        <!-- Content Area (Includes Topbar Height Offset) -->
-        <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar pt-[70px] p-4 sm:p-6 lg:p-8">
-            <div class="w-full max-w-container-max mx-auto space-y-6">
+        <!-- Main Content Layout (Includes Desktop Sidebar Padding Shift) -->
+        <div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
 
-                <!-- Header Title Banner -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
-                    <div>
-                        <h2 class="font-headline-md text-2xl sm:text-headline-md text-on-surface uppercase tracking-wider">
-                            Order Management
-                        </h2>
-                        <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
-                            Track transactions, filter orders, and process customer fulfillments.
-                        </p>
-                    </div>
-                </div>
+            <!-- Content Area -->
+            <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
+                <div class="w-full max-w-container-max mx-auto space-y-6">
 
-                <!-- System Messages -->
-                {% include 'adminpanel/includes/messages.html' %}
-
-                <!-- Filters & Search Form Controls -->
-                <form id="filterForm" method="GET" class="glass-card rounded-lg p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
-                    
-                    <!-- Search Input -->
-                    <div>
-                        <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
-                            SEARCH
-                        </label>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ search }}"
-                            placeholder="Order ID, customer, email"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs transition-all placeholder:text-on-surface-variant/50"
-                            onkeypress="if(event.key==='Enter'){this.form.submit();}"
-                        />
-                    </div>
-
-                    <!-- Order Status Filter -->
-                    <div>
-                        <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
-                            ORDER STATUS
-                        </label>
-                        <select
-                            name="status"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
-                        >
-                            <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
-                            <option value="CONFIRMED" {% if current_status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
-                            <option value="SHIPPED" {% if current_status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
-                            <option value="OUT_FOR_DELIVERY" {% if current_status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Out for Delivery</option>
-                            <option value="DELIVERED" {% if current_status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
-                            <option value="CANCELLED" {% if current_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
-                            <option value="RETURNED" {% if current_status == 'RETURNED' %}selected{% endif %}>Returned</option>
-                        </select>
-                    </div>
-
-                    <!-- Payment Method Filter -->
-                    <div>
-                        <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
-                            PAYMENT METHOD
-                        </label>
-                        <select
-                            name="payment_method"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
-                        >
-                            <option value="all" {% if current_payment_method == 'all' %}selected{% endif %}>All Methods</option>
-                            <option value="COD" {% if current_payment_method == 'COD' %}selected{% endif %}>COD</option>
-                            <option value="RAZORPAY" {% if current_payment_method == 'RAZORPAY' %}selected{% endif %}>Razorpay</option>
-                            <option value="WALLET" {% if current_payment_method == 'WALLET' %}selected{% endif %}>Wallet</option>
-                            <option value="UPI" {% if current_payment_method == 'UPI' %}selected{% endif %}>UPI</option>
-                        </select>
-                    </div>
-
-                    <!-- Sorting Options -->
-                    <div>
-                        <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
-                            SORT BY
-                        </label>
-                        <select
-                            name="sort"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
-                        >
-                            <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Newest First</option>
-                            <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Oldest First</option>
-                            <option value="amount_high" {% if current_sort == "amount_high" %}selected{% endif %}>Highest Amount</option>
-                            <option value="amount_low" {% if current_sort == "amount_low" %}selected{% endif %}>Lowest Amount</option>
-                        </select>
-                    </div>
-
-                    <!-- Reset Action -->
-                    <a
-                        href="{% url 'admin_orders' %}"
-                        class="border border-primary/30 text-center py-2.5 rounded-md font-label-caps text-xs text-on-surface-variant hover:text-primary hover:border-primary transition-colors flex items-center justify-center"
-                    >
-                        RESET
-                    </a>
-                </form>
-
-                <!-- Orders Ledger Table -->
-                <div class="glass-card rounded-lg overflow-hidden flex flex-col">
-                    <div class="overflow-x-auto custom-scrollbar flex-1">
-                        <table class="w-full min-w-[800px] text-left border-collapse">
-                            <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
-                                <tr>
-                                    <th class="px-5 py-4">ORDER ID</th>
-                                    <th class="px-5 py-4">CUSTOMER</th>
-                                    <th class="px-5 py-4">AMOUNT</th>
-                                    <th class="px-5 py-4">DATE</th>
-                                    <th class="px-5 py-4">STATUS</th>
-                                    <th class="px-5 py-4">PAYMENT MODE</th>
-                                    <th class="px-5 py-4 text-right">ACTION</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-primary/5 text-xs">
-                            {% for order in page_obj %}
-                                <tr class="hover:bg-primary/5 transition-all">
-                                    <td class="px-5 py-4 font-label-caps text-primary">
-                                        {% if order.order_id %}{{ order.order_id }}{% else %}#WLV-{{ order.id }}{% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-4">
-                                        <p class="font-bold text-on-surface">
-                                            {% if order.shipping_address %}
-                                                {{ order.shipping_address.full_name }}
-                                            {% else %}
-                                                {{ order.user.username }}
-                                            {% endif %}
-                                        </p>
-                                        <p class="text-[11px] text-on-surface-variant/70">
-                                            {% if order.shipping_address %}
-                                                {{ order.shipping_address.email }}
-                                            {% else %}
-                                                {{ order.user.email }}
-                                            {% endif %}
-                                        </p>
-                                    </td>
-
-                                    <td class="px-5 py-4 text-primary font-label-caps font-semibold">
-                                        ₹{% if order.total_amount %}{{ order.total_amount }}{% else %}{{ order.total }}{% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-4 text-on-surface-variant">
-                                        {{ order.ordered_at|date:"Y-m-d" }}
-                                    </td>
-
-                                    <td class="px-5 py-4 space-x-1">
-                                        <span class="status-badge status-{{ order.status|lower }}">
-                                            {{ order.status }}
-                                        </span>
-
-                                        {% if order.cancelled_items_count > 0 and order.status != "CANCELLED" %}
-                                            <span class="status-badge status-cancelled">
-                                                {{ order.cancelled_items_count }} ITEM CANCELLED
-                                            </span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="px-5 py-4 text-on-surface-variant font-medium">
-                                        {{ order.payment_method }}
-                                    </td>
-
-                                    <td class="px-5 py-4 text-right">
-                                        <a
-                                            href="{% url 'admin_order_detail' order.id %}"
-                                            class="border border-primary/30 hover:border-primary hover:bg-primary hover:text-on-primary text-primary text-[10px] font-label-caps font-bold px-3 py-1.5 rounded-sm transition-all tracking-wider inline-block"
-                                        >
-                                            VIEW
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="7" class="px-5 py-16 text-center">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <span class="material-symbols-outlined text-5xl text-primary/30 mb-3">
-                                                receipt_long
-                                            </span>
-                                            <p class="text-primary font-label-caps font-bold text-sm tracking-widest uppercase mb-1">
-                                                NO ORDERS FOUND
-                                            </p>
-                                            <p class="text-on-surface-variant text-xs">
-                                                Try adjusting your search criteria or resetting filters.
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination Footer -->
-                    <div class="border-t border-primary/10 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant bg-surface-container-lowest/40">
+                    <!-- Header Title Banner -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
                         <div>
-                            Showing <span class="text-on-surface font-medium">{{ page_obj.start_index }}</span> - <span class="text-on-surface font-medium">{{ page_obj.end_index }}</span> of <span class="text-on-surface font-medium">{{ total_orders }}</span> transactions
-                        </div>
-
-                        <div class="flex items-center gap-1 font-mono">
-                            {% if page_obj.has_previous %}
-                                <a
-                                    href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
-                                    class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
-                                >‹</a>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <span class="w-8 h-8 rounded bg-primary text-on-primary font-bold flex items-center justify-center neon-glow-gold font-label-caps">
-                                        {{ num }}
-                                    </span>
-                                {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
-                                    <a
-                                        href="?page={{ num }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
-                                        class="w-8 h-8 rounded border border-primary/15 flex items-center justify-center hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-colors font-label-caps"
-                                    >{{ num }}</a>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <a
-                                    href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
-                                    class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
-                                >›</a>
-                            {% endif %}
+                            <h2 class="text-[#f2ca50] font-headline-md text-2xl sm:text-headline-md text-on-surface uppercase tracking-wider">
+                                Order Management
+                            </h2>
+                            <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
+                                Track transactions, filter orders, and process customer fulfillments.
+                            </p>
                         </div>
                     </div>
-                </div>
 
-            </div>
-        </main>
+                    <!-- System Messages -->
+                    {% include 'adminpanel/includes/messages.html' %}
+
+                    <!-- Filters & Search Form Controls -->
+                    <form id="filterForm" method="GET" class="glass-card rounded-lg p-5 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                        
+                        <!-- Search Input -->
+                        <div>
+                            <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
+                                SEARCH
+                            </label>
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ search }}"
+                                placeholder="Order ID, customer, email"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs transition-all placeholder:text-on-surface-variant/50"
+                                onkeypress="if(event.key==='Enter'){this.form.submit();}"
+                            />
+                        </div>
+
+                        <!-- Order Status Filter -->
+                        <div>
+                            <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
+                                ORDER STATUS
+                            </label>
+                            <select
+                                name="status"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
+                            >
+                                <option value="all" {% if current_status == 'all' %}selected{% endif %}>All Statuses</option>
+                                <option value="CONFIRMED" {% if current_status == 'CONFIRMED' %}selected{% endif %}>Confirmed</option>
+                                <option value="SHIPPED" {% if current_status == 'SHIPPED' %}selected{% endif %}>Shipped</option>
+                                <option value="OUT_FOR_DELIVERY" {% if current_status == 'OUT_FOR_DELIVERY' %}selected{% endif %}>Out for Delivery</option>
+                                <option value="DELIVERED" {% if current_status == 'DELIVERED' %}selected{% endif %}>Delivered</option>
+                                <option value="CANCELLED" {% if current_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                                <option value="RETURNED" {% if current_status == 'RETURNED' %}selected{% endif %}>Returned</option>
+                            </select>
+                        </div>
+
+                        <!-- Payment Method Filter -->
+                        <div>
+                            <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
+                                PAYMENT METHOD
+                            </label>
+                            <select
+                                name="payment_method"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
+                            >
+                                <option value="all" {% if current_payment_method == 'all' %}selected{% endif %}>All Methods</option>
+                                <option value="COD" {% if current_payment_method == 'COD' %}selected{% endif %}>COD</option>
+                                <option value="RAZORPAY" {% if current_payment_method == 'RAZORPAY' %}selected{% endif %}>Razorpay</option>
+                                <option value="WALLET" {% if current_payment_method == 'WALLET' %}selected{% endif %}>Wallet</option>
+                                <option value="UPI" {% if current_payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                            </select>
+                        </div>
+
+                        <!-- Sorting Options -->
+                        <div>
+                            <label class="block text-primary font-label-caps text-[10px] uppercase tracking-widest mb-2">
+                                SORT BY
+                            </label>
+                            <select
+                                name="sort"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface px-4 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps auto-submit cursor-pointer"
+                            >
+                                <option value="newest" {% if current_sort == "newest" %}selected{% endif %}>Newest First</option>
+                                <option value="oldest" {% if current_sort == "oldest" %}selected{% endif %}>Oldest First</option>
+                                <option value="amount_high" {% if current_sort == "amount_high" %}selected{% endif %}>Highest Amount</option>
+                                <option value="amount_low" {% if current_sort == "amount_low" %}selected{% endif %}>Lowest Amount</option>
+                            </select>
+                        </div>
+
+                        <!-- Reset Action -->
+                        <a
+                            href="{% url 'admin_orders' %}"
+                            class="border border-primary/30 text-center py-2.5 rounded-md font-label-caps text-xs text-on-surface-variant hover:text-primary hover:border-primary transition-colors flex items-center justify-center"
+                        >
+                            RESET
+                        </a>
+                    </form>
+
+                    <!-- Orders Ledger Table -->
+                    <div class="glass-card rounded-lg overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto custom-scrollbar flex-1">
+                            <table class="w-full min-w-[800px] text-left border-collapse">
+                                <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                    <tr>
+                                        <th class="px-5 py-4">ORDER ID</th>
+                                        <th class="px-5 py-4">CUSTOMER</th>
+                                        <th class="px-5 py-4">AMOUNT</th>
+                                        <th class="px-5 py-4">DATE</th>
+                                        <th class="px-5 py-4">STATUS</th>
+                                        <th class="px-5 py-4">PAYMENT MODE</th>
+                                        <th class="px-5 py-4 text-right">ACTION</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-primary/5 text-xs">
+                                {% for order in page_obj %}
+                                    <tr class="hover:bg-primary/5 transition-all">
+                                        <td class="px-5 py-4 font-label-caps text-primary">
+                                            {% if order.order_id %}{{ order.order_id }}{% else %}#WLV-{{ order.id }}{% endif %}
+                                        </td>
+
+                                        <td class="px-5 py-4">
+                                            <p class="font-bold text-on-surface">
+                                                {% if order.shipping_address %}
+                                                    {{ order.shipping_address.full_name }}
+                                                {% else %}
+                                                    {{ order.user.username }}
+                                                {% endif %}
+                                            </p>
+                                            <p class="text-[11px] text-on-surface-variant/70">
+                                                {% if order.shipping_address %}
+                                                    {{ order.shipping_address.email }}
+                                                {% else %}
+                                                    {{ order.user.email }}
+                                                {% endif %}
+                                            </p>
+                                        </td>
+
+                                        <td class="px-5 py-4 text-primary font-label-caps font-semibold">
+                                            ₹{% if order.total_amount %}{{ order.total_amount }}{% else %}{{ order.total }}{% endif %}
+                                        </td>
+
+                                        <td class="px-5 py-4 text-on-surface-variant">
+                                            {{ order.ordered_at|date:"Y-m-d" }}
+                                        </td>
+
+                                        <td class="px-5 py-4 space-x-1">
+                                            <span class="status-badge status-{{ order.status|lower }}">
+                                                {{ order.status }}
+                                            </span>
+
+                                            {% if order.cancelled_items_count > 0 and order.status != "CANCELLED" %}
+                                                <span class="status-badge status-cancelled">
+                                                    {{ order.cancelled_items_count }} ITEM CANCELLED
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="px-5 py-4 text-on-surface-variant font-medium">
+                                            {{ order.payment_method }}
+                                        </td>
+
+                                        <td class="px-5 py-4 text-right">
+                                            <a
+                                                href="{% url 'admin_order_detail' order.id %}"
+                                                class="border border-primary/30 hover:border-primary hover:bg-primary hover:text-on-primary text-primary text-[10px] font-label-caps font-bold px-3 py-1.5 rounded-sm transition-all tracking-wider inline-block"
+                                            >
+                                                VIEW
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="px-5 py-16 text-center">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <span class="material-symbols-outlined text-5xl text-primary/30 mb-3">
+                                                    receipt_long
+                                                </span>
+                                                <p class="text-primary font-label-caps font-bold text-sm tracking-widest uppercase mb-1">
+                                                    NO ORDERS FOUND
+                                                </p>
+                                                <p class="text-on-surface-variant text-xs">
+                                                    Try adjusting your search criteria or resetting filters.
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="border-t border-primary/10 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant bg-surface-container-lowest/40">
+                            <div>
+                                Showing <span class="text-on-surface font-medium">{{ page_obj.start_index }}</span> - <span class="text-on-surface font-medium">{{ page_obj.end_index }}</span> of <span class="text-on-surface font-medium">{{ total_orders }}</span> transactions
+                            </div>
+
+                            <div class="flex items-center gap-1 font-mono">
+                                {% if page_obj.has_previous %}
+                                    <a
+                                        href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
+                                        class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
+                                    >‹</a>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <span class="w-8 h-8 rounded bg-primary text-on-primary font-bold flex items-center justify-center neon-glow-gold font-label-caps">
+                                            {{ num }}
+                                        </span>
+                                    {% elif num >= page_obj.number|add:'-2' and num <= page_obj.number|add:'2' %}
+                                        <a
+                                            href="?page={{ num }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
+                                            class="w-8 h-8 rounded border border-primary/15 flex items-center justify-center hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-colors font-label-caps"
+                                        >{{ num }}</a>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <a
+                                        href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ current_status }}&payment_method={{ current_payment_method }}&sort={{ current_sort }}"
+                                        class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
+                                    >›</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- Auto-Submit Filter Handler Script -->

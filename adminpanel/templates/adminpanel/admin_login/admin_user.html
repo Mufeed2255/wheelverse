@@ -113,219 +113,226 @@
     </style>
 </head>
 
-<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex bg-background">
+<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex flex-col bg-background">
 
+    <!-- Fixed Topbar Header -->
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    {% include 'adminpanel/includes/admin_sidebar.html' %}
+    <!-- Container for Sidebar and Main Content -->
+    <div class="flex flex-1 w-full h-[calc(100vh-70px)] mt-[70px] overflow-hidden relative">
 
-    
+        <!-- Sidebar Includes -->
+        {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-    <!-- Main Content Layout (Includes Desktop Sidebar Padding Shift) -->
-    <div class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
-        {% include 'adminpanel/includes/messages.html' %}
-        <!-- Content Area (Includes Topbar Height Offset) -->
-        <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar pt-[70px] p-4 sm:p-6 lg:p-8">
-            <div class="w-full max-w-container-max mx-auto space-y-6">
+        <!-- Main Content Layout (Desktop Offset 240px) -->
+        <div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
+            
+            <!-- Main Content Area -->
+            <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
+                <div class="w-full max-w-container-max mx-auto space-y-6">
 
-                <!-- Header Title Banner -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
-                    <div>
-                        <h2 class="font-headline-md text-2xl sm:text-headline-md text-on-surface uppercase tracking-wider">
-                            User Management
-                        </h2>
-                        <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
-                            Filter, inspect, and manage registered collectors across the platform.
-                        </p>
-                    </div>
-                </div>
+                    <!-- System Messages -->
+                    {% include 'adminpanel/includes/messages.html' %}
 
-                <!-- Filters & Search Controls -->
-                <form method="get" class="flex flex-col md:flex-row gap-4">
-                    <!-- Search Input -->
-                    <div class="relative flex-1">
-                        <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-xl">
-                            search
-                        </span>
-                        <input
-                            type="text"
-                            name="search"
-                            value="{{ search }}"
-                            placeholder="Search by User ID, Name, or Email..."
-                            class="custom-input w-full bg-surface-container/60 text-on-surface pl-11 pr-4 py-2.5 rounded-md border border-primary/15 text-sm transition-all placeholder:text-on-surface-variant/50"
-                        />
-                    </div>
-
-                    <!-- Status Filter -->
-                    <div class="relative min-w-[180px]">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-lg">
-                            filter_alt
-                        </span>
-                        <select
-                            name="status"
-                            onchange="this.form.submit()"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface pl-10 pr-8 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps appearance-none cursor-pointer"
-                        >
-                            <option value="all" {% if status == "all" %}selected{% endif %}>STATUS: ALL</option>
-                            <option value="active" {% if status == "active" %}selected{% endif %}>ACTIVE</option>
-                            <option value="inactive" {% if status == "inactive" %}selected{% endif %}>INACTIVE</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 pointer-events-none text-md">
-                            expand_more
-                        </span>
-                    </div>
-
-                    <!-- Sorting Select -->
-                    <div class="relative min-w-[180px]">
-                        <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-lg">
-                            swap_vert
-                        </span>
-                        <select
-                            name="sort"
-                            onchange="this.form.submit()"
-                            class="custom-input w-full bg-surface-container/60 text-on-surface pl-10 pr-8 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps appearance-none cursor-pointer"
-                        >
-                            <option value="newest" {% if sort == "newest" %}selected{% endif %}>NEWEST FIRST</option>
-                            <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>OLDEST FIRST</option>
-                            <option value="a-z" {% if sort == "a-z" %}selected{% endif %}>NAME: A → Z</option>
-                        </select>
-                        <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 pointer-events-none text-md">
-                            expand_more
-                        </span>
-                    </div>
-                </form>
-
-                <!-- Customer Accounts Table Container -->
-                <div class="glass-card rounded-lg overflow-hidden flex flex-col">
-                    <div class="overflow-x-auto custom-scrollbar flex-1">
-                        <table class="w-full min-w-[750px] text-left border-collapse">
-                            <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
-                                <tr>
-                                    <th class="py-4 px-6">User ID</th>
-                                    <th class="py-4 px-6">Name</th>
-                                    <th class="py-4 px-6">Email</th>
-                                    <th class="py-4 px-6">Joined Date</th>
-                                    <th class="py-4 px-6 text-center">Orders</th>
-                                    <th class="py-4 px-6 text-center">Status</th>
-                                    <th class="py-4 px-6 text-center">Actions</th>
-                                </tr>
-                            </thead>
-
-                            <tbody class="divide-y divide-primary/5 text-xs">
-                            {% for user in page_obj %}
-                                <tr class="hover:bg-primary/5 transition-all">
-                                    <td class="py-4 px-6 font-label-caps text-primary/80">
-                                        #WV-{{ user.id }}
-                                    </td>
-
-                                    <td class="py-4 px-6">
-                                        <div class="flex items-center gap-3">
-                                            <div class="w-9 h-9 rounded-full bg-surface-variant/80 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary font-label-caps">
-                                                {{ user.username|slice:":2"|upper }}
-                                            </div>
-                                            <div class="font-medium text-on-surface">
-                                                {{ user.full_name|default:user.username }}
-                                            </div>
-                                        </div>
-                                    </td>
-
-                                    <td class="py-4 px-6 text-on-surface-variant">
-                                        {{ user.email }}
-                                    </td>
-
-                                    <td class="py-4 px-6 text-on-surface-variant">
-                                        {{ user.date_joined|date:"M d, Y" }}
-                                    </td>
-
-                                    <td class="py-4 px-6 text-center">
-                                        <span class="inline-block bg-surface-container/80 text-primary border border-primary/10 font-mono text-xs px-2.5 py-1 rounded-sm">
-                                            {{ user.total_orders|stringformat:"02d" }}
-                                        </span>
-                                    </td>
-
-                                    <td class="py-4 px-6 text-center">
-                                        {% if user.is_active %}
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-label-caps">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>ACTIVE
-                                            </span>
-                                        {% else %}
-                                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 font-label-caps">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>INACTIVE
-                                            </span>
-                                        {% endif %}
-                                    </td>
-
-                                    <td class="py-4 px-6 text-center">
-                                        <a
-                                            href="{% url 'view_user' user.id %}"
-                                            class="inline-flex items-center justify-center border border-primary/30 hover:border-primary hover:bg-primary hover:text-on-primary text-primary text-[10px] font-label-caps font-bold px-4 py-1.5 rounded-sm transition-all tracking-wider"
-                                        >
-                                            VIEW USER
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% empty %}
-                                <tr>
-                                    <td colspan="7" class="py-16 text-center">
-                                        <div class="flex flex-col items-center justify-center">
-                                            <span class="material-symbols-outlined text-5xl text-primary/30 mb-3">
-                                                person_off
-                                            </span>
-                                            <p class="text-primary font-label-caps font-bold text-sm tracking-widest uppercase mb-1">
-                                                NO USERS FOUND
-                                            </p>
-                                            <p class="text-on-surface-variant text-xs">
-                                                {% if search %}No results match "{{ search }}". Try a different search term.{% else %}No customer accounts registered yet.{% endif %}
-                                            </p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <Pagination Footer >
-                    <div class="border-t border-primary/10 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant bg-surface-container-lowest/40">
+                    <!-- Header Title Banner -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
                         <div>
-                            Showing <span class="text-on-surface font-medium">{{ page_obj.start_index }}</span> to <span class="text-on-surface font-medium">{{ page_obj.end_index }}</span> of <span class="text-on-surface font-medium">{{ page_obj.paginator.count }}</span> Users
-                        </div>
-
-                        <div class="flex items-center gap-1 font-mono">
-                            {% if page_obj.has_previous %}
-                                <a
-                                    href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
-                                    class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
-                                >‹</a>
-                            {% endif %}
-
-                            {% for num in page_obj.paginator.page_range %}
-                                {% if page_obj.number == num %}
-                                    <span class="w-8 h-8 rounded bg-primary text-on-primary font-bold flex items-center justify-center neon-glow-gold font-label-caps">
-                                        {{ num|stringformat:"02d" }}
-                                    </span>
-                                {% elif num <= 3 or num == page_obj.paginator.num_pages %}
-                                    <a
-                                        href="?page={{ num }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
-                                        class="w-8 h-8 rounded border border-primary/15 flex items-center justify-center hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-colors font-label-caps"
-                                    >{{ num|stringformat:"02d" }}</a>
-                                {% elif num == 4 %}
-                                    <span class="px-2 text-on-surface-variant/40">...</span>
-                                {% endif %}
-                            {% endfor %}
-
-                            {% if page_obj.has_next %}
-                                <a
-                                    href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
-                                    class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
-                                >›</a>
-                            {% endif %}
+                            <h2 class="text-[#f2ca50] font-headline-md text-2xl sm:text-headline-md text-on-surface uppercase tracking-wider">
+                                User Management
+                            </h2>
+                            <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
+                                Filter, inspect, and manage registered collectors across the platform.
+                            </p>
                         </div>
                     </div>
-                </div>
 
-            </div>
-        </main>
+                    <!-- Filters & Search Controls -->
+                    <form method="get" class="flex flex-col md:flex-row gap-4">
+                        <!-- Search Input -->
+                        <div class="relative flex-1">
+                            <span class="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-xl">
+                                search
+                            </span>
+                            <input
+                                type="text"
+                                name="search"
+                                value="{{ search }}"
+                                placeholder="Search by User ID, Name, or Email..."
+                                class="custom-input w-full bg-surface-container/60 text-on-surface pl-11 pr-4 py-2.5 rounded-md border border-primary/15 text-sm transition-all placeholder:text-on-surface-variant/50"
+                            />
+                        </div>
+
+                        <!-- Status Filter -->
+                        <div class="relative min-w-[180px]">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-lg">
+                                filter_alt
+                            </span>
+                            <select
+                                name="status"
+                                onchange="this.form.submit()"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface pl-10 pr-8 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps appearance-none cursor-pointer"
+                            >
+                                <option value="all" {% if status == "all" %}selected{% endif %}>STATUS: ALL</option>
+                                <option value="active" {% if status == "active" %}selected{% endif %}>ACTIVE</option>
+                                <option value="inactive" {% if status == "inactive" %}selected{% endif %}>INACTIVE</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 pointer-events-none text-md">
+                                expand_more
+                            </span>
+                        </div>
+
+                        <!-- Sorting Select -->
+                        <div class="relative min-w-[180px]">
+                            <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 text-lg">
+                                swap_vert
+                            </span>
+                            <select
+                                name="sort"
+                                onchange="this.form.submit()"
+                                class="custom-input w-full bg-surface-container/60 text-on-surface pl-10 pr-8 py-2.5 rounded-md border border-primary/15 text-xs font-label-caps appearance-none cursor-pointer"
+                            >
+                                <option value="newest" {% if sort == "newest" %}selected{% endif %}>NEWEST FIRST</option>
+                                <option value="oldest" {% if sort == "oldest" %}selected{% endif %}>OLDEST FIRST</option>
+                                <option value="a-z" {% if sort == "a-z" %}selected{% endif %}>NAME: A → Z</option>
+                            </select>
+                            <span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/70 pointer-events-none text-md">
+                                expand_more
+                            </span>
+                        </div>
+                    </form>
+
+                    <!-- Customer Accounts Table Container -->
+                    <div class="glass-card rounded-lg overflow-hidden flex flex-col">
+                        <div class="overflow-x-auto custom-scrollbar flex-1">
+                            <table class="w-full min-w-[750px] text-left border-collapse">
+                                <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                    <tr>
+                                        <th class="py-4 px-6">User ID</th>
+                                        <th class="py-4 px-6">Name</th>
+                                        <th class="py-4 px-6">Email</th>
+                                        <th class="py-4 px-6">Joined Date</th>
+                                        <th class="py-4 px-6 text-center">Orders</th>
+                                        <th class="py-4 px-6 text-center">Status</th>
+                                        <th class="py-4 px-6 text-center">Actions</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody class="divide-y divide-primary/5 text-xs">
+                                {% for user in page_obj %}
+                                    <tr class="hover:bg-primary/5 transition-all">
+                                        <td class="py-4 px-6 font-label-caps text-primary/80">
+                                            #WV-{{ user.id }}
+                                        </td>
+
+                                        <td class="py-4 px-6">
+                                            <div class="flex items-center gap-3">
+                                                <div class="w-9 h-9 rounded-full bg-surface-variant/80 border border-primary/20 flex items-center justify-center text-xs font-bold text-primary font-label-caps">
+                                                    {{ user.username|slice:":2"|upper }}
+                                                </div>
+                                                <div class="font-medium text-on-surface">
+                                                    {{ user.full_name|default:user.username }}
+                                                </div>
+                                            </div>
+                                        </td>
+
+                                        <td class="py-4 px-6 text-on-surface-variant">
+                                            {{ user.email }}
+                                        </td>
+
+                                        <td class="py-4 px-6 text-on-surface-variant">
+                                            {{ user.date_joined|date:"M d, Y" }}
+                                        </td>
+
+                                        <td class="py-4 px-6 text-center">
+                                            <span class="inline-block bg-surface-container/80 text-primary border border-primary/10 font-mono text-xs px-2.5 py-1 rounded-sm">
+                                                {{ user.total_orders|stringformat:"02d" }}
+                                            </span>
+                                        </td>
+
+                                        <td class="py-4 px-6 text-center">
+                                            {% if user.is_active %}
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-label-caps">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>ACTIVE
+                                                </span>
+                                            {% else %}
+                                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-bold tracking-wider bg-rose-500/10 text-rose-400 border border-rose-500/20 font-label-caps">
+                                                    <span class="w-1.5 h-1.5 rounded-full bg-rose-400"></span>INACTIVE
+                                                </span>
+                                            {% endif %}
+                                        </td>
+
+                                        <td class="py-4 px-6 text-center">
+                                            <a
+                                                href="{% url 'view_user' user.id %}"
+                                                class="inline-flex items-center justify-center border border-primary/30 hover:border-primary hover:bg-primary hover:text-on-primary text-primary text-[10px] font-label-caps font-bold px-4 py-1.5 rounded-sm transition-all tracking-wider"
+                                            >
+                                                VIEW USER
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% empty %}
+                                    <tr>
+                                        <td colspan="7" class="py-16 text-center">
+                                            <div class="flex flex-col items-center justify-center">
+                                                <span class="material-symbols-outlined text-5xl text-primary/30 mb-3">
+                                                    person_off
+                                                </span>
+                                                <p class="text-primary font-label-caps font-bold text-sm tracking-widest uppercase mb-1">
+                                                    NO USERS FOUND
+                                                </p>
+                                                <p class="text-on-surface-variant text-xs">
+                                                    {% if search %}No results match "{{ search }}". Try a different search term.{% else %}No customer accounts registered yet.{% endif %}
+                                                </p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="border-t border-primary/10 px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-on-surface-variant bg-surface-container-lowest/40">
+                            <div>
+                                Showing <span class="text-on-surface font-medium">{{ page_obj.start_index }}</span> to <span class="text-on-surface font-medium">{{ page_obj.end_index }}</span> of <span class="text-on-surface font-medium">{{ page_obj.paginator.count }}</span> Users
+                            </div>
+
+                            <div class="flex items-center gap-1 font-mono">
+                                {% if page_obj.has_previous %}
+                                    <a
+                                        href="?page={{ page_obj.previous_page_number }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
+                                        class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
+                                    >‹</a>
+                                {% endif %}
+
+                                {% for num in page_obj.paginator.page_range %}
+                                    {% if page_obj.number == num %}
+                                        <span class="w-8 h-8 rounded bg-primary text-on-primary font-bold flex items-center justify-center neon-glow-gold font-label-caps">
+                                            {{ num|stringformat:"02d" }}
+                                        </span>
+                                    {% elif num <= 3 or num == page_obj.paginator.num_pages %}
+                                        <a
+                                            href="?page={{ num }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
+                                            class="w-8 h-8 rounded border border-primary/15 flex items-center justify-center hover:bg-primary/10 text-on-surface-variant hover:text-primary transition-colors font-label-caps"
+                                        >{{ num|stringformat:"02d" }}</a>
+                                    {% elif num == 4 %}
+                                        <span class="px-2 text-on-surface-variant/40">...</span>
+                                    {% endif %}
+                                {% endfor %}
+
+                                {% if page_obj.has_next %}
+                                    <a
+                                        href="?page={{ page_obj.next_page_number }}&search={{ search }}&status={{ status }}&sort={{ sort }}"
+                                        class="w-8 h-8 rounded border border-primary/20 flex items-center justify-center hover:bg-primary/10 hover:text-primary transition-colors text-base"
+                                    >›</a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </main>
+        </div>
     </div>
 
 </body>

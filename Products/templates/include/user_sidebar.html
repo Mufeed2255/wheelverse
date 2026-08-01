@@ -1,5 +1,5 @@
 <style>
-    /* Mobile Black Overlay (z-index 9998: Topbar-നേക്കാൾ മുകളിൽ നിൽക്കും) */
+
     .sidebar-overlay {
         position: fixed;
         inset: 0;
@@ -26,11 +26,30 @@
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        overflow-y: auto;
         transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-sizing: border-box;
     }
 
-    /* Desktop Adjustments (Topbar-ന് താഴെ കൃത്യം space വിട്ട് നിൽക്കാൻ) */
+    /* Scrollable Container Fix */
+    .sidebar-scroll-content {
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0; /* Essential for flexbox scrolling */
+        -webkit-overflow-scrolling: touch; /* Smooth touch scroll for iOS */
+        touch-action: pan-y;
+        padding: 1.5rem;
+    }
+
+    /* Custom Scrollbar Hide but Keep Functionality */
+    .sidebar-scroll-content::-webkit-scrollbar { 
+        display: none; 
+    }
+    .sidebar-scroll-content { 
+        -ms-overflow-style: none; 
+        scrollbar-width: none; 
+    }
+
+    /* Desktop Adjustments */
     @media (min-width: 1025px) {
         .user-sidebar-drawer {
             top: 80px; /* Topbar height space */
@@ -39,13 +58,14 @@
         }
     }
 
-    /* Mobile Slide Out (Topbar-ന് മുകളിലൂടെ Full Height Slide ആവാൻ) */
+    /* Mobile Slide Out & Dynamic Height Fix */
     @media (max-width: 1024px) {
         .user-sidebar-drawer {
             top: 0;
             bottom: 0;
             height: 100vh;
-            z-index: 9999; /* Topbar-നേക്കാൾ മുകളിലായി കാണപ്പെടാൻ */
+            height: 100dvh; /* Mobile browser viewport fix */
+            z-index: 9999;
             transform: translateX(-100%);
             box-shadow: 10px 0 30px rgba(0, 0, 0, 0.8);
         }
@@ -54,10 +74,6 @@
             transform: translateX(0);
         }
     }
-
-    /* Custom Scrollbar Hide */
-    .user-sidebar-drawer::-webkit-scrollbar { display: none; }
-    .user-sidebar-drawer { -ms-overflow-style: none; scrollbar-width: none; }
 </style>
 
 <!-- Topbar Space അഡ്ജസ്റ്റ് ചെയ്യാൻ Body-ൽ Class നൽകുന്നു -->
@@ -70,7 +86,8 @@
 
 <!-- User Sidebar Drawer -->
 <aside id="userSidebar" class="user-sidebar-drawer">
-    <div class="p-6">
+    <!-- Scrollable Main Content Section -->
+    <div class="sidebar-scroll-content">
         <!-- Close Button & Logo Section for Mobile Slide-out Header -->
         <div class="flex items-center justify-between lg:hidden pb-4 mb-4 border-b border-white/10">
             <div class="font-orbitron font-bold text-lg text-primary">
@@ -116,8 +133,11 @@
                 Profile Info
             </a>
 
-            <a href="{% url 'my_orders'%}"
-               class="flex items-center gap-4 px-4 py-3 font-orbitron text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+            <a href="{% url 'my_orders' %}"
+               class="flex items-center gap-4 px-4 py-3 font-orbitron text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all
+               {% if request.resolver_match.url_name == 'my_orders' %}
+                   text-primary bg-[#231f14] border-l-2 border-primary
+               {% endif %}">
                 <span class="material-symbols-outlined text-lg">inventory_2</span>
                 My Garage Orders
             </a>
@@ -134,7 +154,12 @@
             </a>
 
             <a href="{% url 'wallet' %}"
-               class="flex items-center gap-4 px-4 py-3 font-orbitron text-xs tracking-widest text-on-surface-variant hover:text-primary transition-all">
+               class="flex items-center gap-4 px-4 py-3 font-orbitron text-xs tracking-widest transition-all
+               {% if request.resolver_match.url_name == 'wallet' %}
+                   text-primary bg-[#231f14] border-l-2 border-primary
+               {% else %}
+                   text-on-surface-variant hover:text-primary
+               {% endif %}">
                 <span class="material-symbols-outlined text-lg">account_balance_wallet</span>
                 Wallet
             </a>
@@ -152,8 +177,8 @@
         </nav>
     </div>
 
-    <!-- Bottom Footer Links -->
-    <div class="p-6 border-t border-white/5">
+    <!-- Fixed Bottom Footer Links -->
+    <div class="p-6 border-t border-white/5 shrink-0">
         <div class="space-y-4 font-orbitron text-xs tracking-widest">
             <a href="{% url 'logout' %}" class="flex items-center gap-4 px-4 py-3 text-red-300 hover:text-red-500 transition">
                 <span class="material-symbols-outlined">logout</span>

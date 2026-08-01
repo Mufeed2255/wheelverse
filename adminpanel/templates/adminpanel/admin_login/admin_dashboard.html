@@ -114,498 +114,502 @@
     </style>
 </head>
 
-<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex bg-background">
+<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex flex-col bg-background">
 
-    <!-- Fixed Topbar Header (Included directly without wrapper tag collision) -->
+    <!-- Fixed Topbar Header -->
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    <!-- Sidebar Includes -->
-    {% include 'adminpanel/includes/admin_sidebar.html' %}
+    <!-- Container for Sidebar and Main Content -->
+    <div class="flex flex-1 w-full h-[calc(100vh-70px)] mt-[70px] overflow-hidden relative">
 
-    <!-- Main Content Layout (Desktop Offset 240px & Top Offset 70px for Topbar) -->
-    <div class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
+        <!-- Sidebar Includes -->
+        {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-        <!-- Main Dashboard View Area -->
-        <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar pt-[70px] p-4 sm:p-6 lg:p-8">
+        <!-- Main Content Layout (Desktop Offset 240px) -->
+        <div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
 
-            <div class="w-full max-w-container-max mx-auto space-y-6 sm:space-y-8">
+            <!-- Main Dashboard View Area -->
+            <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8">
 
-                <!-- System Messages -->
-                {% include 'adminpanel/includes/messages.html' %}
+                <div class="w-full max-w-container-max mx-auto space-y-6 sm:space-y-8">
 
-                <!-- Dashboard Header Banner -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
-                    <div>
-                        <h2 class="font-headline-md text-2xl sm:text-headline-md text-on-surface">
-                            Welcome, Admin
-                        </h2>
-                        <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
-                            Here is what is happening with your store today.
-                        </p>
-                    </div>
+                    <!-- System Messages -->
+                    {% include 'adminpanel/includes/messages.html' %}
 
-                    <div class="flex flex-wrap items-center gap-3">
-                        <a
-                            href="{% url 'sales_report' %}"
-                            class="px-4 sm:px-6 py-2.5 border border-primary/30 text-primary font-label-caps text-label-caps hover:bg-primary/10 transition-all text-center rounded-sm"
-                        >
-                            View Sales Report
-                        </a>
-
-                        <a
-                            href="{% url 'admin_orders' %}"
-                            class="px-4 sm:px-6 py-2.5 bg-primary text-on-primary font-label-caps text-label-caps font-bold neon-glow-gold hover:bg-primary/90 transition-all text-center rounded-sm"
-                        >
-                            View Orders
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Dashboard Summary Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-
-                    <!-- Total Customers -->
-                    <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+                    <!-- Dashboard Header Banner -->
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-primary/10 pb-4">
                         <div>
-                            <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
-                                Total Customers
-                            </p>
-
-                            <div class="flex items-center justify-between mt-4">
-                                <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
-                                    {{ total_users }}
-                                </span>
-
-                                <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
-                                    groups
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
-                            <span class="material-symbols-outlined text-sm">
-                                person
-                            </span>
-                            <span>REGISTERED COLLECTORS</span>
-                        </div>
-                    </div>
-
-                    <!-- Active Users -->
-                    <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
-                                Active Users
-                            </p>
-
-                            <div class="flex items-center justify-between mt-4">
-                                <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
-                                    {{ active_users }}
-                                </span>
-
-                                <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
-                                    person_check
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
-                            <span class="material-symbols-outlined text-sm">
-                                check_circle
-                            </span>
-                            <span>ACTIVE CUSTOMER ACCOUNTS</span>
-                        </div>
-                    </div>
-
-                    <!-- Inactive Users -->
-                    <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
-                                Inactive Users
-                            </p>
-
-                            <div class="flex items-center justify-between mt-4">
-                                <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
-                                    {{ inactive_users }}
-                                </span>
-
-                                <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
-                                    person_off
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
-                            <span class="material-symbols-outlined text-sm">
-                                block
-                            </span>
-                            <span>DEACTIVATED ACCOUNTS</span>
-                        </div>
-                    </div>
-
-                    <!-- Total Orders -->
-                    <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
-                        <div>
-                            <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
-                                Total Orders
-                            </p>
-
-                            <div class="flex items-center justify-between mt-4">
-                                <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
-                                    {{ total_orders }}
-                                </span>
-
-                                <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
-                                    receipt_long
-                                </span>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 pt-3 border-t border-primary/10 flex items-center justify-between text-[10px] sm:text-[11px] font-medium">
-                            <span class="text-green-400 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                                {{ completed_orders }} delivered
-                            </span>
-                            <span class="text-amber-400 flex items-center gap-1">
-                                <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
-                                {{ pending_orders }} active
-                            </span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Performance Charts Section -->
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-                    <!-- Main Market Performance Chart -->
-                    <div class="xl:col-span-2 glass-card p-5 sm:p-6 lg:p-8 rounded-lg flex flex-col justify-between">
-                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                            <div>
-                                <h3 class="font-headline-md text-lg sm:text-xl text-on-surface">
-                                    {{ performance_title }}
-                                </h3>
-
-                                <p class="text-on-surface-variant text-xs sm:text-sm mt-0.5">
-                                    {{ performance_subtitle }}
-                                </p>
-                            </div>
-
-                            <div class="flex items-center gap-2 self-start sm:self-auto">
-                                <a
-                                    href="?performance=weekly"
-                                    class="px-3 py-1.5 rounded text-xs font-label-caps transition-all
-                                    {% if performance_period == 'weekly' %}
-                                        bg-primary text-on-primary font-bold
-                                    {% else %}
-                                        bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20
-                                    {% endif %}"
-                                >
-                                    Weekly
-                                </a>
-
-                                <a
-                                    href="?performance=monthly"
-                                    class="px-3 py-1.5 rounded text-xs font-label-caps transition-all
-                                    {% if performance_period == 'monthly' %}
-                                        bg-primary text-on-primary font-bold
-                                    {% else %}
-                                        bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20
-                                    {% endif %}"
-                                >
-                                    Monthly
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="chart-container">
-                            <canvas id="marketPerformanceChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Category Breakdown Chart -->
-                    <div class="glass-card p-5 sm:p-6 lg:p-8 rounded-lg flex flex-col justify-between">
-                        <div class="mb-6">
-                            <h3 class="font-label-caps text-xs sm:text-sm text-on-surface-variant uppercase tracking-widest mb-1">
-                                Revenue by Category
-                            </h3>
-
-                            <p class="text-[10px] text-primary/70 uppercase tracking-wider">
-                                Delivered sales — last 30 days
+                            <h2 class="font-headline-md text-2xl sm:text-headline-md text-on-surface">
+                                Welcome, Admin
+                            </h2>
+                            <p class="text-xs sm:text-sm text-on-surface-variant font-body-md mt-1">
+                                Here is what is happening with your store today.
                             </p>
                         </div>
 
-                        <div class="chart-container">
-                            <canvas id="categoryPerformanceChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Best Sellers Grid Section (Top Products & Top Categories) -->
-                <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
-
-                    <!-- Top 10 Best Selling Products -->
-                    <div class="glass-card rounded-lg overflow-hidden flex flex-col">
-                        <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center">
-                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
-                                Top 10 Best Selling Products
-                            </h3>
-                        </div>
-
-                        <div class="overflow-x-auto custom-scrollbar flex-1">
-                            <table class="w-full min-w-[450px] text-left border-collapse">
-                                <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
-                                    <tr>
-                                        <th class="px-5 py-3.5 w-16">Rank</th>
-                                        <th class="px-5 py-3.5">Product</th>
-                                        <th class="px-5 py-3.5 text-center">Sold Qty</th>
-                                        <th class="px-5 py-3.5 text-right">Revenue</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody class="divide-y divide-primary/5 text-xs">
-                                {% for product in best_selling_products %}
-                                    <tr class="hover:bg-primary/5 transition-all">
-                                        <td class="px-5 py-3.5 font-label-caps text-primary/80">
-                                            #{{ forloop.counter }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 font-medium text-on-surface">
-                                            {{ product.variant__product__name }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 text-center font-semibold text-on-surface-variant">
-                                            {{ product.total_quantity }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 text-right font-semibold text-primary">
-                                            ₹{{ product.total_revenue }}
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">
-                                            No sales recorded yet.
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Top 10 Best Selling Categories -->
-                    <div class="glass-card rounded-lg overflow-hidden flex flex-col">
-                        <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center">
-                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
-                                Top 10 Best Selling Categories
-                            </h3>
-                        </div>
-
-                        <div class="overflow-x-auto custom-scrollbar flex-1">
-                            <table class="w-full min-w-[450px] text-left border-collapse">
-                                <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
-                                    <tr>
-                                        <th class="px-5 py-3.5 w-16">Rank</th>
-                                        <th class="px-5 py-3.5">Category</th>
-                                        <th class="px-5 py-3.5 text-center">Sold Qty</th>
-                                        <th class="px-5 py-3.5 text-right">Revenue</th>
-                                    </tr>
-                                </thead>
-
-                                <tbody class="divide-y divide-primary/5 text-xs">
-                                {% for category in best_selling_categories %}
-                                    <tr class="hover:bg-primary/5 transition-all">
-                                        <td class="px-5 py-3.5 font-label-caps text-primary/80">
-                                            #{{ forloop.counter }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 font-medium text-on-surface">
-                                            {{ category.variant__product__category__name }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 text-center font-semibold text-on-surface-variant">
-                                            {{ category.total_quantity }}
-                                        </td>
-
-                                        <td class="px-5 py-3.5 text-right font-semibold text-primary">
-                                            ₹{{ category.total_revenue }}
-                                        </td>
-                                    </tr>
-                                {% empty %}
-                                    <tr>
-                                        <td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">
-                                            No sales recorded yet.
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- Recent Activity Section -->
-                <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
-
-                    <!-- Recent Orders Table -->
-                    <div class="xl:col-span-2 glass-card rounded-lg overflow-hidden flex flex-col">
-                        <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center gap-4">
-                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
-                                Recent Order Table
-                            </h3>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <a
+                                href="{% url 'sales_report' %}"
+                                class="px-4 sm:px-6 py-2.5 border border-primary/30 text-primary font-label-caps text-label-caps hover:bg-primary/10 transition-all text-center rounded-sm"
+                            >
+                                View Sales Report
+                            </a>
 
                             <a
                                 href="{% url 'admin_orders' %}"
-                                class="text-[11px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider font-label-caps"
+                                class="px-4 sm:px-6 py-2.5 bg-primary text-on-primary font-label-caps text-label-caps font-bold neon-glow-gold hover:bg-primary/90 transition-all text-center rounded-sm"
                             >
-                                View Full Ledger &rarr;
+                                View Orders
                             </a>
                         </div>
+                    </div>
 
-                        <div class="overflow-x-auto custom-scrollbar flex-1">
-                            <table class="w-full min-w-[600px] text-left border-collapse">
-                                <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
-                                    <tr>
-                                        <th class="px-5 py-3.5">Transaction ID</th>
-                                        <th class="px-5 py-3.5">Collector</th>
-                                        <th class="px-5 py-3.5">Asset Model</th>
-                                        <th class="px-5 py-3.5">Amount</th>
-                                        <th class="px-5 py-3.5">Status</th>
-                                        <th class="px-5 py-3.5">Timestamp</th>
-                                    </tr>
-                                </thead>
+                    <!-- Dashboard Summary Cards -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
 
-                                <tbody class="divide-y divide-primary/5 text-xs">
-                                    {% for order in recent_orders %}
+                        <!-- Total Customers -->
+                        <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+                            <div>
+                                <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                                    Total Customers
+                                </p>
+
+                                <div class="flex items-center justify-between mt-4">
+                                    <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
+                                        {{ total_users }}
+                                    </span>
+
+                                    <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
+                                        groups
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
+                                <span class="material-symbols-outlined text-sm">
+                                    person
+                                </span>
+                                <span>REGISTERED COLLECTORS</span>
+                            </div>
+                        </div>
+
+                        <!-- Active Users -->
+                        <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+                            <div>
+                                <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                                    Active Users
+                                </p>
+
+                                <div class="flex items-center justify-between mt-4">
+                                    <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
+                                        {{ active_users }}
+                                    </span>
+
+                                    <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
+                                        person_check
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
+                                <span class="material-symbols-outlined text-sm">
+                                    check_circle
+                                </span>
+                                <span>ACTIVE CUSTOMER ACCOUNTS</span>
+                            </div>
+                        </div>
+
+                        <!-- Inactive Users -->
+                        <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+                            <div>
+                                <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                                    Inactive Users
+                                </p>
+
+                                <div class="flex items-center justify-between mt-4">
+                                    <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
+                                        {{ inactive_users }}
+                                    </span>
+
+                                    <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
+                                        person_off
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-primary/10 flex items-center gap-1.5 text-[10px] sm:text-[11px] text-primary">
+                                <span class="material-symbols-outlined text-sm">
+                                    block
+                                </span>
+                                <span>DEACTIVATED ACCOUNTS</span>
+                            </div>
+                        </div>
+
+                        <!-- Total Orders -->
+                        <div class="glass-card p-5 sm:p-6 rounded-lg group hover:border-primary/50 transition-all duration-300 flex flex-col justify-between">
+                            <div>
+                                <p class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest">
+                                    Total Orders
+                                </p>
+
+                                <div class="flex items-center justify-between mt-4">
+                                    <span class="font-display-lg text-3xl sm:text-4xl text-primary font-bold">
+                                        {{ total_orders }}
+                                    </span>
+
+                                    <span class="material-symbols-outlined text-primary/40 text-3xl sm:text-4xl">
+                                        receipt_long
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-3 border-t border-primary/10 flex items-center justify-between text-[10px] sm:text-[11px] font-medium">
+                                <span class="text-green-400 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                                    {{ completed_orders }} delivered
+                                </span>
+                                <span class="text-amber-400 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                                    {{ pending_orders }} active
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Performance Charts Section -->
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                        <!-- Main Market Performance Chart -->
+                        <div class="xl:col-span-2 glass-card p-5 sm:p-6 lg:p-8 rounded-lg flex flex-col justify-between">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h3 class="font-headline-md text-lg sm:text-xl text-on-surface">
+                                        {{ performance_title }}
+                                    </h3>
+
+                                    <p class="text-on-surface-variant text-xs sm:text-sm mt-0.5">
+                                        {{ performance_subtitle }}
+                                    </p>
+                                </div>
+
+                                <div class="flex items-center gap-2 self-start sm:self-auto">
+                                    <a
+                                        href="?performance=weekly"
+                                        class="px-3 py-1.5 rounded text-xs font-label-caps transition-all
+                                        {% if performance_period == 'weekly' %}
+                                            bg-primary text-on-primary font-bold
+                                        {% else %}
+                                            bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20
+                                        {% endif %}"
+                                    >
+                                        Weekly
+                                    </a>
+
+                                    <a
+                                        href="?performance=monthly"
+                                        class="px-3 py-1.5 rounded text-xs font-label-caps transition-all
+                                        {% if performance_period == 'monthly' %}
+                                            bg-primary text-on-primary font-bold
+                                        {% else %}
+                                            bg-primary/10 text-primary border border-primary/20 hover:bg-primary/20
+                                        {% endif %}"
+                                    >
+                                        Monthly
+                                    </a>
+                                </div>
+                            </div>
+
+                            <div class="chart-container">
+                                <canvas id="marketPerformanceChart"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Category Breakdown Chart -->
+                        <div class="glass-card p-5 sm:p-6 lg:p-8 rounded-lg flex flex-col justify-between">
+                            <div class="mb-6">
+                                <h3 class="font-label-caps text-xs sm:text-sm text-on-surface-variant uppercase tracking-widest mb-1">
+                                    Revenue by Category
+                                </h3>
+
+                                <p class="text-[10px] text-primary/70 uppercase tracking-wider">
+                                    Delivered sales — last 30 days
+                                </p>
+                            </div>
+
+                            <div class="chart-container">
+                                <canvas id="categoryPerformanceChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Best Sellers Grid Section (Top Products & Top Categories) -->
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+                        <!-- Top 10 Best Selling Products -->
+                        <div class="glass-card rounded-lg overflow-hidden flex flex-col">
+                            <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center">
+                                <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
+                                    Top 10 Best Selling Products
+                                </h3>
+                            </div>
+
+                            <div class="overflow-x-auto custom-scrollbar flex-1">
+                                <table class="w-full min-w-[450px] text-left border-collapse">
+                                    <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                        <tr>
+                                            <th class="px-5 py-3.5 w-16">Rank</th>
+                                            <th class="px-5 py-3.5">Product</th>
+                                            <th class="px-5 py-3.5 text-center">Sold Qty</th>
+                                            <th class="px-5 py-3.5 text-right">Revenue</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y divide-primary/5 text-xs">
+                                    {% for product in best_selling_products %}
                                         <tr class="hover:bg-primary/5 transition-all">
-                                            <td class="px-5 py-4 font-medium">
-                                                <a
-                                                    href="{% url 'admin_order_detail' order.id %}"
-                                                    class="font-label-caps text-primary hover:underline"
-                                                >
-                                                    {{ order.order_id }}
-                                                </a>
+                                            <td class="px-5 py-3.5 font-label-caps text-primary/80">
+                                                #{{ forloop.counter }}
                                             </td>
 
-                                            <td class="px-5 py-4 text-on-surface">
-                                                {{ order.dashboard_customer_name }}
+                                            <td class="px-5 py-3.5 font-medium text-on-surface">
+                                                {{ product.variant__product__name }}
                                             </td>
 
-                                            <td class="px-5 py-4 text-on-surface-variant max-w-[180px] truncate">
-                                                {{ order.dashboard_product_names }}
+                                            <td class="px-5 py-3.5 text-center font-semibold text-on-surface-variant">
+                                                {{ product.total_quantity }}
                                             </td>
 
-                                            <td class="px-5 py-4 font-semibold text-on-surface">
-                                                ₹{{ order.total_amount|floatformat:2 }}
-                                            </td>
-
-                                            <td class="px-5 py-4">
-                                                {% if order.status == "DELIVERED" %}
-                                                    <span class="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm text-[9px] uppercase font-bold inline-block">
-                                                        Delivered
-                                                    </span>
-
-                                                {% elif order.status == "CANCELLED" or order.status == "RETURNED" %}
-                                                    <span class="px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-sm text-[9px] uppercase font-bold inline-block">
-                                                        {{ order.get_status_display }}
-                                                    </span>
-
-                                                {% elif order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
-                                                    <span class="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-sm text-[9px] uppercase font-bold inline-block">
-                                                        {{ order.get_status_display }}
-                                                    </span>
-
-                                                {% else %}
-                                                    <span class="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-sm text-[9px] uppercase font-bold inline-block">
-                                                        {{ order.get_status_display }}
-                                                    </span>
-                                                {% endif %}
-                                            </td>
-
-                                            <td class="px-5 py-4 text-on-surface-variant text-[11px]">
-                                                <div>{{ order.ordered_at|date:"M d, Y" }}</div>
-                                                <div class="text-[9px] text-primary/50">
-                                                    {{ order.ordered_at|time:"h:i A" }}
-                                                </div>
+                                            <td class="px-5 py-3.5 text-right font-semibold text-primary">
+                                                ₹{{ product.total_revenue }}
                                             </td>
                                         </tr>
                                     {% empty %}
                                         <tr>
-                                            <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">
-                                                No orders have been placed yet.
+                                            <td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">
+                                                No sales recorded yet.
                                             </td>
                                         </tr>
                                     {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Recent Signups Widget -->
-                    <div class="glass-card rounded-lg p-5 sm:p-6 space-y-5 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest border-b border-primary/10 pb-4">
-                                Recent Customer Signups
-                            </h3>
-
-                            <div class="space-y-4 mt-4">
-                                {% for signup_user in recent_signups %}
-                                    <div class="flex items-center justify-between gap-3 group">
-                                        <div class="flex items-center gap-3 min-w-0">
-                                            <div class="w-10 h-10 rounded-full border border-primary/20 overflow-hidden bg-surface-variant flex-shrink-0 flex items-center justify-center">
-                                                {% if signup_user.profile_picture %}
-                                                    <img
-                                                        class="w-full h-full object-cover grayscale"
-                                                        src="{{ signup_user.profile_picture.url }}"
-                                                        alt="{{ signup_user.username }}"
-                                                    >
-                                                {% else %}
-                                                    <span class="font-label-caps text-xs text-primary">
-                                                        {{ signup_user.username|slice:":2"|upper }}
-                                                    </span>
-                                                {% endif %}
-                                            </div>
-
-                                            <div class="min-w-0">
-                                                <h4 class="font-label-caps text-xs text-on-surface truncate">
-                                                    {% if signup_user.get_full_name %}
-                                                        {{ signup_user.get_full_name }}
-                                                    {% else %}
-                                                        {{ signup_user.username }}
-                                                    {% endif %}
-                                                </h4>
-
-                                                <p class="text-[9px] text-primary/70 mt-0.5">
-                                                    Joined {{ signup_user.date_joined|date:"M d, Y" }}
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        <a
-                                            href="{% url 'view_user' signup_user.id %}"
-                                            class="text-[9px] font-label-caps text-on-surface-variant hover:text-primary transition-colors flex-shrink-0"
-                                        >
-                                            #WV-{{ signup_user.id }}
-                                        </a>
-                                    </div>
-                                {% empty %}
-                                    <div class="text-center py-8">
-                                        <span class="material-symbols-outlined text-primary/20 text-4xl">
-                                            person_off
-                                        </span>
-
-                                        <p class="text-[11px] text-on-surface-variant mt-2">
-                                            No customer signups yet.
-                                        </p>
-                                    </div>
-                                {% endfor %}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
+
+                        <!-- Top 10 Best Selling Categories -->
+                        <div class="glass-card rounded-lg overflow-hidden flex flex-col">
+                            <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center">
+                                <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
+                                    Top 10 Best Selling Categories
+                                </h3>
+                            </div>
+
+                            <div class="overflow-x-auto custom-scrollbar flex-1">
+                                <table class="w-full min-w-[450px] text-left border-collapse">
+                                    <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                        <tr>
+                                            <th class="px-5 py-3.5 w-16">Rank</th>
+                                            <th class="px-5 py-3.5">Category</th>
+                                            <th class="px-5 py-3.5 text-center">Sold Qty</th>
+                                            <th class="px-5 py-3.5 text-right">Revenue</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y divide-primary/5 text-xs">
+                                    {% for category in best_selling_categories %}
+                                        <tr class="hover:bg-primary/5 transition-all">
+                                            <td class="px-5 py-3.5 font-label-caps text-primary/80">
+                                                #{{ forloop.counter }}
+                                            </td>
+
+                                            <td class="px-5 py-3.5 font-medium text-on-surface">
+                                                {{ category.variant__product__category__name }}
+                                            </td>
+
+                                            <td class="px-5 py-3.5 text-center font-semibold text-on-surface-variant">
+                                                {{ category.total_quantity }}
+                                            </td>
+
+                                            <td class="px-5 py-3.5 text-right font-semibold text-primary">
+                                                ₹{{ category.total_revenue }}
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr>
+                                            <td colspan="4" class="px-6 py-8 text-center text-on-surface-variant">
+                                                No sales recorded yet.
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                     </div>
 
+                    <!-- Recent Activity Section -->
+                    <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+
+                        <!-- Recent Orders Table -->
+                        <div class="xl:col-span-2 glass-card rounded-lg overflow-hidden flex flex-col">
+                            <div class="p-5 sm:p-6 border-b border-primary/10 flex justify-between items-center gap-4">
+                                <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest">
+                                    Recent Order Table
+                                </h3>
+
+                                <a
+                                    href="{% url 'admin_orders' %}"
+                                    class="text-[11px] text-on-surface-variant hover:text-primary transition-colors uppercase tracking-wider font-label-caps"
+                                >
+                                    View Full Ledger &rarr;
+                                </a>
+                            </div>
+
+                            <div class="overflow-x-auto custom-scrollbar flex-1">
+                                <table class="w-full min-w-[600px] text-left border-collapse">
+                                    <thead class="bg-surface-variant/30 font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest border-b border-primary/10">
+                                        <tr>
+                                            <th class="px-5 py-3.5">Transaction ID</th>
+                                            <th class="px-5 py-3.5">Collector</th>
+                                            <th class="px-5 py-3.5">Asset Model</th>
+                                            <th class="px-5 py-3.5">Amount</th>
+                                            <th class="px-5 py-3.5">Status</th>
+                                            <th class="px-5 py-3.5">Timestamp</th>
+                                        </tr>
+                                    </thead>
+
+                                    <tbody class="divide-y divide-primary/5 text-xs">
+                                        {% for order in recent_orders %}
+                                            <tr class="hover:bg-primary/5 transition-all">
+                                                <td class="px-5 py-4 font-medium">
+                                                    <a
+                                                        href="{% url 'admin_order_detail' order.id %}"
+                                                        class="font-label-caps text-primary hover:underline"
+                                                    >
+                                                        {{ order.order_id }}
+                                                    </a>
+                                                </td>
+
+                                                <td class="px-5 py-4 text-on-surface">
+                                                    {{ order.dashboard_customer_name }}
+                                                </td>
+
+                                                <td class="px-5 py-4 text-on-surface-variant max-w-[180px] truncate">
+                                                    {{ order.dashboard_product_names }}
+                                                </td>
+
+                                                <td class="px-5 py-4 font-semibold text-on-surface">
+                                                    ₹{{ order.total_amount|floatformat:2 }}
+                                                </td>
+
+                                                <td class="px-5 py-4">
+                                                    {% if order.status == "DELIVERED" %}
+                                                        <span class="px-2.5 py-1 bg-green-500/10 border border-green-500/20 text-green-400 rounded-sm text-[9px] uppercase font-bold inline-block">
+                                                            Delivered
+                                                        </span>
+
+                                                    {% elif order.status == "CANCELLED" or order.status == "RETURNED" %}
+                                                        <span class="px-2.5 py-1 bg-red-500/10 border border-red-500/20 text-red-400 rounded-sm text-[9px] uppercase font-bold inline-block">
+                                                            {{ order.get_status_display }}
+                                                        </span>
+
+                                                    {% elif order.status == "SHIPPED" or order.status == "OUT_FOR_DELIVERY" %}
+                                                        <span class="px-2.5 py-1 bg-blue-500/10 border border-blue-500/20 text-blue-400 rounded-sm text-[9px] uppercase font-bold inline-block">
+                                                            {{ order.get_status_display }}
+                                                        </span>
+
+                                                    {% else %}
+                                                        <span class="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-sm text-[9px] uppercase font-bold inline-block">
+                                                            {{ order.get_status_display }}
+                                                        </span>
+                                                    {% endif %}
+                                                </td>
+
+                                                <td class="px-5 py-4 text-on-surface-variant text-[11px]">
+                                                    <div>{{ order.ordered_at|date:"M d, Y" }}</div>
+                                                    <div class="text-[9px] text-primary/50">
+                                                        {{ order.ordered_at|time:"h:i A" }}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% empty %}
+                                            <tr>
+                                                <td colspan="6" class="px-6 py-12 text-center text-on-surface-variant">
+                                                    No orders have been placed yet.
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Recent Signups Widget -->
+                        <div class="glass-card rounded-lg p-5 sm:p-6 space-y-5 flex flex-col justify-between">
+                            <div>
+                                <h3 class="font-label-caps text-xs text-primary uppercase tracking-widest border-b border-primary/10 pb-4">
+                                    Recent Customer Signups
+                                </h3>
+
+                                <div class="space-y-4 mt-4">
+                                    {% for signup_user in recent_signups %}
+                                        <div class="flex items-center justify-between gap-3 group">
+                                            <div class="flex items-center gap-3 min-w-0">
+                                                <div class="w-10 h-10 rounded-full border border-primary/20 overflow-hidden bg-surface-variant flex-shrink-0 flex items-center justify-center">
+                                                    {% if signup_user.profile_picture %}
+                                                        <img
+                                                            class="w-full h-full object-cover grayscale"
+                                                            src="{{ signup_user.profile_picture.url }}"
+                                                            alt="{{ signup_user.username }}"
+                                                        >
+                                                    {% else %}
+                                                        <span class="font-label-caps text-xs text-primary">
+                                                            {{ signup_user.username|slice:":2"|upper }}
+                                                        </span>
+                                                    {% endif %}
+                                                </div>
+
+                                                <div class="min-w-0">
+                                                    <h4 class="font-label-caps text-xs text-on-surface truncate">
+                                                        {% if signup_user.get_full_name %}
+                                                            {{ signup_user.get_full_name }}
+                                                        {% else %}
+                                                            {{ signup_user.username }}
+                                                        {% endif %}
+                                                    </h4>
+
+                                                    <p class="text-[9px] text-primary/70 mt-0.5">
+                                                        Joined {{ signup_user.date_joined|date:"M d, Y" }}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            <a
+                                                href="{% url 'view_user' signup_user.id %}"
+                                                class="text-[9px] font-label-caps text-on-surface-variant hover:text-primary transition-colors flex-shrink-0"
+                                            >
+                                                #WV-{{ signup_user.id }}
+                                            </a>
+                                        </div>
+                                    {% empty %}
+                                        <div class="text-center py-8">
+                                            <span class="material-symbols-outlined text-primary/20 text-4xl">
+                                                person_off
+                                            </span>
+
+                                            <p class="text-[11px] text-on-surface-variant mt-2">
+                                                No customer signups yet.
+                                            </p>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </div>
     </div>
 
     <!-- Django JSON Scripts -->

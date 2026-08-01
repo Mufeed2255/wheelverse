@@ -64,98 +64,101 @@
         }
     </style>
 </head>
-<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex bg-background">
+<body class="text-on-surface font-body-md h-screen w-screen overflow-hidden flex flex-col bg-background">
 
     <!-- Topbar Header -->
     {% include 'adminpanel/includes/admin_topbar.html' %}
 
-    <!-- Sidebar -->
-    {% include 'adminpanel/includes/admin_sidebar.html' %}
+    <!-- Container for Sidebar and Main Content -->
+    <div class="flex flex-1 w-full h-[calc(100vh-70px)] mt-[70px] overflow-hidden relative">
 
-    <!-- Main Content Layout (Includes Desktop Sidebar Shift) -->
-    <div class="flex-1 min-w-0 flex flex-col h-screen overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
+        <!-- Sidebar -->
+        {% include 'adminpanel/includes/admin_sidebar.html' %}
 
-        <!-- Content Area (Includes Topbar Height Offset) -->
-        <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar bg-background pt-[70px] p-4 sm:p-6 lg:p-8">
-            <div class="w-full max-w-[1000px] mx-auto space-y-6">
-                
-                <!-- Title Header -->
-                <div class="border-b border-primary/10 pb-4">
-                    <p class="text-primary font-label-caps text-xs tracking-widest uppercase mb-1">ELITE INVENTORY CONTROL</p>
-                    <h2 class="font-headline-md text-2xl text-on-surface tracking-wide uppercase">ADD NEW PRODUCT</h2>
-                    <p class="text-xs text-on-surface-variant/70 mt-1">Initiate the archival process for a new legendary collectible into the WheelVerse showroom.</p>
-                </div>
+        <!-- Main Content Layout (Includes Desktop Sidebar Shift) -->
+        <div class="flex-1 min-w-0 flex flex-col h-full overflow-hidden pl-0 lg:pl-[240px] transition-all duration-300">
 
-                {% include 'adminpanel/includes/messages.html' %}
-
-                <!-- Form Area -->
-                <form id="productForm" method="POST" action="{% url 'add_product' %}" class="glass-card p-5 sm:p-8 rounded max-w-[800px] mx-auto space-y-6">
-                    {% csrf_token %}
+            <!-- Content Area -->
+            <main class="flex-1 min-w-0 overflow-y-auto custom-scrollbar bg-background p-4 sm:p-6 lg:p-8">
+                <div class="w-full max-w-[1000px] mx-auto space-y-6">
                     
-                    <div>
-                        <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-sm text-primary/60">branding_watermark</span> PRODUCT NAME
-                        </label>
-                        <input type="text" name="name" required placeholder="e.g. 1967 GT500 Shelby 'Eleanor'" class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 rounded-sm"/>
+                    <!-- Title Header -->
+                    <div class="border-b border-primary/10 pb-4">
+                        <h1 class="text-[#f2ca50] font-headline-md text-3xl text-on-surface tracking-wide uppercase">ADD NEW PRODUCT</h1>
+                        <p class="text-xs text-on-surface-variant/70 mt-1">Initiate the archival process for a new legendary collectible into the WheelVerse showroom.</p>
                     </div>
 
-                    <div>
-                        <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
-                            <span class="material-symbols-outlined text-sm text-primary/60">description</span> DESCRIPTION
-                        </label>
-                        <textarea name="description" rows="5" placeholder="Detail the lineage, modifications, and racing history..." class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 rounded-sm custom-scrollbar"></textarea>
-                    </div>
+                    {% include 'adminpanel/includes/messages.html' %}
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Form Area -->
+                    <form id="productForm" method="POST" action="{% url 'add_product' %}" class="glass-card p-5 sm:p-8 rounded max-w-[800px] mx-auto space-y-6">
+                        {% csrf_token %}
+                        
                         <div>
                             <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-sm text-primary/60">category</span> CATEGORY
+                                <span class="material-symbols-outlined text-sm text-primary/60">branding_watermark</span> PRODUCT NAME
                             </label>
-                            <select name="category" required class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
-                                <option value="">Select category</option>
-                                {% for category in categories %}
-                                <option value="{{ category.id }}">{{ category.name }}</option>
-                                {% endfor %}
-                            </select>
+                            <input type="text" name="name" required placeholder="e.g. 1967 GT500 Shelby 'Eleanor'" class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 rounded-sm"/>
                         </div>
+
                         <div>
                             <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
-                                <span class="material-symbols-outlined text-sm text-primary/60">military_tech</span> PRODUCT RARITY
+                                <span class="material-symbols-outlined text-sm text-primary/60">description</span> DESCRIPTION
                             </label>
-                            <select name="rarity" class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
-                                <option value="common">Common</option>
-                                <option value="rare">Rare</option>
-                                <option value="epic">Epic</option>
-                                <option value="legendary" selected>Legendary</option>
-                            </select>
+                            <textarea name="description" rows="5" placeholder="Detail the lineage, modifications, and racing history..." class="w-full bg-background/50 border border-primary/10 text-xs px-4 py-3 text-on-surface placeholder:text-on-surface-variant/30 focus:border-primary focus:ring-0 rounded-sm custom-scrollbar"></textarea>
                         </div>
-                    </div>
 
-                    <!-- Visibility Toggle -->
-                    <div class="flex items-center justify-between gap-4 bg-background/30 border border-primary/5 p-4 rounded-sm">
-                        <div class="flex flex-col">
-                            <span class="text-[11px] font-label-caps text-on-surface tracking-wider">Public Visibility Of Product</span>
-                            <span class="text-[10px] text-on-surface-variant/50">Determine if this vehicle is immediately viewable in the showroom.</span>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-sm text-primary/60">category</span> CATEGORY
+                                </label>
+                                <select name="category" required class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
+                                    <option value="">Select category</option>
+                                    {% for category in categories %}
+                                    <option value="{{ category.id }}">{{ category.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-label-caps text-on-surface-variant mb-2 tracking-wider flex items-center gap-1.5">
+                                    <span class="material-symbols-outlined text-sm text-primary/60">military_tech</span> PRODUCT RARITY
+                                </label>
+                                <select name="rarity" class="w-full bg-background/50 border border-primary/10 text-xs py-3 px-4 text-on-surface-variant focus:border-primary focus:ring-0 rounded-sm cursor-pointer">
+                                    <option value="common">Common</option>
+                                    <option value="rare">Rare</option>
+                                    <option value="epic">Epic</option>
+                                    <option value="legendary" selected>Legendary</option>
+                                </select>
+                            </div>
                         </div>
-                        <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
-                            <input type="checkbox" name="is_visible" value="true" checked class="sr-only peer">
-                            <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant peer-checked:after:bg-on-primary after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-                        </label>
-                    </div>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-primary/10">
-                        <a href="{% url 'admin_products' %}" class="w-full sm:w-auto px-6 py-3 border border-primary/20 text-on-surface-variant text-xs font-label-caps hover:bg-white/5 transition-all tracking-wider text-center rounded-sm">
-                            CANCEL
-                        </a>
-                        <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-primary text-on-primary font-label-caps text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all rounded-sm neon-glow-gold">
-                            SUBMIT / SAVE PRODUCT
-                        </button>
-                    </div>
-                </form>
+                        <!-- Visibility Toggle -->
+                        <div class="flex items-center justify-between gap-4 bg-background/30 border border-primary/5 p-4 rounded-sm">
+                            <div class="flex flex-col">
+                                <span class="text-[11px] font-label-caps text-on-surface tracking-wider">Public Visibility Of Product</span>
+                                <span class="text-[10px] text-on-surface-variant/50">Determine if this vehicle is immediately viewable in the showroom.</span>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                                <input type="checkbox" name="is_visible" value="true" checked class="sr-only peer">
+                                <div class="w-11 h-6 bg-surface-variant peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-on-surface-variant peer-checked:after:bg-on-primary after:border-none after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                            </label>
+                        </div>
 
-            </div>
-        </main>
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row justify-end gap-3 sm:gap-4 pt-4 border-t border-primary/10">
+                            <a href="{% url 'admin_products' %}" class="w-full sm:w-auto px-6 py-3 border border-primary/20 text-on-surface-variant text-xs font-label-caps hover:bg-white/5 transition-all tracking-wider text-center rounded-sm">
+                                CANCEL
+                            </a>
+                            <button type="submit" class="w-full sm:w-auto px-6 py-3 bg-primary text-on-primary font-label-caps text-xs font-bold uppercase tracking-widest hover:bg-primary/90 transition-all rounded-sm neon-glow-gold">
+                                SUBMIT / SAVE PRODUCT
+                            </button>
+                        </div>
+                    </form>
+
+                </div>
+            </main>
+        </div>
     </div>
 
     <!-- Glowing Background Accents -->
