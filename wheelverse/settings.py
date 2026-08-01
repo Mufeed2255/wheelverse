@@ -10,11 +10,9 @@ environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 SECRET_KEY = env('SECRET_KEY')
 DEBUG = env.bool('DEBUG', default=True)
-
 DATABASES = {
     'default': env.db('DATABASE_URL', default=f"postgresql://{env('DB_USER')}:{env('DB_PASSWORD')}@{env('DB_HOST')}:{env('DB_PORT')}/{env('DB_NAME')}")
 }
-
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
@@ -49,7 +47,8 @@ INSTALLED_APPS = [
 ]
 SITE_ID = 1
 
-
+ALLOWED_HOSTS = ['mufeed.online', 'www.mufeed.online']
+CSRF_TRUSTED_ORIGINS = ['https://mufeed.online', 'https://www.mufeed.online']
 
 AUTH_USER_MODEL = 'Accounts.CustomUser'
 
@@ -87,16 +86,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'wheelverse.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'wheelverse',
-        'USER': 'postgres',
-        'PASSWORD': '2255',
-        'HOST': 'localhost',
-        'PORT': '5432',
-    }
-}
 
 AUTH_PASSWORD_VALIDATORS = [
     { 'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator' },
@@ -155,7 +144,11 @@ SOCIALACCOUNT_PROVIDERS = {
 
 MEDIA_URL = '/media/'
 # MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_ROOT = r'C:\WheelVerse_Media'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+
+
