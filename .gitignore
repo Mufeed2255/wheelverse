@@ -47,3 +47,7 @@ dist/
 *.jpg.tmp
 
 node_modules/
+media.zip
+wheelverse_backup.dump
+*.sql
+media/
