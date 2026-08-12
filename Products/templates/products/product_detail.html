@@ -407,10 +407,32 @@
                     </p>
                 </div>
             </div>
+
+            <!-- PRICE / OFFER BLOCK -->
             <div class="mb-6">
-                <p id="displayPrice" class="orbitron text-4xl font-bold">
-                    ₹{% if first_variant %}{{ first_variant.price }}{% else %}N/A{% endif %}
-                </p>
+                {% if first_variant and first_variant.offer_discount_amount > 0 %}
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <p id="displayPrice" class="orbitron text-4xl font-bold text-[#f2ca50]">
+                            ₹{{ first_variant.offer_price }}
+                        </p>
+                        <p id="displayOriginalPrice" class="orbitron text-lg text-[#d0c5af] line-through">
+                            ₹{{ first_variant.price }}
+                        </p>
+                        <span id="displayOfferBadge" class="orbitron text-[9px] px-2 py-1 bg-red-600 text-white rounded">
+                            {{ first_variant.offer_badge_text }}
+                        </span>
+                    </div>
+                    <p id="displayOfferName" class="text-[10px] text-[#f2ca50] mt-1 orbitron">
+                        {{ first_variant.applied_offer.title }}
+                    </p>
+                {% else %}
+                    <p id="displayPrice" class="orbitron text-4xl font-bold">
+                        ₹{% if first_variant %}{{ first_variant.price }}{% else %}N/A{% endif %}
+                    </p>
+                    <p id="displayOriginalPrice" class="hidden orbitron text-lg text-[#d0c5af] line-through"></p>
+                    <span id="displayOfferBadge" class="hidden orbitron text-[9px] px-2 py-1 bg-red-600 text-white rounded"></span>
+                    <p id="displayOfferName" class="hidden text-[10px] text-[#f2ca50] mt-1 orbitron"></p>
+                {% endif %}
 
                 <p id="displayStock"
                    class="{% if first_variant and first_variant.stock > 0 %}text-green-400{% else %}text-red-400{% endif %} text-xs mt-2 orbitron">
@@ -435,6 +457,10 @@
                         class="variant-btn {% if forloop.first %}active{% endif %} border border-[#f2ca50]/20 text-left p-3 rounded-sm hover:border-[#f2ca50] transition"
                         data-variant-id="{{ variant.id }}"
                         data-price="{{ variant.price }}"
+                        data-offer-price="{{ variant.offer_price }}"
+                        data-offer-discount="{{ variant.offer_discount_amount }}"
+                        data-offer-badge="{{ variant.offer_badge_text }}"
+                        data-offer-name="{{ variant.applied_offer.title|default:'' }}"
                         data-stock="{{ variant.stock }}"
                         data-wishlisted="{% if variant.is_wishlisted %}true{% else %}false{% endif %}"
                         data-color="{{ variant.color }}"
@@ -450,9 +476,16 @@
                             Size: {{ variant.size }}
                         </p>
 
-                        <p class="orbitron text-xs text-white mt-2">
-                            ₹{{ variant.price }}
-                        </p>
+                        {% if variant.offer_discount_amount > 0 %}
+                            <p class="orbitron text-xs mt-2">
+                                <span class="text-white">₹{{ variant.offer_price }}</span>
+                                <span class="text-[#d0c5af] line-through text-[10px] ml-1">₹{{ variant.price }}</span>
+                            </p>
+                        {% else %}
+                            <p class="orbitron text-xs text-white mt-2">
+                                ₹{{ variant.price }}
+                            </p>
+                        {% endif %}
 
                         {% if variant.stock > 0 %}
                             <p class="text-green-400 text-[10px] mt-2 orbitron">
@@ -469,12 +502,14 @@
             </div>
 
             <div class="mb-6">
-                <p class="orbitron text-[10px] text-[#d0c5af] mb-3">QUANTITY</p>
+                <p class="orbitron text-[10px] text-[#d0c5af] mb-3">
+                    QUANTITY <span class="text-[#8d846f]">(max {{ max_quantity }} per order)</span>
+                </p>
 
                 <div class="flex items-center border border-[#f2ca50]/20 w-36">
                     <button id="minusQty" type="button" class="w-10 h-10 text-[#f2ca50] text-xl">-</button>
 
-                    <input id="qty" type="number" value="1" min="1"
+                    <input id="qty" type="number" value="1" min="1" max="{{ max_quantity }}"
                            class="w-14 h-10 text-center bg-transparent border-0 text-white focus:ring-0">
 
                     <button id="plusQty" type="button" class="w-10 h-10 text-[#f2ca50] text-xl">+</button>
@@ -648,6 +683,9 @@ document.addEventListener("DOMContentLoaded", function () {
     const colorButtons = document.querySelectorAll(".color-btn");
 
     const displayPrice = document.getElementById("displayPrice");
+    const displayOriginalPrice = document.getElementById("displayOriginalPrice");
+    const displayOfferBadge = document.getElementById("displayOfferBadge");
+    const displayOfferName = document.getElementById("displayOfferName");
     const displayStock = document.getElementById("displayStock");
     const selectedColor = document.getElementById("selectedColor");
     const selectedSize = document.getElementById("selectedSize");
@@ -665,27 +703,39 @@ document.addEventListener("DOMContentLoaded", function () {
     const wishlistIcon = document.getElementById("wishlistIcon");
     const wishlistText = document.getElementById("wishlistText");
 
+    // Server-provided max order quantity per product (see views.py MAX_QUANTITY_PER_PRODUCT)
+    const MAX_ORDER_QUANTITY = parseInt("{{ max_quantity }}") || 5;
+
     let currentStock = {% if first_variant %}{{ first_variant.stock }}{% else %}0{% endif %};
+
+    function effectiveMax() {
+        return Math.min(currentStock, MAX_ORDER_QUANTITY);
+    }
 
     function syncQuantity(value) {
         let qty = parseInt(value || 1);
+        const cap = effectiveMax();
 
         if (qty < 1) {
             qty = 1;
         }
 
-        if (currentStock > 0 && qty > currentStock) {
-            qty = currentStock;
-            alert("Stock unavailable.");
+        if (cap > 0 && qty > cap) {
+            qty = cap;
+            if (currentStock >= MAX_ORDER_QUANTITY) {
+                alert("You can only order up to " + MAX_ORDER_QUANTITY + " unit(s) of this product.");
+            } else {
+                alert("Stock unavailable.");
+            }
         }
 
-        if (currentStock <= 0) {
+        if (cap <= 0) {
             qty = 1;
         }
 
         if (qtyInput) {
             qtyInput.value = qty;
-            qtyInput.setAttribute("max", currentStock);
+            qtyInput.setAttribute("max", cap);
         }
 
         if (cartQuantity) {
@@ -696,6 +746,10 @@ document.addEventListener("DOMContentLoaded", function () {
     function updateSelectedVariant(button) {
         const variantId = button.dataset.variantId;
         const price = button.dataset.price;
+        const offerPrice = button.dataset.offerPrice;
+        const offerDiscount = parseFloat(button.dataset.offerDiscount || 0);
+        const offerBadgeText = button.dataset.offerBadge;
+        const offerName = button.dataset.offerName;
         const stock = parseInt(button.dataset.stock || 0);
         const isWishlisted = button.dataset.wishlisted === "true";
         const color = button.dataset.color;
@@ -709,13 +763,39 @@ document.addEventListener("DOMContentLoaded", function () {
         if (selectedVariantId) {
             selectedVariantId.value = variantId;
         }
-
+        if (displayOfferBadge) {
+            displayOfferBadge.textContent = offerBadgeText;
+            displayOfferBadge.classList.remove("hidden");
+        }
         if (wishlistVariantId) {
             wishlistVariantId.value = variantId;
         }
 
         if (displayPrice) {
-            displayPrice.textContent = "₹" + price;
+            if (offerDiscount > 0) {
+                displayPrice.textContent = "₹" + offerPrice;
+                displayPrice.classList.add("text-[#f2ca50]");
+
+                if (displayOriginalPrice) {
+                    displayOriginalPrice.textContent = "₹" + price;
+                    displayOriginalPrice.classList.remove("hidden");
+                }
+                if (displayOfferBadge) {
+                    displayOfferBadge.textContent = offerPercent + "% OFF";
+                    displayOfferBadge.classList.remove("hidden");
+                }
+                if (displayOfferName) {
+                    displayOfferName.textContent = offerName;
+                    displayOfferName.classList.remove("hidden");
+                }
+            } else {
+                displayPrice.textContent = "₹" + price;
+                displayPrice.classList.remove("text-[#f2ca50]");
+
+                if (displayOriginalPrice) displayOriginalPrice.classList.add("hidden");
+                if (displayOfferBadge) displayOfferBadge.classList.add("hidden");
+                if (displayOfferName) displayOfferName.classList.add("hidden");
+            }
         }
 
         if (selectedColor) {
@@ -833,10 +913,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if (plusBtn && qtyInput) {
         plusBtn.addEventListener("click", function () {
             let qty = parseInt(qtyInput.value || 1);
+            const cap = effectiveMax();
 
-            if (qty >= currentStock) {
-                alert("Stock unavailable.");
-                syncQuantity(currentStock);
+            if (qty >= cap) {
+                if (currentStock >= MAX_ORDER_QUANTITY) {
+                    alert("You can only order up to " + MAX_ORDER_QUANTITY + " unit(s) of this product.");
+                } else {
+                    alert("Stock unavailable.");
+                }
+                syncQuantity(cap);
                 return;
             }
 
@@ -857,7 +942,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (qtyInput) {
-        qtyInput.setAttribute("max", currentStock);
+        qtyInput.setAttribute("max", effectiveMax());
 
         qtyInput.addEventListener("input", function () {
             syncQuantity(this.value);

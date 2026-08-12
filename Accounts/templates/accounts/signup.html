@@ -287,11 +287,11 @@ function validateSignupForm() {
     } else if (username.length < 5 || username.length > 20) {
         document.getElementById("usernameError").innerText = "Username must be between 5 and 20 characters.";
         isValid = false;
-    } else if (!/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z0-9]+$/.test(username)) {
-        document.getElementById("usernameError").innerText = "Username must contain both letters and numbers.";
+    } else if (!/^[A-Za-z0-9]+$/.test(username)) {
+        document.getElementById("usernameError").innerText =
+            "Username can contain only letters and numbers without spaces or special characters.";
         isValid = false;
     }
-
     if (email === "") {
         document.getElementById("emailError").innerText = "Email cannot be empty.";
         isValid = false;
@@ -320,16 +320,18 @@ function validateSignupForm() {
         isValid = false;
     }
 
-    if (confirmPassword === "") {
-        document.getElementById("confirmPasswordError").innerText = "Confirm password cannot be empty.";
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (confirmPassword.trim() === "") {
+        document.getElementById("confirmPasswordError").innerText =
+            "Confirm password cannot be empty.";
         isValid = false;
     } else if (password !== confirmPassword) {
-        document.getElementById("confirmPasswordError").innerText = "Passwords do not match.";
+        document.getElementById("confirmPasswordError").innerText =
+            "Passwords do not match.";
         isValid = false;
     }
-
-    return isValid;
-}
 
 function setSubmitLoading(loading) {
     const btn = document.getElementById("signupSubmitBtn");

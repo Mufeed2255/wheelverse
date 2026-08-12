@@ -30,10 +30,9 @@ urlpatterns = [
     path('reset-password/', views.reset_password_view, name='reset_password'),
     
     path("addresses/", views.address_list, name="address_list"),
-    path("addresses/add/", views.add_address, name="add_address"),    
-    path("addresses/<int:id>/edit/", views.edit_address, name="edit_address" ),
-    path("address/edit/<int:id>/", views.edit_address, name="edit_address"),
-    path("addresses/<int:id>/delete/", views.delete_address, name="delete_address"),    
+    path("addresses/add/", views.add_address, name="add_address"),
+    path("addresses/<int:id>/edit/", views.edit_address, name="edit_address"),
+    path("addresses/<int:id>/delete/", views.delete_address, name="delete_address"),
     path("addresses/<int:id>/set-default/", views.set_default_address, name="set_default_address"),
     
 ]

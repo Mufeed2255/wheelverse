@@ -110,14 +110,13 @@
 {% include "include/user_topbar.html" %}
 {% include "adminpanel/includes/messages.html" %}
 
-<!-- FILTER OVERLAY -->
+
 <div
     id="filterOverlay"
     class="fixed inset-0 z-[80] bg-black/70 backdrop-blur-sm opacity-0 invisible transition-all duration-300"
     onclick="closeFilterDrawer()">
 </div>
 
-<!-- FILTER DRAWER -->
 <aside
     id="filterDrawer"
     class="fixed top-0 left-0 z-[90] h-screen w-full max-w-[320px] sm:max-w-[360px]
@@ -596,34 +595,32 @@
                                 </a>
 
                                 {% if first_variant %}
-                                    <form method="POST" action="{% url 'add_to_wishlist' %}">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="variant_id" value="{{ first_variant.id }}">
-                                        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                    <button
+                                        type="button"
+                                        onclick="toggleWishlist(this)"
+                                        data-variant-id="{{ first_variant.id }}"
+                                        data-url="{% url 'toggle_wishlist' variant_id=first_variant.id %}"
+                                        data-wishlisted="{% if first_variant.is_wishlisted %}true{% else %}false{% endif %}"
+                                        class="wishlist-btn w-9 h-full border transition-colors flex items-center justify-center
+                                        {% if first_variant.is_wishlisted %}
+                                            border-primary bg-primary/15 text-primary hover:bg-red-500/10 hover:text-red-300 hover:border-red-300
+                                        {% else %}
+                                            border-primary/30 text-on-surface-variant hover:text-primary hover:border-primary hover:bg-primary/10
+                                        {% endif %}"
+                                        title="{% if first_variant.is_wishlisted %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}">
 
-                                        <button
-                                            type="submit"
-                                            class="w-9 h-full border transition-colors flex items-center justify-center
+                                        <span
+                                            class="material-symbols-outlined text-lg wishlist-icon"
                                             {% if first_variant.is_wishlisted %}
-                                                border-primary bg-primary/15 text-primary hover:bg-red-500/10 hover:text-red-300 hover:border-red-300
+                                            style="font-variation-settings: 'FILL' 1;"
+                                            {% endif %}>
+                                            {% if first_variant.is_wishlisted %}
+                                                favorite
                                             {% else %}
-                                                border-primary/30 text-on-surface-variant hover:text-primary hover:border-primary hover:bg-primary/10
-                                            {% endif %}"
-                                            title="{% if first_variant.is_wishlisted %}Remove from Wishlist{% else %}Add to Wishlist{% endif %}">
-
-                                            <span
-                                                class="material-symbols-outlined text-lg"
-                                                {% if first_variant.is_wishlisted %}
-                                                style="font-variation-settings: 'FILL' 1;"
-                                                {% endif %}>
-                                                {% if first_variant.is_wishlisted %}
-                                                    favorite
-                                                {% else %}
-                                                    favorite_border
-                                                {% endif %}
-                                            </span>
-                                        </button>
-                                    </form>
+                                                favorite_border
+                                            {% endif %}
+                                        </span>
+                                    </button>
                                 {% else %}
                                 <button
                                     type="button"
@@ -951,6 +948,97 @@
     });
 
     updateClearButton();
+
+    // ===================================================
+    // WISHLIST — AJAX TOGGLE (no page reload)
+    // ===================================================
+    function getCSRFToken() {
+        const match = document.cookie.match(/csrftoken=([^;]+)/);
+        return match ? match[1] : "";
+    }
+
+        function showWishlistToast(message, isError) {
+        // Remove any existing dynamic message container first
+        const existing = document.getElementById("django-message-container");
+        if (existing) existing.remove();
+
+        const container = document.createElement("div");
+        container.id = "django-message-container";
+        container.className = "fixed top-6 left-1/2 -translate-x-1/2 z-[9999] w-full max-w-md px-4 transition-all duration-500 ease-out";
+
+        const box = document.createElement("div");
+        box.className = "glass-message flex items-center gap-3 bg-[#f2ca50] text-black px-5 py-3 shadow-[0_4px_30px_rgba(242,202,80,0.2)] border border-[#f2ca50]/50 font-label-caps text-xs font-bold uppercase tracking-widest rounded animate-slide-down";
+
+        const icon = document.createElement("span");
+        icon.className = "material-symbols-outlined text-sm font-black text-black";
+        icon.textContent = isError ? "error" : "check_circle";
+
+        const text = document.createElement("span");
+        text.className = "flex-1";
+        text.textContent = message;
+
+        const closeBtn = document.createElement("button");
+        closeBtn.className = "text-black/50 hover:text-black transition-colors flex items-center";
+        closeBtn.innerHTML = '<span class="material-symbols-outlined text-base font-bold">close</span>';
+        closeBtn.onclick = function () { closeMessage(box); };
+
+        box.appendChild(icon);
+        box.appendChild(text);
+        box.appendChild(closeBtn);
+        container.appendChild(box);
+        document.body.appendChild(container);
+
+        setTimeout(function () {
+            container.style.opacity = '0';
+            container.style.transform = 'translate(-50%, -20px)';
+            setTimeout(function () { container.remove(); }, 500);
+        }, 3000);
+    }
+
+    function toggleWishlist(btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+
+        const icon = btn.querySelector(".wishlist-icon");
+
+        fetch(btn.dataset.url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCSRFToken(),
+                "X-Requested-With": "XMLHttpRequest",
+            },
+        })
+        .then(function (response) {
+            if (!response.ok) throw new Error("Request failed");
+            return response.json();
+        })
+        .then(function (data) {
+            const isWishlisted = data.status === "added";
+            btn.dataset.wishlisted = isWishlisted ? "true" : "false";
+
+            if (isWishlisted) {
+                btn.classList.remove("border-primary/30", "text-on-surface-variant", "hover:text-primary", "hover:border-primary", "hover:bg-primary/10");
+                btn.classList.add("border-primary", "bg-primary/15", "text-primary", "hover:bg-red-500/10", "hover:text-red-300", "hover:border-red-300");
+                icon.textContent = "favorite";
+                icon.style.fontVariationSettings = "'FILL' 1";
+                btn.title = "Remove from Wishlist";
+            } else {
+                btn.classList.remove("border-primary", "bg-primary/15", "text-primary", "hover:bg-red-500/10", "hover:text-red-300", "hover:border-red-300");
+                btn.classList.add("border-primary/30", "text-on-surface-variant", "hover:text-primary", "hover:border-primary", "hover:bg-primary/10");
+                icon.textContent = "favorite_border";
+                icon.style.fontVariationSettings = "'FILL' 0";
+                btn.title = "Add to Wishlist";
+            }
+
+            showWishlistToast(data.message || (isWishlisted ? "Added to wishlist" : "Removed from wishlist"), false);
+        })
+        .catch(function () {
+            showWishlistToast("Something went wrong. Try again.", true);
+        })
+        .finally(function () {
+            btn.disabled = false;
+        });
+    }
 </script>
 
 </body>

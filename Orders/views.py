@@ -7,7 +7,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db import models, transaction
-from django.db.models import Q, Sum
+from django.db.models import Q, Sum, F
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -667,6 +667,7 @@ def my_orders(request):
 
     orders = visible_orders.prefetch_related(
         "items", "items__variant", "items__variant__images",
+    ).annotate(shipping_charge=F('shipping_fee')
     ).order_by("-ordered_at")
 
     allowed_filters = {
@@ -705,11 +706,20 @@ def my_orders(request):
         "counts": counts,
     })
 
+from decimal import Decimal
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+
+def q(amount):
+    return Decimal(str(amount)).quantize(Decimal("0.01"))
 
 @login_required
 def order_detail(request, order_id):
     order = get_object_or_404(
-        Order.objects.prefetch_related("items", "items__variant", "items__variant__images"),
+        Order.objects.prefetch_related(
+            "items", "items__variant", "items__variant__images", "items__order_return_requests",
+        ),
         id=order_id, user=request.user,
     )
 
@@ -731,12 +741,72 @@ def order_detail(request, order_id):
         "CANCELLED": 0, "RETURN_REQUESTED": 100, "RETURNED": 100,
     }.get(order.status, 15)
 
-    for item in order.items.all():
-        active_quantity = max(item.quantity - item.cancelled_quantity, 0)
-        item.active_offer_discount_total = q(item.offer_discount * active_quantity)
+    running_full_original_subtotal = Decimal("0.00")
+    running_billed_original_subtotal = Decimal("0.00")  
+    running_billed_active_subtotal = Decimal("0.00")    
+    running_cancelled_amount = Decimal("0.00")
+    running_item_refunds = Decimal("0.00")
 
-    subtotal_after_offer = max(order.subtotal - order.offer_discount, Decimal("0.00"))
-    total_savings = order.offer_discount + order.coupon_discount
+    for item in order.items.all():
+        # Get active quantity safely from property or calculation
+        active_qty = getattr(item, 'active_quantity', max(item.quantity - item.cancelled_quantity, 0))
+        
+        # Attach custom dynamic attribute for template display without overriding model properties
+        item.active_offer_discount_total = q((item.offer_discount or Decimal("0.00")) * active_qty)
+
+        original_unit_price = getattr(item, 'original_price', None) or item.price
+        unit_price = item.price  
+
+        running_full_original_subtotal += q(original_unit_price * item.quantity)
+
+        running_billed_original_subtotal += q(original_unit_price * active_qty)
+        running_billed_active_subtotal += q(unit_price * active_qty)
+        paid_amount = q(unit_price * item.quantity)
+
+        running_cancelled_amount += q(unit_price * item.cancelled_quantity)
+
+        # Check refund helper if function exists
+        try:
+            _, refunded_amount = refunded_qty_and_amount(item)
+            running_item_refunds += refunded_amount
+        except NameError:
+            pass
+
+    adjusted_offer_discount = q(running_billed_original_subtotal - running_billed_active_subtotal)
+
+    active_ratio = (
+        running_billed_original_subtotal / running_full_original_subtotal
+        if running_full_original_subtotal > 0 else Decimal("0.00")
+    )
+    adjusted_coupon_discount = q((order.coupon_discount or Decimal("0.00")) * active_ratio)
+
+    subtotal_after_offer = running_billed_active_subtotal  
+    shipping_charge = getattr(order, 'shipping_fee', None) or getattr(order, 'shipping_charge', Decimal("0.00"))
+
+    total_active_qty = sum(max(item.quantity - item.cancelled_quantity, 0) for item in order.items.all())
+    is_fully_cancelled = (order.status == "CANCELLED") or (total_active_qty == 0)
+
+    initial_total_paid = q(
+        paid_amount
+        + shipping_charge
+    )
+
+    shipping_refunded = is_fully_cancelled and (shipping_charge > 0)
+
+    if is_fully_cancelled:
+        total_amount = Decimal("0.00")
+        running_refunded_amount = initial_total_paid 
+    else:
+        total_amount = order.total_amount
+        if running_item_refunds > 0:
+            running_refunded_amount = running_item_refunds
+        elif running_cancelled_amount > 0 and getattr(order, 'payment_method', '') != "COD":
+            running_refunded_amount = running_cancelled_amount
+        else:
+            running_refunded_amount = Decimal("0.00")
+
+    balance_amount = q(max(initial_total_paid - running_refunded_amount, Decimal("0.00")))
+    total_savings = adjusted_offer_discount + adjusted_coupon_discount
 
     return render(request, "orders/order_detail.html", {
         "order": order,
@@ -744,75 +814,19 @@ def order_detail(request, order_id):
         "first_item": first_item,
         "current_step": current_step,
         "progress_percent": progress_percent,
+        "original_subtotal": running_full_original_subtotal,
         "subtotal_after_offer": subtotal_after_offer,
+        "adjusted_offer_discount": adjusted_offer_discount,
+        "adjusted_coupon_discount": adjusted_coupon_discount,
         "total_savings": total_savings,
+        "shipping_charge": shipping_charge,
+        "shipping_refunded": shipping_refunded,
+        "cancelled_amount": running_cancelled_amount,
+        "initial_total_paid": initial_total_paid,
+        "total_amount": total_amount,
+        "refunded_amount": running_refunded_amount,
+        "balance_amount": balance_amount,
     })
-
-
-
-# order Cancellation
-
-@login_required
-@transaction.atomic
-def cancel_order(request, order_id):
-    order = get_object_or_404(
-        Order.objects.select_for_update().select_related("user").prefetch_related(
-            "items", "items__variant", "items__variant__product"
-        ),
-        id=order_id, user=request.user,
-    )
-
-    if order.status in ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REQUESTED"]:
-        messages.error(request, "This order cannot be cancelled.")
-        return redirect("order_detail", order_id=order.id)
-
-    if request.method == "POST":
-        reason = request.POST.get("cancel_reason", "").strip()
-        comments = request.POST.get("comments", "").strip()
-
-        if not reason:
-            messages.error(request, "Please select a cancellation reason.")
-            return redirect("cancel_order", order_id=order.id)
-
-        final_reason = f"{reason}\n\n{comments}" if comments else reason
-
-        product_ids_to_sync = set()
-        stock_should_restore = order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]
-
-        for item in order.items.filter(is_cancelled=False):
-            if stock_should_restore and item.variant:
-                item.variant.stock += item.quantity
-                item.variant.save(update_fields=["stock"])
-                product_ids_to_sync.add(item.variant.product.id)
-
-            item.is_cancelled = True
-            item.cancel_reason = final_reason
-            item.save(update_fields=["is_cancelled", "cancel_reason"])
-
-        refund_done = False
-        if order.payment_method != "COD" and order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]:
-            refund_done = refund_order_amount_to_wallet(
-                order=order, amount=order.total_amount, reference=f"CANCEL_REFUND_ORDER_{order.id}",
-            )
-
-        order.status = "CANCELLED"
-        order.cancel_reason = final_reason
-        order.save(update_fields=["status", "cancel_reason", "updated_at"])
-
-        transaction.on_commit(lambda: sync_products_total_stock(product_ids_to_sync, active_only=True))
-
-        if refund_done:
-            messages.success(request, "Item cancelled and amount refunded to wallet.")
-        else:
-            messages.success(request, "Item cancelled successfully.")
-
-        return redirect("order_detail", order_id=order.id)
-
-    return render(request, "orders/cancel_order.html", {
-        "order": order,
-        "first_item": order.items.filter(is_cancelled=False).first(),
-    })
-
 
 @login_required
 @transaction.atomic
@@ -956,12 +970,77 @@ def cancel_order_item(request, item_id):
     if refund_done:
         messages.success(
             request,
-            f"{cancel_quantity} unit(s) cancelled successfully. \u20b9{refund_amount:.2f} was refunded to your wallet.",
+            f"{cancel_quantity} unit(s) cancelled successfully. ₹{refund_amount:.2f} was refunded to your wallet.",
         )
     else:
         messages.success(request, f"{cancel_quantity} unit(s) cancelled successfully.")
 
     return redirect("order_detail", order_id=order.id)
+
+
+
+@login_required
+@transaction.atomic
+def cancel_order(request, order_id):
+    order = get_object_or_404(
+        Order.objects.select_for_update().select_related("user").prefetch_related(
+            "items", "items__variant", "items__variant__product"
+        ),
+        id=order_id, user=request.user,
+    )
+
+    if order.status in ["DELIVERED", "CANCELLED", "RETURNED", "RETURN_REQUESTED"]:
+        messages.error(request, "This order cannot be cancelled.")
+        return redirect("order_detail", order_id=order.id)
+
+    if request.method == "POST":
+        reason = request.POST.get("cancel_reason", "").strip()
+        comments = request.POST.get("comments", "").strip()
+
+        if not reason:
+            messages.error(request, "Please select a cancellation reason.")
+            return redirect("cancel_order", order_id=order.id)
+
+        final_reason = f"{reason}\n\n{comments}" if comments else reason
+
+        product_ids_to_sync = set()
+        stock_should_restore = order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]
+
+        for item in order.items.filter(is_cancelled=False):
+            if stock_should_restore and item.variant:
+                item.variant.stock += item.quantity
+                item.variant.save(update_fields=["stock"])
+                product_ids_to_sync.add(item.variant.product.id)
+
+            item.is_cancelled = True
+            item.cancel_reason = final_reason
+            item.save(update_fields=["is_cancelled", "cancel_reason"])
+
+        refund_done = False
+        if order.payment_method != "COD" and order.status in ["CONFIRMED", "SHIPPED", "OUT_FOR_DELIVERY"]:
+            refund_done = refund_order_amount_to_wallet(
+                order=order, amount=order.total_amount, reference=f"CANCEL_REFUND_ORDER_{order.id}",
+            )
+
+        order.status = "CANCELLED"
+        order.cancel_reason = final_reason
+        order.save(update_fields=["status", "cancel_reason", "updated_at"])
+
+        transaction.on_commit(lambda: sync_products_total_stock(product_ids_to_sync, active_only=True))
+
+        if refund_done:
+            messages.success(request, "Item cancelled and amount refunded to wallet.")
+        else:
+            messages.success(request, "Item cancelled successfully.")
+
+        return redirect("order_detail", order_id=order.id)
+
+    return render(request, "orders/cancel_order.html", {
+        "order": order,
+        "first_item": order.items.filter(is_cancelled=False).first(),
+    })
+
+
 
 
 # Returns
@@ -1165,12 +1244,15 @@ def return_order(request, order_id):
         "item": available_items[0],
     })
 
-
+def q(amount):
+    return Decimal(str(amount)).quantize(Decimal("0.01"))
 
 @login_required
 def download_invoice(request, order_id):
     order = get_object_or_404(
-        Order.objects.select_related("shipping_address").prefetch_related("items", "items__order_return_requests"),
+        Order.objects.select_related("shipping_address").prefetch_related(
+            "items", "items__variant", "items__order_return_requests"
+        ),
         id=order_id, user=request.user,
     )
 
@@ -1178,7 +1260,7 @@ def download_invoice(request, order_id):
         messages.error(request, "Invoice is available only after the order is confirmed.")
         return redirect("payment", order_id=order.id)
 
-    address = getattr(order, "shipping_address", None)
+    address = getattr(order, "shipping_address", None) or OrderAddress.objects.filter(order=order).first()
 
     response = HttpResponse(content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="invoice_{order.order_id}.pdf"'
@@ -1203,15 +1285,12 @@ def download_invoice(request, order_id):
         Spacer(1, 12),
     ]
 
-    is_fully_cancelled = order.status == "CANCELLED"
-    is_fully_returned = order.status == "RETURNED"
-
     invoice_info = [
         ["Invoice No", f"INV-{order.order_id}"],
-        ["Order ID", order.order_id],
+        ["Order ID", str(order.order_id)],
         ["Order Date", order.ordered_at.strftime("%d %b %Y")],
-        ["Payment Method", order.get_payment_method_display()],
-        ["Order Status", order.get_status_display()],
+        ["Payment Method", order.get_payment_method_display() if hasattr(order, 'get_payment_method_display') else getattr(order, 'payment_method', 'N/A')],
+        ["Order Status", order.get_status_display() if hasattr(order, 'get_status_display') else getattr(order, 'status', 'N/A')],
     ]
 
     invoice_table = Table(invoice_info, colWidths=[45 * mm, 110 * mm])
@@ -1225,16 +1304,16 @@ def download_invoice(request, order_id):
     ]))
     story.append(invoice_table)
 
-    if is_fully_cancelled:
+    if order.status == "CANCELLED":
         story.append(Spacer(1, 8))
         story.append(Paragraph(
-            f"<b>This order was cancelled in full.</b> Reason: {order.cancel_reason or 'Not specified'}",
+            f"<b>This order was cancelled in full.</b> Reason: {getattr(order, 'cancel_reason', 'Not specified')}",
             normal_style,
         ))
-    elif is_fully_returned:
+    elif order.status == "RETURNED":
         story.append(Spacer(1, 8))
         story.append(Paragraph(
-            f"<b>This order was returned in full.</b> Reason: {order.return_reason or 'Not specified'}",
+            f"<b>This order was returned in full.</b> Reason: {getattr(order, 'return_reason', 'Not specified')}",
             normal_style,
         ))
 
@@ -1256,39 +1335,58 @@ def download_invoice(request, order_id):
 
     item_data = [["Product", "Variant", "Qty", "Unit Price", "Total", "Status"]]
 
-    running_active_subtotal = Decimal("0.00")
-    running_refunded_amount = Decimal("0.00")
+    # --- EXACT SAME LOGIC AS ORDER_DETAIL ---
+    running_full_original_subtotal = Decimal("0.00")
+    running_billed_original_subtotal = Decimal("0.00")  
+    running_billed_active_subtotal = Decimal("0.00")    
+    running_cancelled_amount = Decimal("0.00")
+    running_item_refunds = Decimal("0.00")
 
     for item in order.items.all():
+        active_qty = getattr(item, 'active_quantity', max(item.quantity - item.cancelled_quantity, 0))
+
+        original_unit_price = getattr(item, 'original_price', None) or item.price
+        unit_price = item.price  
+
+        running_full_original_subtotal += q(original_unit_price * item.quantity)
+        running_billed_original_subtotal += q(original_unit_price * active_qty)
+        running_billed_active_subtotal += q(unit_price * active_qty)
+
+        running_cancelled_amount += q(unit_price * item.cancelled_quantity)
+
+        # Refund tracking check
+        try:
+            refunded_qty, refunded_amount = refunded_qty_and_amount(item)
+            running_item_refunds += refunded_amount
+        except NameError:
+            refunded_qty = 0
+
+        # Variant display string construction
         variant_parts = []
-        if item.variant_color:
+        if getattr(item, 'variant_color', None):
             variant_parts.append(item.variant_color)
-        if item.variant_size:
+        if getattr(item, 'variant_size', None):
             variant_parts.append(item.variant_size)
         variant_text = " / ".join(variant_parts) or "-"
 
-        refunded_qty, refunded_amount = refunded_qty_and_amount(item)
-        pending_qty = pending_return_qty(item)
-        line_status = item_line_status(item, refunded_qty, pending_qty)
+        # Status text computation
+        try:
+            pending_qty = pending_return_qty(item)
+            line_status = item_line_status(item, refunded_qty, pending_qty)
+        except NameError:
+            line_status = "ACTIVE" if active_qty > 0 else "CANCELLED"
 
-        effective_qty = max(item.quantity - item.cancelled_quantity - refunded_qty, 0)
-        unit_price = item.price
-        effective_total = q(unit_price * effective_qty)
-
-        running_active_subtotal += effective_total
-        running_refunded_amount += refunded_amount
-
-        qty_display = str(item.quantity)
-        if item.cancelled_quantity or refunded_qty:
-            qty_display = f"{effective_qty} / {item.quantity}"
+        billed_total = q(unit_price * active_qty)
+        qty_display = f"{active_qty} / {item.quantity}" if item.cancelled_quantity or refunded_qty else str(item.quantity)
+        clean_status = line_status.replace("<b>", "").replace("</b>", "").strip()
 
         item_data.append([
-            Paragraph(str(item.product_name), normal_style),
+            Paragraph(str(getattr(item, 'product_name', item)), normal_style),
             Paragraph(variant_text, normal_style),
             qty_display,
             f"Rs. {unit_price:.2f}",
-            f"Rs. {effective_total:.2f}",
-            Paragraph(line_status, small_muted_style),
+            f"Rs. {billed_total:.2f}",
+            Paragraph(clean_status, small_muted_style),
         ])
 
     item_table = Table(item_data, colWidths=[50 * mm, 28 * mm, 18 * mm, 24 * mm, 26 * mm, 30 * mm], repeatRows=1)
@@ -1306,27 +1404,65 @@ def download_invoice(request, order_id):
     story.append(item_table)
     story.append(Spacer(1, 16))
 
-    original_subtotal = order.subtotal or Decimal("0.00")
-    active_ratio = (running_active_subtotal / original_subtotal) if original_subtotal > 0 else Decimal("0.00")
+    # Discounts and summary calculations aligned exactly with order_detail
+    adjusted_offer_discount = q(running_billed_original_subtotal - running_billed_active_subtotal)
 
-    adjusted_offer_discount = q(order.offer_discount * active_ratio)
-    adjusted_coupon_discount = q(order.coupon_discount * active_ratio)
-    subtotal_after_offer = q(running_active_subtotal - adjusted_offer_discount)
+    active_ratio = (
+        running_billed_original_subtotal / running_full_original_subtotal
+        if running_full_original_subtotal > 0 else Decimal("0.00")
+    )
+    adjusted_coupon_discount = q((order.coupon_discount or Decimal("0.00")) * active_ratio)
 
-    shipping_charge = order.shipping_fee or Decimal("0.00") if running_active_subtotal > 0 else Decimal("0.00")
-    final_amount = q(subtotal_after_offer - adjusted_coupon_discount + shipping_charge)
-    adjusted_total_discount = q(adjusted_offer_discount + adjusted_coupon_discount)
+    subtotal_after_offer = running_billed_active_subtotal  
+    shipping_charge = getattr(order, 'shipping_fee', None) or getattr(order, 'shipping_charge', Decimal("0.00"))
+    
+    # Corrected: Summing full original price paid for all items + shipping
+    total_items_price = sum(q(item.price * item.quantity) for item in order.items.all())
+    initial_total_paid = q(total_items_price + shipping_charge)
+
+    total_active_qty = sum(max(item.quantity - item.cancelled_quantity, 0) for item in order.items.all())
+    is_fully_cancelled = (order.status == "CANCELLED") or (total_active_qty == 0)
+    is_cod = str(getattr(order, 'payment_method', '')).upper() == "COD"
+
+    shipping_refunded = is_fully_cancelled and (shipping_charge > 0)
+
+    if is_cod:
+        running_refunded_amount = Decimal("0.00")
+    else:
+        if is_fully_cancelled:
+            running_refunded_amount = initial_total_paid
+        else:
+            if running_item_refunds > 0:
+                running_refunded_amount = running_item_refunds
+            elif running_cancelled_amount > 0:
+                running_refunded_amount = running_cancelled_amount
+            else:
+                running_refunded_amount = Decimal("0.00")
+
+    if is_fully_cancelled:
+        total_amount = Decimal("0.00")
+        if is_cod:
+            balance_amount = Decimal("0.00")
+        else:
+            balance_amount = Decimal("0.00")
+    else:
+        total_amount = order.total_amount
+        balance_amount = q(running_billed_active_subtotal + shipping_charge - adjusted_coupon_discount)
+
+    total_savings = adjusted_offer_discount + adjusted_coupon_discount
+    shipping_label = "Shipping Charge (Refunded)" if shipping_refunded else "Shipping Charge"
 
     summary_data = [
-        ["Original Subtotal", f"Rs. {original_subtotal:.2f}"],
-        ["Active Subtotal (excl. cancelled/returned)", f"Rs. {running_active_subtotal:.2f}"],
+        ["Original Subtotal", f"Rs. {running_full_original_subtotal:.2f}"],
         ["Offer Discount (adjusted)", f"- Rs. {adjusted_offer_discount:.2f}"],
         ["Subtotal After Offer", f"Rs. {subtotal_after_offer:.2f}"],
         ["Coupon Discount (adjusted)", f"- Rs. {adjusted_coupon_discount:.2f}"],
-        ["Total Discount", f"- Rs. {adjusted_total_discount:.2f}"],
-        ["Shipping Charge", f"Rs. {shipping_charge:.2f}"],
-        ["Refunded Amount", f"- Rs. {q(running_refunded_amount):.2f}"],
-        ["Payable / Final Amount", f"Rs. {final_amount:.2f}"],
+        ["Total Savings", f"- Rs. {total_savings:.2f}"],
+        [shipping_label, f"Rs. {shipping_charge:.2f}"],
+        ["Initial Total Paid", f"Rs. {initial_total_paid:.2f}"],
+        ["Total Amount", f"Rs. {total_amount:.2f}"],
+        ["Refunded Amount", f"- Rs. {running_refunded_amount:.2f}"],
+        ["Balance Amount", f"Rs. {balance_amount:.2f}"],
     ]
 
     summary_table = Table(summary_data, colWidths=[120 * mm, 55 * mm])
@@ -1342,8 +1478,10 @@ def download_invoice(request, order_id):
     story.append(Spacer(1, 12))
 
     if running_refunded_amount > 0:
+        shipping_note = "Shipping fee refunded." if shipping_refunded else "Shipping charge is non-refundable."
         story.append(Paragraph(
-            f"Rs. {q(running_refunded_amount):.2f} has been refunded against this order.",
+            f"Rs. {running_refunded_amount:.2f} has been refunded against this order "
+            f"({shipping_note}). Balance amount: Rs. {balance_amount:.2f}.",
             small_muted_style,
         ))
         story.append(Spacer(1, 8))
@@ -1356,7 +1494,6 @@ def download_invoice(request, order_id):
 
     doc.build(story)
     return response
-
 
 @login_required
 def add_product_review(request, item_id):

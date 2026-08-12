@@ -322,10 +322,11 @@ def signup_view(request):
         return signup_error_response(request, "username", "Username cannot be empty.", referral_code)
     if len(username) < 5 or len(username) > 20:
         return signup_error_response(request, "username", "Username must be between 5 and 20 characters.", referral_code)
-    if not re.fullmatch(r"(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]+", username):
+    if not re.fullmatch(r"[A-Za-z0-9]+", username):
         return signup_error_response(
-            request, "username",
-            "Username must contain both letters and numbers without spaces or special characters.",
+            request,
+            "username",
+            "Username can contain only letters and numbers without spaces or special characters.",
             referral_code,
         )
     if User.objects.filter(username__iexact=username).exists():
@@ -541,11 +542,11 @@ def signup_verify_view(request):
             if _is_ajax(request):
                 return JsonResponse({
                     "success": True,
-                    "message": "Collector engine unlocked! Welcome to WheelVerse.",
+                    "message": "Collector account unlocked! Welcome to WheelVerse.",
                     "redirect_url": reverse("landing_page"),
                 })
  
-            messages.success(request, "Collector engine unlocked! Welcome to WheelVerse.")
+            messages.success(request, "Collector account unlocked! Welcome to WheelVerse.")
             return redirect("landing_page")
  
         except Exception as e:
@@ -1076,16 +1077,10 @@ ALLOWED_ADDRESS_TYPES = {
 
 
 def is_ajax_request(request):
-    return (
-        request.headers.get("x-requested-with") == "XMLHttpRequest"
-    )
+    return request.headers.get("x-requested-with") == "XMLHttpRequest"
 
 
 def validate_address_data(data):
-    """
-    Returns:
-        success, cleaned_data, error_field, error_message
-    """
 
     cleaned_data = {
         "name": data.get("name", "").strip(),
@@ -1097,7 +1092,8 @@ def validate_address_data(data):
         "pincode": data.get("pincode", "").strip(),
         "country": "INDIA",
         "address_type": data.get(
-            "address_type", Address.AddressType.HOME
+            "address_type",
+            Address.AddressType.HOME
         ).strip().upper(),
         "is_default": data.get("is_default") == "on",
     }
@@ -1111,104 +1107,157 @@ def validate_address_data(data):
     pincode = cleaned_data["pincode"]
     address_type = cleaned_data["address_type"]
 
-    # Full name
+
     if not name:
         return False, cleaned_data, "name", "Full name is required."
 
     if len(name) < 2 or len(name) > 60:
-        return False, cleaned_data, "name", "Full name must be between 2 and 60 characters."
+        return False, cleaned_data, "name", (
+            "Full name must be between 2 and 60 characters."
+        )
 
     if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", name):
-        return False, cleaned_data, "name", "Full name can contain only letters, spaces, dots, apostrophes and hyphens."
+        return False, cleaned_data, "name", (
+            "Full name can contain only letters, spaces, dots, "
+            "apostrophes and hyphens."
+        )
 
     if "  " in name:
-        return False, cleaned_data, "name", "Full name cannot contain multiple consecutive spaces."
+        return False, cleaned_data, "name", (
+            "Full name cannot contain multiple consecutive spaces."
+        )
 
-    # Phone
     if not phone_number:
-        return False, cleaned_data, "phone_number", "Phone number is required."
+        return False, cleaned_data, "phone_number", (
+            "Phone number is required."
+        )
 
     normalized_phone = re.sub(r"[\s-]", "", phone_number)
 
     if normalized_phone.startswith("+91"):
         normalized_phone = normalized_phone[3:]
+
     elif normalized_phone.startswith("91") and len(normalized_phone) == 12:
         normalized_phone = normalized_phone[2:]
 
     if not normalized_phone.isdigit():
-        return False, cleaned_data, "phone_number", "Phone number must contain only digits."
+        return False, cleaned_data, "phone_number", (
+            "Phone number must contain only digits."
+        )
 
     if not re.fullmatch(r"[6-9]\d{9}", normalized_phone):
-        return False, cleaned_data, "phone_number", "Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9."
+        return False, cleaned_data, "phone_number", (
+            "Enter a valid 10-digit Indian mobile number "
+            "starting with 6, 7, 8 or 9."
+        )
 
     if len(set(normalized_phone)) == 1:
-        return False, cleaned_data, "phone_number", "Enter a valid phone number."
+        return False, cleaned_data, "phone_number", (
+            "Enter a valid phone number."
+        )
 
     cleaned_data["phone_number"] = normalized_phone
 
-    # Address line 1
+
     if not address_line_1:
-        return False, cleaned_data, "address_line_1", "Address Line 1 is required."
+        return False, cleaned_data, "address_line_1", (
+            "Address Line 1 is required."
+        )
 
     if len(address_line_1) < 5 or len(address_line_1) > 150:
-        return False, cleaned_data, "address_line_1", "Address Line 1 must be between 5 and 150 characters."
+        return False, cleaned_data, "address_line_1", (
+            "Address Line 1 must be between 5 and 150 characters."
+        )
 
     if not re.search(r"[A-Za-z]", address_line_1):
-        return False, cleaned_data, "address_line_1", "Address Line 1 must contain letters."
+        return False, cleaned_data, "address_line_1", (
+            "Address Line 1 must contain letters."
+        )
 
-    if not re.fullmatch(r"[A-Za-z0-9\s,./#()&'-]+", address_line_1):
-        return False, cleaned_data, "address_line_1", "Address Line 1 contains invalid characters."
+    if not re.fullmatch(
+        r"[A-Za-z0-9\s,./#()&'-]+",
+        address_line_1
+    ):
+        return False, cleaned_data, "address_line_1", (
+            "Address Line 1 contains invalid characters."
+        )
 
-    # Address line 2
     if address_line_2:
+
         if len(address_line_2) > 150:
-            return False, cleaned_data, "address_line_2", "Address Line 2 cannot exceed 150 characters."
+            return False, cleaned_data, "address_line_2", (
+                "Address Line 2 cannot exceed 150 characters."
+            )
 
-        if not re.fullmatch(r"[A-Za-z0-9\s,./#()&'-]+", address_line_2):
-            return False, cleaned_data, "address_line_2", "Address Line 2 contains invalid characters."
+        if not re.fullmatch(
+            r"[A-Za-z0-9\s,./#()&'-]+",
+            address_line_2
+        ):
+            return False, cleaned_data, "address_line_2", (
+                "Address Line 2 contains invalid characters."
+            )
 
-    # City
+
     if not city:
         return False, cleaned_data, "city", "City is required."
 
     if len(city) < 2 or len(city) > 50:
-        return False, cleaned_data, "city", "City must be between 2 and 50 characters."
+        return False, cleaned_data, "city", (
+            "City must be between 2 and 50 characters."
+        )
 
     if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", city):
-        return False, cleaned_data, "city", "City can contain only letters, spaces, dots, apostrophes and hyphens."
+        return False, cleaned_data, "city", (
+            "City can contain only letters, spaces, dots, "
+            "apostrophes and hyphens."
+        )
 
     if "  " in city:
-        return False, cleaned_data, "city", "City cannot contain multiple consecutive spaces."
+        return False, cleaned_data, "city", (
+            "City cannot contain multiple consecutive spaces."
+        )
 
-    # State
+
     if not state:
         return False, cleaned_data, "state", "State is required."
 
     if len(state) < 2 or len(state) > 50:
-        return False, cleaned_data, "state", "State must be between 2 and 50 characters."
+        return False, cleaned_data, "state", (
+            "State must be between 2 and 50 characters."
+        )
 
     if not re.fullmatch(r"[A-Za-z][A-Za-z\s.'-]*", state):
-        return False, cleaned_data, "state", "State can contain only letters, spaces, dots, apostrophes and hyphens."
+        return False, cleaned_data, "state", (
+            "State can contain only letters, spaces, dots, "
+            "apostrophes and hyphens."
+        )
 
     if "  " in state:
-        return False, cleaned_data, "state", "State cannot contain multiple consecutive spaces."
+        return False, cleaned_data, "state", (
+            "State cannot contain multiple consecutive spaces."
+        )
 
-    # Pincode
     if not pincode:
-        return False, cleaned_data, "pincode", "Pincode is required."
+        return False, cleaned_data, "pincode", (
+            "Pincode is required."
+        )
 
     if not pincode.isdigit():
-        return False, cleaned_data, "pincode", "Pincode must contain only digits."
+        return False, cleaned_data, "pincode", (
+            "Pincode must contain only digits."
+        )
 
     if not re.fullmatch(r"[1-9]\d{5}", pincode):
-        return False, cleaned_data, "pincode", "Enter a valid 6-digit Indian pincode."
+        return False, cleaned_data, "pincode", (
+            "Enter a valid 6-digit Indian pincode."
+        )
 
-    # Address type
     if address_type not in ALLOWED_ADDRESS_TYPES:
-        return False, cleaned_data, "address_type", "Select a valid address type."
+        return False, cleaned_data, "address_type", (
+            "Select a valid address type."
+        )
 
     return True, cleaned_data, None, None
-
 
 @login_required
 def address_list(request):
@@ -1217,151 +1266,37 @@ def address_list(request):
         .filter(user=request.user)
         .order_by("-is_default", "-created_at")
     )
+
     return render(
         request,
         "address/address_list.html",
-        {"addresses": addresses},
+        {
+            "addresses": addresses,
+        },
     )
-
-
 
 @login_required
 @transaction.atomic
 def add_address(request):
-    """
-    Handles adding a new user delivery address.
-    Supports both traditional POST forms and AJAX requests.
-    """
-    if request.method == "POST":
-        # Extract and clean inputs
-        name = request.POST.get("name", "").strip()
-        phone_number = request.POST.get("phone_number", "").strip()
-        address_type = request.POST.get("address_type", "").strip()
-        address_line_1 = request.POST.get("address_line_1", "").strip()
-        address_line_2 = request.POST.get("address_line_2", "").strip()
-        city = request.POST.get("city", "").strip()
-        state = request.POST.get("state", "").strip()
-        pincode = request.POST.get("pincode", "").strip()
-        country = request.POST.get("country", "INDIA").strip()
-        is_default = request.POST.get("is_default") == "on"
-
-        posted_data = {
-            "name": name,
-            "phone_number": phone_number,
-            "address_type": address_type,
-            "address_line_1": address_line_1,
-            "address_line_2": address_line_2,
-            "city": city,
-            "state": state,
-            "pincode": pincode,
-            "country": country,
-            "is_default": is_default,
-        }
-
-        # Helper error response function
-        def error_response(field, message):
-            if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-                return JsonResponse({"success": False, "field": field, "message": message}, status=400)
-            return render(
-                request,
-                "address/address_form.html",
-                {
-                    "is_edit": False,
-                    "address": None,
-                    "posted_data": posted_data,
-                    "error_message": message,
-                },
-            )
-
-        # backend validations
-        if not name:
-            return error_response("name", "Full name is required.")
-        if len(name) < 2 or len(name) > 60:
-            return error_response("name", "Name must be between 2 and 60 characters.")
-
-        if not phone_number:
-            return error_response("phone_number", "Phone number is required.")
-        if not phone_number.isdigit() or len(phone_number) != 10:
-            return error_response("phone_number", "Please enter a valid 10-digit mobile number.")
-
-        if address_type not in ["HOME", "GARAGE", "WORK", "OTHER"]:
-            return error_response("address_type", "Select a valid address type.")
-
-        if not address_line_1:
-            return error_response("address_line_1", "Address line 1 is required.")
-        if len(address_line_1) < 5:
-            return error_response("address_line_1", "Address line 1 must be at least 5 characters long.")
-
-        if not city:
-            return error_response("city", "City is required.")
-
-        if not state:
-            return error_response("state", "State is required.")
-
-        if not pincode:
-            return error_response("pincode", "Pincode is required.")
-        if not pincode.isdigit() or len(pincode) != 6:
-            return error_response("pincode", "Enter a valid 6-digit Indian postal code.")
-
-        # If marked as default address, reset previous default addresses for user
-        if is_default or not Address.objects.filter(user=request.user).exists():
-            Address.objects.filter(user=request.user, is_default=True).update(is_default=False)
-            is_default = True  # Automatically default if it's the user's first address
-
-        # Create address
-        Address.objects.create(
-            user=request.user,
-            name=name,
-            phone_number=phone_number,
-            address_type=address_type,
-            address_line_1=address_line_1,
-            address_line_2=address_line_2,
-            city=city,
-            state=state,
-            pincode=pincode,
-            country=country,
-            is_default=is_default,
-        )
-
-        redirect_url = reverse("address_list")
-
-        if request.headers.get("X-Requested-With") == "XMLHttpRequest":
-            return JsonResponse({"success": True, "redirect_url": redirect_url})
-
-        return redirect("address_list")
-
-    # GET Request
-    context = {
-        "is_edit": False,
-        "address": None,
-        "posted_data": None,
-    }
-    return render(request, "address/address_form.html", context)
-
-
-@login_required
-@transaction.atomic
-def edit_address(request, id):
-    address = get_object_or_404(
-        Address.objects.select_for_update(),
-        id=id,
-        user=request.user,
-    )
 
     if request.method == "GET":
         return render(
             request,
             "address/address_form.html",
             {
-                "address": address,
-                "is_edit": True,
+                "is_edit": False,
+                "address": None,
                 "posted_data": None,
-            },
+            }
         )
 
-    is_valid, cleaned_data, error_field, error_message = validate_address_data(request.POST)
+
+    is_valid, cleaned_data, error_field, error_message = (
+        validate_address_data(request.POST)
+    )
 
     if not is_valid:
+
         if is_ajax_request(request):
             return JsonResponse(
                 {
@@ -1373,6 +1308,114 @@ def edit_address(request, id):
             )
 
         messages.error(request, error_message)
+
+        return render(
+            request,
+            "address/address_form.html",
+            {
+                "is_edit": False,
+                "address": None,
+                "posted_data": cleaned_data,
+            },
+            status=400,
+        )
+
+
+
+    requested_default = cleaned_data["is_default"]
+
+    existing_addresses = Address.objects.filter(
+        user=request.user
+    )
+
+    if not existing_addresses.exists():
+        requested_default = True
+
+    if requested_default:
+
+        existing_addresses.filter(
+            is_default=True
+        ).update(
+            is_default=False
+        )
+
+
+    Address.objects.create(
+        user=request.user,
+        name=cleaned_data["name"],
+        phone_number=cleaned_data["phone_number"],
+        address_type=cleaned_data["address_type"],
+        address_line_1=cleaned_data["address_line_1"],
+        address_line_2=cleaned_data["address_line_2"] or None,
+        city=cleaned_data["city"],
+        state=cleaned_data["state"],
+        pincode=cleaned_data["pincode"],
+        country="INDIA",
+        is_default=requested_default,
+    )
+
+
+
+    if is_ajax_request(request):
+        return JsonResponse(
+            {
+                "success": True,
+                "message": "Address added successfully.",
+                "redirect_url": reverse("address_list"),
+            }
+        )
+
+    messages.success(
+        request,
+        "Address added successfully."
+    )
+
+    return redirect("address_list")
+
+
+@login_required
+@transaction.atomic
+def edit_address(request, id):
+
+    address = get_object_or_404(
+        Address.objects.select_for_update(),
+        id=id,
+        user=request.user,
+    )
+
+
+
+    if request.method == "GET":
+        return render(
+            request,
+            "address/address_form.html",
+            {
+                "address": address,
+                "is_edit": True,
+                "posted_data": None,
+            }
+        )
+
+
+
+    is_valid, cleaned_data, error_field, error_message = (
+        validate_address_data(request.POST)
+    )
+
+    if not is_valid:
+
+        if is_ajax_request(request):
+            return JsonResponse(
+                {
+                    "success": False,
+                    "field": error_field,
+                    "message": error_message,
+                },
+                status=400,
+            )
+
+        messages.error(request, error_message)
+
         return render(
             request,
             "address/address_form.html",
@@ -1384,30 +1427,65 @@ def edit_address(request, id):
             status=400,
         )
 
-    other_addresses = Address.objects.filter(user=request.user).exclude(id=address.id)
+
+    other_addresses = (
+        Address.objects
+        .filter(user=request.user)
+        .exclude(id=address.id)
+    )
+
     requested_default = cleaned_data["is_default"]
 
+    # If this is the only address, it must remain default
     if not other_addresses.exists():
         requested_default = True
 
+
     if requested_default:
-        other_addresses.filter(is_default=True).update(is_default=False)
+
+        other_addresses.filter(
+            is_default=True
+        ).update(
+            is_default=False
+        )
+
         address.is_default = True
+
     elif address.is_default:
-        replacement_address = other_addresses.order_by("-created_at").first()
+
+        replacement_address = (
+            other_addresses
+            .order_by("-created_at")
+            .first()
+        )
+
         if replacement_address:
+
             replacement_address.is_default = True
-            replacement_address.save(update_fields=["is_default", "updated_at"])
+
+            replacement_address.save(
+                update_fields=[
+                    "is_default",
+                    "updated_at",
+                ]
+            )
+
             address.is_default = False
+
         else:
             address.is_default = True
+
     else:
         address.is_default = False
+
+ 
 
     address.name = cleaned_data["name"]
     address.phone_number = cleaned_data["phone_number"]
     address.address_line_1 = cleaned_data["address_line_1"]
-    address.address_line_2 = cleaned_data["address_line_2"] or None
+    address.address_line_2 = (
+        cleaned_data["address_line_2"] or None
+    )
     address.city = cleaned_data["city"]
     address.state = cleaned_data["state"]
     address.pincode = cleaned_data["pincode"]
@@ -1415,6 +1493,7 @@ def edit_address(request, id):
     address.address_type = cleaned_data["address_type"]
 
     address.save()
+
 
     if is_ajax_request(request):
         return JsonResponse(
@@ -1425,7 +1504,11 @@ def edit_address(request, id):
             }
         )
 
-    messages.success(request, "Address updated successfully.")
+    messages.success(
+        request,
+        "Address updated successfully."
+    )
+
     return redirect("address_list")
 
 
