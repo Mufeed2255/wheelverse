@@ -22,9 +22,9 @@ from Wallet.models import Wallet, WalletTransaction
 from django.db.models import Count, Min, Max, Prefetch, Q
 from adminpanel.models import Category, Product, ProductVariant
 from Products.models import Cart, Wishlist
-
+import os
 from django.views.decorators.http import require_POST
-
+from django.contrib.auth import get_user_model
 
 
 def send_wheelverse_otp_email(to_email, username, otp, purpose, expiry=5):
@@ -1003,6 +1003,7 @@ def profile_view(request):
 
 
 
+User = get_user_model()
 @login_required
 def edit_profile_view(request):
     user = request.user 
@@ -1010,6 +1011,25 @@ def edit_profile_view(request):
     if request.method == 'POST':
         user_name = request.POST.get('user_name', '').strip()
         mobile_number = request.POST.get('mobile_number', '').strip()
+        delete_picture = request.POST.get('delete_picture')
+    if request.method == 'POST':
+        user_name = request.POST.get('user_name', '').strip()
+        mobile_number = request.POST.get('mobile_number', '').strip()
+
+        if user_name and User.objects.filter(username=user_name).exclude(pk=user.pk).exists():
+            messages.error(request, f"Username '{user_name}' is already taken. Please choose another one.")
+            return render(request, 'accounts/edit_profile.html', {'user': user})
+
+        # 2. Update user details
+        if user_name:
+            user.username = user_name
+            
+        user.phone = mobile_number
+        if 'profile_picture' in request.FILES:
+            user.profile_picture = request.FILES['profile_picture']
+        elif request.POST.get('delete_picture') == 'true':
+            user.profile_picture.delete(save=False)
+        user.save()
         
         if not user_name:
             messages.error(request, "Username field cannot be left blank.")
@@ -1017,18 +1037,40 @@ def edit_profile_view(request):
 
         phone_regex = r'^\+?1?\d{10}$'
         if mobile_number and not re.match(phone_regex, mobile_number):
-            messages.error(request, "Invalid phone number format. Use standard digits (e.g. +1234567890).")
+            messages.error(request, "Invalid phone number format. Use standard digits only.")
             return render(request, 'accounts/edit_profile.html')
 
-        if 'profile_picture' in request.FILES:
-            user.profile_picture = request.FILES['profile_picture']
+        if delete_picture == 'true':
+            if user.profile_picture:
+                user.profile_picture.delete(save=False)
+                user.profile_picture = None
+
+        elif 'profile_picture' in request.FILES:
+            uploaded_file = request.FILES['profile_picture']
+            
+            allowed_extensions = ['.jpg', '.jpeg', '.png', '.webp']
+            ext = os.path.splitext(uploaded_file.name)[1].lower()
+            if ext not in allowed_extensions:
+                messages.error(request, "Invalid image format. Allowed formats: JPG, JPEG, PNG, WEBP.")
+                return render(request, 'accounts/edit_profile.html')
+
+            allowed_content_types = ['image/jpeg', 'image/png', 'image/webp']
+            if uploaded_file.content_type not in allowed_content_types:
+                messages.error(request, "Uploaded file is not a valid image format.")
+                return render(request, 'accounts/edit_profile.html')
+
+            if uploaded_file.size > 5 * 1024 * 1024:
+                messages.error(request, "Profile picture size must be less than 5MB.")
+                return render(request, 'accounts/edit_profile.html')
+
+            user.profile_picture = uploaded_file
 
         user.username = user_name
         user.phone = mobile_number
         user.save()
 
-        messages.success(request, 'Collector parameters successfully synchronized!')
-        return redirect('profile_view')
+        messages.success(request, 'Collector profile successfully updated.')
+        return redirect('edit_profile_view')
 
     return render(request, 'accounts/edit_profile.html')
 

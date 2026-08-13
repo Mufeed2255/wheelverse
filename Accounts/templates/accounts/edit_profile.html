@@ -127,103 +127,10 @@
     </style>
 </head>
 <body class="font-body-md min-h-screen flex flex-col justify-between">
-
-    <!-- Top Navigation Bar -->
-    <header class="fixed top-0 right-0 left-0 lg:left-72 h-20 z-40 bg-[#110f0a] border-b border-white/5 flex items-center justify-between px-4 sm:px-8 lg:px-12">
-        <div class="flex items-center gap-6 lg:gap-12">
-            <a href="/" class="font-display-lg text-xl sm:text-2xl tracking-wider text-primary">WHEELVERSE</a>
-            <nav class="hidden md:flex items-center gap-6 lg:gap-8 font-label-caps text-xs tracking-widest text-on-surface-variant">
-                <a href="#" class="border-b border-primary text-primary pb-1">Home</a>
-                <a href="#" class="hover:text-primary transition-colors">Collections</a>
-                <a href="#" class="hover:text-primary transition-colors">Auctions</a>
-                <a href="#" class="hover:text-primary transition-colors">Garage</a>
-                <a href="#" class="hover:text-primary transition-colors">Marketplace</a>
-            </nav>
-        </div>
-        
-        <div class="flex items-center gap-4 sm:gap-6">
-            <button class="text-on-surface-variant hover:text-primary transition-colors">
-                <span class="material-symbols-outlined text-xl">search</span>
-            </button>
-            <button class="text-on-surface-variant hover:text-primary transition-colors relative">
-                <span class="material-symbols-outlined text-xl">shopping_cart</span>
-                <span class="absolute -top-2 -right-2 bg-primary text-background text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">2</span>
-            </button>
-            
-            <div class="flex items-center gap-3 pl-3 sm:pl-4 border-l border-white/10">
-                <div class="text-right hidden sm:block">
-                    <p class="font-label-caps text-[9px] text-primary tracking-widest">ELITE STATUS</p>
-                    <p class="font-label-caps text-xs text-on-surface leading-none mt-1">{{ request.user.username }}</p>
-                </div>
-                <div class="w-9 h-9 sm:w-10 sm:h-10 rounded border border-primary/40 overflow-hidden flex-shrink-0">
-                    {% if request.user.profile_picture %}
-                        <img alt="User" class="w-full h-full object-cover" src="{{ request.user.profile_picture.url }}"/>
-                    {% else %}
-                        <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-sm">
-                            {{ request.user.username|slice:":1"|upper }}
-                        </div>
-                    {% endif %}
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Side Navigation Bar -->
-    <aside class="hidden lg:flex fixed top-0 left-0 bottom-0 w-72 z-50 bg-[#16130b] border-r border-white/5 flex-col justify-between overflow-y-auto">
-        <div class="p-6">
-            <!-- User Profile Box -->
-            <div class="flex flex-col items-center text-center mt-4 mb-8">
-                <div class="w-20 h-20 rounded-xl border-2 border-primary p-0.5 shadow-[0_0_15px_rgba(242,202,80,0.2)] mb-4">
-                    {% if request.user.profile_picture %}
-                        <img alt="Collector Preview" class="w-full h-full object-cover rounded-lg" src="{{ request.user.profile_picture.url }}"/>
-                    {% else %}
-                        <div class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-2xl rounded-lg">
-                            {{ request.user.username|slice:":1"|upper }}
-                        </div>
-                    {% endif %}
-                </div>
-                <h2 class="font-display-lg text-lg tracking-wider text-primary">{{ request.user.username|upper }} GARAGE</h2>
-                <p class="font-label-caps text-[10px] text-on-surface-variant mt-1 flex items-center gap-1">
-                    <span class="material-symbols-outlined text-xs text-primary">stars</span> LEGENDARY COLLECTOR
-                </p>
-            </div>
-
-            <!-- Navigation Links -->
-            <nav class="space-y-1">
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-primary bg-[#231f14] border-l-2 border-primary" href="#">
-                    <span class="material-symbols-outlined text-lg">account_circle</span> Profile Info
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">inventory_2</span> My Garage Orders
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">toll</span> Wishlist Vault
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">account_balance_wallet</span> Wallet
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">confirmation_number</span> Coupons
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">location_on</span> Saved Addresses
-                </a>
-                <a class="flex items-center gap-4 px-4 py-3 font-label-caps text-xs tracking-widest text-on-surface-variant hover:text-primary transition-colors" href="#">
-                    <span class="material-symbols-outlined text-lg">token</span> Garage Showcase
-                </a>
-            </nav>
-        </div>
-
-        <!-- Sidebar Footer Options -->
-        <div class="p-6 border-t border-white/5 space-y-4 font-label-caps text-xs tracking-widest text-on-surface-variant">
-            <a href="#" class="block hover:text-primary transition-colors px-4">Privacy Policy</a>
-            <a href="#" class="block hover:text-primary transition-colors px-4">About Us</a>
-            <a href="#" class="flex items-center gap-4 px-4 py-4 text-error/80 hover:text-error transition-colors border-t border-white/5 mt-2">
-                <span class="material-symbols-outlined text-lg">logout</span> Logout
-            </a>
-        </div>
-    </aside>
-
+    {% include "include/user_sidebar.html" %}
+    {% include "include/user_topbar.html" %}
+    {% include "adminpanel/includes/messages.html" %}
+    
     <!-- Main Dynamic Section Layout -->
     <main class="page-content flex-1 relative z-10 bg-[#0c0a06]">
         <div class="max-w-[1200px] mx-auto px-4 sm:px-8 lg:px-12 py-6 sm:py-10">
@@ -238,6 +145,9 @@
             <form method="POST" action="." enctype="multipart/form-data" class="space-y-8 sm:space-y-12">
                 {% csrf_token %}
                 
+                <!-- Hidden input to track picture deletion request -->
+                <input type="hidden" name="delete_picture" id="delete-picture-input" value="false">
+
                 <div class="grid grid-cols-12 gap-6 lg:gap-8 items-start">
                     
                     <!-- Left Core Placement: Avatar Configuration Row -->
@@ -245,20 +155,29 @@
                         <!-- Preview Card -->
                         <div class="glass-panel rounded border border-white/5 p-6 sm:p-8 flex flex-col items-center justify-center relative">
                             <div class="relative w-28 h-28 sm:w-32 sm:h-32 mb-4 sm:mb-6">
-                                <div class="w-full h-full rounded border border-primary/40 p-1 bg-background">
-                                    {% if request.user.profile_picture %}
-                                        <img id="profile-preview" alt="Collector Main Profile" class="w-full h-full object-cover rounded" src="{{ request.user.profile_picture.url }}"/>
-                                    {% else %}
-                                        <div id="profile-preview-initials" class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-3xl rounded">
-                                            {{ request.user.username|slice:":1"|upper }}
-                                        </div>
-                                        <img id="profile-preview" alt="Collector Main Profile" class="w-full h-full object-cover rounded hidden" src=""/>
-                                    {% endif %}
+                                <div class="w-full h-full rounded border border-primary/40 p-1 bg-background relative overflow-hidden">
                                     
-                                    <label class="absolute bottom-1 right-1 bg-primary text-background p-1.5 sm:p-1 rounded-full hover:scale-105 transition-transform cursor-pointer">
-                                        <input type="file" name="profile_picture" id="profile-upload" class="hidden" accept="image/*">
-                                        <span class="material-symbols-outlined text-sm font-bold flex items-center justify-center">edit</span>
-                                    </label>
+                                    <!-- Initials Placeholder -->
+                                    <div id="profile-preview-initials" class="w-full h-full bg-neutral-800 flex items-center justify-center text-primary font-bold text-3xl rounded {% if request.user.profile_picture %}hidden{% endif %}">
+                                        {{ request.user.username|slice:":1"|upper }}
+                                    </div>
+
+                                    <!-- Image Preview -->
+                                    <img id="profile-preview" alt="Collector Main Profile" class="w-full h-full object-cover rounded {% if not request.user.profile_picture %}hidden{% endif %}" src="{% if request.user.profile_picture %}{{ request.user.profile_picture.url }}{% endif %}"/>
+
+                                    <!-- Action Buttons Overlay -->
+                                    <div class="absolute bottom-1 right-1 flex items-center gap-1">
+                                        <!-- Edit Icon -->
+                                        <label title="Change Profile Picture" class="bg-primary text-background p-1.5 sm:p-1 rounded-full hover:scale-105 transition-transform cursor-pointer shadow-md">
+                                            <input type="file" name="profile_picture" id="profile-upload" class="hidden" accept="image/png, image/jpeg, image/jpg, image/webp">
+                                            <span class="material-symbols-outlined text-sm font-bold flex items-center justify-center">edit</span>
+                                        </label>
+
+                                        <!-- Delete Icon -->
+                                        <button type="button" id="delete-picture-btn" title="Remove Profile Picture" class="bg-red-600 text-white p-1.5 sm:p-1 rounded-full hover:scale-105 transition-transform cursor-pointer shadow-md {% if not request.user.profile_picture %}hidden{% endif %}">
+                                            <span class="material-symbols-outlined text-sm font-bold flex items-center justify-center">delete</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <h3 class="font-display-lg text-base sm:text-lg tracking-widest text-on-surface text-center">{{ request.user.first_name }} {{ request.user.last_name }}</h3>
@@ -273,8 +192,8 @@
                             
                           <div class="flex flex-wrap items-center justify-between gap-2 border-b border-white/5 pb-3 sm:pb-2">
                             <h4 class="font-label-caps text-xs sm:text-sm tracking-widest text-primary">PROFILE_BIO</h4>
-                            <a href="{% url 'edit_profile_view' %}">
-                                <button class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-3 sm:px-4 py-1 text-[10px] font-label-caps tracking-widest">
+                            <a href="{% url 'profile_view' %}">
+                                <button type="button" class="border border-primary/40 text-primary bg-primary/5 hover:bg-primary hover:text-background transition-all px-3 sm:px-4 py-1 text-[10px] font-label-caps tracking-widest">
                                     BACK TO PROFILE
                                 </button>
                             </a>
@@ -300,7 +219,7 @@
 
                         <!-- Action Submit Section Row -->
                         <div class="mt-6 sm:mt-8 flex flex-col-reverse sm:flex-row justify-end items-center gap-4 sm:gap-6">
-                            <a href="#" onclick="window.history.back(); return false;" class="font-label-caps text-xs text-on-surface-variant tracking-widest hover:text-white transition-colors w-full sm:w-auto text-center">CANCEL</a>
+                            <a href="{% url 'profile_view' %}" onclick="window.history.back(); return false;" class="font-label-caps text-xs text-on-surface-variant tracking-widest hover:text-white transition-colors w-full sm:w-auto text-center">CANCEL</a>
                             <button type="submit" class="w-full sm:w-auto px-8 py-3.5 font-label-caps bg-primary text-background font-bold text-xs tracking-widest rounded hover:bg-primary/90 transition-all shadow-[0_0_15px_rgba(242,202,80,0.2)]">
                                 SAVE CHANGES
                             </button>
@@ -342,25 +261,46 @@
     </main>
 
     <script>
-        // Live preview: show selected photo instantly before form is submitted
-        document.getElementById('profile-upload').addEventListener('change', function(e) {
+        const fileInput = document.getElementById('profile-upload');
+        const previewImg = document.getElementById('profile-preview');
+        const initialsDiv = document.getElementById('profile-preview-initials');
+        const deleteBtn = document.getElementById('delete-picture-btn');
+        const deleteInput = document.getElementById('delete-picture-input');
+
+        // Handle Image Selection and Client Validation
+        fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
 
+            // Client-side extension/type check
+            const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                alert('Only standard image formats (JPEG, PNG, WEBP) are allowed.');
+                fileInput.value = ''; // Reset input
+                return;
+            }
+
             const reader = new FileReader();
             reader.onload = function(event) {
-                const previewImg = document.getElementById('profile-preview');
-                const initialsDiv = document.getElementById('profile-preview-initials');
-
-                // Show the image and hide initials fallback if present
                 if (initialsDiv) initialsDiv.classList.add('hidden');
-
                 if (previewImg) {
                     previewImg.src = event.target.result;
                     previewImg.classList.remove('hidden');
                 }
+                if (deleteBtn) deleteBtn.classList.remove('hidden');
+                deleteInput.value = 'false'; // Cancel deletion flag if uploading new picture
             };
             reader.readAsDataURL(file);
+        });
+
+        // Handle Delete Profile Picture Click
+        deleteBtn.addEventListener('click', function() {
+            fileInput.value = ''; // Clear selected file
+            previewImg.src = '';
+            previewImg.classList.add('hidden');
+            if (initialsDiv) initialsDiv.classList.remove('hidden');
+            deleteBtn.classList.add('hidden');
+            deleteInput.value = 'true'; // Set deletion flag for server-side processing
         });
     </script>
 
