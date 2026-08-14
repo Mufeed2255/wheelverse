@@ -1621,3 +1621,7 @@ def set_default_address(request, id):
     )
 
     return redirect("address_list")
+
+def sample_view(request):
+    num=1+2
+    return render(request,'accounts/sample.html',{'num':num})
