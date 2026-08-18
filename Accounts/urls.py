@@ -15,7 +15,7 @@ urlpatterns = [
     path('signup/', views.signup_view, name='signup'),
     path('signup-verify/', views.signup_verify_view, name='signup_verify'),
     path('signup/resend-otp/', views.resend_signup_otp_view, name='resend_signup_otp'),
-    path('sample/',views.sample_view,name='sample'),
+
 
     
     path('login/', views.login_view, name='login'),
